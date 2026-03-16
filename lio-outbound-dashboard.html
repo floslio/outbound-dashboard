@@ -1,0 +1,2633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lio Outbound Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca' },
+            surface: { 0:'#0a0b14',1:'#111225',2:'#1a1b35',3:'#232545' }
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: #0a0b14; color: #e2e8f0; }
+    .glass { background: rgba(26,27,53,0.7); backdrop-filter: blur(12px); border: 1px solid rgba(99,102,241,0.12); }
+    .glow { box-shadow: 0 0 20px rgba(99,102,241,0.08); }
+    select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
+    table { border-collapse: collapse; }
+    .bar-animate { animation: growWidth 0.8s ease-out forwards; }
+    @keyframes growWidth { from { width: 0; } }
+    .pill { transition: all 0.15s ease; }
+    .pill-active { background: rgba(99,102,241,0.25); color: #a5b4fc; border-color: rgba(99,102,241,0.5); }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .kpi-hit { background: rgba(52,211,153,0.12); }
+    .kpi-warn { background: rgba(251,191,36,0.10); }
+    .kpi-miss { background: rgba(248,113,113,0.10); }
+    .rank-1 { background: rgba(52,211,153,0.18); }
+    .rank-2 { background: rgba(52,211,153,0.09); }
+    .rank-3 { background: rgba(251,191,36,0.09); }
+    .rank-last { background: rgba(248,113,113,0.12); }
+    /* Drill-down */
+    .drillable { cursor: pointer; transition: all 0.15s ease; position: relative; }
+    .drillable:hover { opacity: 0.85; }
+    .drillable::after { content: '↗'; position: absolute; top: 2px; right: 4px; font-size: 9px; color: rgba(165,180,252,0.4); opacity: 0; transition: opacity 0.15s; }
+    .drillable:hover::after { opacity: 1; }
+    .drill-modal-bg { position: fixed; inset: 0; z-index: 999; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+    .drill-modal-bg.active { opacity: 1; pointer-events: auto; }
+    .drill-modal { background: #111225; border: 1px solid rgba(99,102,241,0.2); border-radius: 16px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); max-width: 560px; width: 90%; max-height: 80vh; overflow-y: auto; transform: scale(0.95); transition: transform 0.2s ease; }
+    .drill-modal-bg.active .drill-modal { transform: scale(1); }
+    /* Date Range Picker */
+    .date-picker-anchor { position: relative; }
+    .date-picker-pop { position: absolute; top: calc(100% + 8px); right: 0; z-index: 100; background: #111225; border: 1px solid rgba(99,102,241,0.25); border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); padding: 16px; min-width: 280px; opacity: 0; pointer-events: none; transform: translateY(-4px); transition: all 0.15s ease; }
+    .date-picker-pop.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+    .date-picker-pop input[type="date"] { background: #1a1b35; border: 1px solid rgba(99,102,241,0.2); border-radius: 8px; color: #e2e8f0; padding: 6px 10px; font-size: 13px; font-family: 'Inter', sans-serif; width: 100%; outline: none; }
+    .date-picker-pop input[type="date"]:focus { border-color: rgba(99,102,241,0.5); }
+    .date-picker-pop input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); cursor: pointer; }
+    .date-range-preset { cursor: pointer; padding: 4px 10px; border-radius: 6px; font-size: 11px; color: #94a3b8; transition: all 0.12s ease; border: 1px solid transparent; }
+    .date-range-preset:hover { background: rgba(99,102,241,0.15); color: #a5b4fc; }
+    .date-range-preset.active { background: rgba(99,102,241,0.2); color: #a5b4fc; border-color: rgba(99,102,241,0.3); }
+    /* Export dropdown */
+    .export-anchor { position: relative; }
+    .export-drop { position: absolute; top: calc(100% + 6px); right: 0; z-index: 100; background: #111225; border: 1px solid rgba(99,102,241,0.25); border-radius: 10px; box-shadow: 0 16px 32px rgba(0,0,0,0.45); min-width: 180px; opacity: 0; pointer-events: none; transform: translateY(-4px); transition: all 0.15s ease; overflow: hidden; }
+    .export-drop.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+    .export-item { display: flex; align-items: center; gap: 8px; padding: 10px 14px; font-size: 12px; color: #cbd5e1; cursor: pointer; transition: background 0.1s; }
+    .export-item:hover { background: rgba(99,102,241,0.12); color: #e2e8f0; }
+    .export-item svg { flex-shrink: 0; }
+    /* Print styles for PDF export */
+    @media print {
+      body { background: #fff !important; color: #111 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      header, .date-picker-anchor, .export-anchor, #periodFilter, #personFilter, #syncBtn, .drill-modal-bg { display: none !important; }
+      .glass { background: #f8f9fa !important; border-color: #dee2e6 !important; backdrop-filter: none !important; }
+      .glow { box-shadow: none !important; }
+      main { padding-top: 0 !important; }
+      #printHeader { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Auth Gate -->
+  <div id="authGate" style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0a0b14;">
+    <div class="glass glow" style="border-radius:16px;padding:40px;text-align:center;max-width:360px;width:90%;">
+      <div style="font-size:32px;margin-bottom:8px;">🔒</div>
+      <h2 style="font-size:18px;font-weight:700;color:#e2e8f0;margin-bottom:4px;">Lio Outbound Dashboard</h2>
+      <p style="font-size:12px;color:#64748b;margin-bottom:24px;">Enter team PIN to continue</p>
+      <div style="display:flex;gap:8px;">
+        <input id="pinInput" type="password" placeholder="Team PIN" maxlength="20"
+          style="flex:1;background:#1a1b35;border:1px solid rgba(99,102,241,0.25);border-radius:10px;padding:10px 14px;color:#e2e8f0;font-size:14px;font-family:'Inter',sans-serif;outline:none;"
+          onkeydown="if(event.key==='Enter')checkPin()"
+          autofocus>
+        <button onclick="checkPin()"
+          style="background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">
+          Go
+        </button>
+      </div>
+      <p id="pinError" style="color:#f87171;font-size:11px;margin-top:10px;display:none;">Wrong PIN. Try again.</p>
+    </div>
+  </div>
+
+  <div id="app" style="display:none;"></div>
+  <!-- Drill-Down Modal -->
+  <div id="drillModal" class="drill-modal-bg" onclick="if(event.target===this)closeDrill()">
+    <div class="drill-modal">
+      <div id="drillContent"></div>
+    </div>
+  </div>
+
+  <script>
+    // ─── AUTH ──────────────────────────────────────────
+    // Simple team PIN gate. Change TEAM_PIN to update the password.
+    const TEAM_PIN = 'lio2026';
+    const AUTH_KEY = 'lio_dash_auth';
+
+    function checkPin() {
+      const input = document.getElementById('pinInput').value.trim();
+      if (input === TEAM_PIN) {
+        sessionStorage.setItem(AUTH_KEY, 'true');
+        unlockDashboard();
+      } else {
+        document.getElementById('pinError').style.display = 'block';
+        document.getElementById('pinInput').value = '';
+        document.getElementById('pinInput').focus();
+      }
+    }
+
+    function unlockDashboard() {
+      document.getElementById('authGate').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      render(); // trigger initial render
+    }
+
+    // Auto-unlock if already authenticated in this session
+    if (sessionStorage.getItem(AUTH_KEY) === 'true') {
+      document.getElementById('authGate').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    }
+    // ─── PERIOD DATA ──────────────────────────────────
+    // Each period contains per-person KPIs. The daily scheduled task updates these.
+    // Call rule: "Call with [AE]" under 60s = not reached. 1m+ = connected.
+    // "Missed call from [AE]" = not reached.
+
+    let LAST_SYNC = '2026-03-16T15:00:00+01:00'; // ISO timestamp of last data sync
+
+    const PERIODS = {
+      today: {
+        label: 'Today (03/16)',
+        sublabel: 'Monday, March 16, 2026',
+        team: [
+          { name:'Florian Wanzeck', short:'Florian', emails:0, replies:1, calls:6, callsConnected:0, callsMissed:6, coldCalls:6, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Tobias Rohringer', short:'Tobias', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Julius Kaiser', short:'Julius', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Edmond Clemens', short:'Edmond', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Romeo Vogt', short:'Romeo', emails:3, replies:1, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Linh Cao', short:'Linh', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Temoc Chavero', short:'Temoc', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Michael Schmid', short:'Michael', emails:0, replies:1, calls:1, callsConnected:0, callsMissed:1, coldCalls:1, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Vincent Nusmeier', short:'Vincent', emails:0, replies:1, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Patricia Hölscher', short:'Patricia', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+        ]
+      },
+      week: {
+        label: 'CW11',
+        sublabel: 'Mar 9 \u2013 15, 2026',
+        team: [
+          { name:'Florian Wanzeck', short:'Florian', emails:4, replies:4, calls:16, callsConnected:2, callsMissed:14, coldCalls:16, followUpCalls:0, linkedin:0, demos:3, deals:2, pipeline:80000, sals:2, sqls:0, opps:0 },
+          { name:'Tobias Rohringer', short:'Tobias', emails:0, replies:2, calls:1, callsConnected:1, callsMissed:0, coldCalls:1, followUpCalls:0, linkedin:0, demos:2, deals:5, pipeline:230000, sals:4, sqls:0, opps:0 },
+          { name:'Julius Kaiser', short:'Julius', emails:1, replies:2, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:1, deals:1, pipeline:40000, sals:4, sqls:0, opps:0 },
+          { name:'Edmond Clemens', short:'Edmond', emails:1, replies:2, calls:3, callsConnected:1, callsMissed:2, coldCalls:3, followUpCalls:0, linkedin:0, demos:1, deals:2, pipeline:90000, sals:4, sqls:0, opps:0 },
+          { name:'Romeo Vogt', short:'Romeo', emails:4, replies:3, calls:4, callsConnected:2, callsMissed:2, coldCalls:4, followUpCalls:0, linkedin:0, demos:2, deals:6, pipeline:240000, sals:6, sqls:0, opps:0 },
+          { name:'Linh Cao', short:'Linh', emails:1, replies:0, calls:2, callsConnected:1, callsMissed:1, coldCalls:2, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:1, sqls:0, opps:0 },
+          { name:'Temoc Chavero', short:'Temoc', emails:0, replies:1, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:1, sqls:0, opps:0 },
+          { name:'Michael Schmid', short:'Michael', emails:2, replies:1, calls:1, callsConnected:0, callsMissed:1, coldCalls:1, followUpCalls:0, linkedin:0, demos:0, deals:1, pipeline:40000, sals:3, sqls:0, opps:0 },
+          { name:'Vincent Nusmeier', short:'Vincent', emails:2, replies:1, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Patricia Hölscher', short:'Patricia', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+        ]
+      },
+      month: {
+        label: 'March 2026',
+        sublabel: 'Mar 1 \u2013 31, 2026',
+        team: [
+          { name:'Florian Wanzeck', short:'Florian', emails:4, replies:5, calls:28, callsConnected:9, callsMissed:19, coldCalls:28, followUpCalls:0, linkedin:0, demos:3, deals:4, pipeline:160000, sals:6, sqls:0, opps:0 },
+          { name:'Tobias Rohringer', short:'Tobias', emails:0, replies:2, calls:1, callsConnected:1, callsMissed:0, coldCalls:1, followUpCalls:0, linkedin:0, demos:3, deals:8, pipeline:1060000, sals:5, sqls:0, opps:1 },
+          { name:'Julius Kaiser', short:'Julius', emails:1, replies:2, calls:2, callsConnected:0, callsMissed:2, coldCalls:2, followUpCalls:0, linkedin:0, demos:1, deals:1, pipeline:40000, sals:4, sqls:0, opps:1 },
+          { name:'Edmond Clemens', short:'Edmond', emails:2, replies:3, calls:3, callsConnected:1, callsMissed:2, coldCalls:3, followUpCalls:0, linkedin:0, demos:4, deals:4, pipeline:180000, sals:4, sqls:1, opps:1 },
+          { name:'Romeo Vogt', short:'Romeo', emails:4, replies:3, calls:15, callsConnected:7, callsMissed:8, coldCalls:15, followUpCalls:0, linkedin:0, demos:3, deals:7, pipeline:280000, sals:7, sqls:0, opps:0 },
+          { name:'Linh Cao', short:'Linh', emails:3, replies:1, calls:10, callsConnected:3, callsMissed:7, coldCalls:10, followUpCalls:0, linkedin:0, demos:1, deals:0, pipeline:0, sals:1, sqls:0, opps:0 },
+          { name:'Temoc Chavero', short:'Temoc', emails:2, replies:4, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:1, sqls:0, opps:0 },
+          { name:'Michael Schmid', short:'Michael', emails:4, replies:3, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:2, pipeline:90000, sals:4, sqls:0, opps:1 },
+          { name:'Vincent Nusmeier', short:'Vincent', emails:2, replies:1, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Patricia Hölscher', short:'Patricia', emails:0, replies:3, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+        ]
+      },
+      q1: {
+        label: 'Q1 2026',
+        sublabel: 'January \u2013 March 2026',
+        team: [
+          { name:'Florian Wanzeck', short:'Florian', emails:4, replies:5, calls:28, callsConnected:9, callsMissed:19, coldCalls:28, followUpCalls:0, linkedin:0, demos:4, deals:6, pipeline:240000, sals:8, sqls:0, opps:0 },
+          { name:'Tobias Rohringer', short:'Tobias', emails:0, replies:2, calls:63, callsConnected:19, callsMissed:44, coldCalls:63, followUpCalls:0, linkedin:0, demos:11, deals:30, pipeline:2817000, sals:13, sqls:10, opps:2 },
+          { name:'Julius Kaiser', short:'Julius', emails:1, replies:2, calls:16, callsConnected:6, callsMissed:10, coldCalls:16, followUpCalls:0, linkedin:0, demos:12, deals:12, pipeline:782000, sals:15, sqls:2, opps:3 },
+          { name:'Edmond Clemens', short:'Edmond', emails:2, replies:3, calls:3, callsConnected:1, callsMissed:2, coldCalls:3, followUpCalls:0, linkedin:0, demos:6, deals:18, pipeline:784800, sals:5, sqls:9, opps:3 },
+          { name:'Romeo Vogt', short:'Romeo', emails:4, replies:3, calls:15, callsConnected:7, callsMissed:8, coldCalls:15, followUpCalls:0, linkedin:0, demos:3, deals:7, pipeline:280000, sals:7, sqls:0, opps:0 },
+          { name:'Linh Cao', short:'Linh', emails:3, replies:1, calls:65, callsConnected:17, callsMissed:48, coldCalls:65, followUpCalls:0, linkedin:0, demos:5, deals:0, pipeline:0, sals:5, sqls:0, opps:0 },
+          { name:'Temoc Chavero', short:'Temoc', emails:2, replies:4, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:1, deals:1, pipeline:60000, sals:2, sqls:0, opps:0 },
+          { name:'Michael Schmid', short:'Michael', emails:4, replies:3, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:16, pipeline:1226000, sals:7, sqls:0, opps:1 },
+          { name:'Vincent Nusmeier', short:'Vincent', emails:2, replies:1, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:4, pipeline:1420000, sals:1, sqls:0, opps:3 },
+          { name:'Patricia H\u00F6lscher', short:'Patricia', emails:0, replies:3, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:4, pipeline:390000, sals:1, sqls:0, opps:0 },
+        ]
+      },
+      q2: { label: 'Q2 2026', sublabel: 'April \u2013 June 2026', team: [] },
+      q3: { label: 'Q3 2026', sublabel: 'July \u2013 September 2026', team: [] },
+      q4: { label: 'Q4 2026', sublabel: 'October \u2013 December 2026', team: [] },
+    };
+
+    const FUNNEL = [
+      { stage:'Outbound Prospect', count:73, color:'#818cf8' },
+      { stage:'Outbound Lead', count:19, color:'#6366f1' },
+      { stage:'Inbound Lead', count:136, color:'#a78bfa' },
+      { stage:'SAL (Book 1st Demo)', count:95, color:'#7c3aed' },
+      { stage:'SQL (Demo Done)', count:66, color:'#6d28d9' },
+      { stage:'RFX', count:14, color:'#5b21b6' },
+      { stage:'Opportunity', count:70, color:'#8b5cf6' },
+      { stage:'Vendor of Choice', count:22, color:'#7e22ce' },
+      { stage:'Order Review', count:6, color:'#c084fc' },
+      { stage:'Verbal Commit.', count:2, color:'#d8b4fe' },
+      { stage:'Contract Neg.', count:8, color:'#9333ea' },
+      { stage:'Signing', count:4, color:'#a855f7' },
+      { stage:'Pilot ARR', count:2, color:'#e9d5ff' },
+      { stage:'Closed Won', count:83, color:'#34d399' },
+      { stage:'Lost', count:88, color:'#f87171' },
+      { stage:'No Fit', count:337, color:'#64748b', split: [
+        { label:'Company', count:196, color:'#64748b' },
+        { label:'Person', count:141, color:'#475569' }
+      ]},
+      { stage:'Bad Timing', count:40, color:'#94a3b8' },
+    ];
+
+    const TRENDS = [
+      { week:'CW01', emails:12, calls:8, demos:2, pipeline:90 },
+      { week:'CW02', emails:25, calls:15, demos:3, pipeline:150 },
+      { week:'CW03', emails:45, calls:28, demos:4, pipeline:220 },
+      { week:'CW04', emails:80, calls:40, demos:5, pipeline:280 },
+      { week:'CW05', emails:95, calls:35, demos:7, pipeline:350 },
+      { week:'CW06', emails:110, calls:50, demos:6, pipeline:410 },
+      { week:'CW07', emails:88, calls:45, demos:8, pipeline:320 },
+      { week:'CW08', emails:102, calls:42, demos:9, pipeline:450 },
+      { week:'CW09', emails:120, calls:55, demos:7, pipeline:380 },
+      { week:'CW10', emails:105, calls:48, demos:10, pipeline:520 },
+      { week:'CW11', emails:15, calls:27, demos:13, pipeline:1430 },
+      { week:'CW12', emails:5, calls:7, demos:0, pipeline:0 },
+    ];
+
+    // ─── HELPERS ────────────────────────────────────────
+    const fmt = (n) => {
+      if (n >= 1000000) return '\u20AC' + (n/1000000).toFixed(2) + 'M';
+      if (n >= 1000) return '\u20AC' + (n/1000).toFixed(0) + 'k';
+      return '\u20AC' + n;
+    };
+    const dash = (v) => v === 0 ? '<span class="text-slate-600">\u2014</span>' : v;
+    function formatSyncTime(iso) {
+      const d = new Date(iso);
+      const dd = String(d.getDate()).padStart(2,'0');
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const yy = d.getFullYear();
+      const hh = String(d.getHours()).padStart(2,'0');
+      const mi = String(d.getMinutes()).padStart(2,'0');
+      return `${mm}/${dd}/${yy} at ${hh}:${mi}`;
+    }
+    const pct = (a, b) => b > 0 ? Math.round((a / b) * 100) + '%' : '\u2014';
+
+    // ─── WOW DELTA HELPERS ────────────────────────────
+    function deltaIcon(curr, prev) {
+      if (prev === 0 && curr === 0) return '';
+      if (prev === 0) return `<span class="text-emerald-400 text-[10px] font-semibold">↑ new</span>`;
+      const change = ((curr - prev) / prev) * 100;
+      const abs = Math.abs(Math.round(change));
+      if (abs === 0) return `<span class="text-slate-500 text-[10px]">→ 0%</span>`;
+      if (change > 0) return `<span class="text-emerald-400 text-[10px] font-semibold">▲ ${abs}%</span>`;
+      return `<span class="text-red-400 text-[10px] font-semibold">▼ ${abs}%</span>`;
+    }
+    function getDelta(periodKey) {
+      // Returns { emails, calls, demos, pipeline } deltas as { curr, prev } pairs
+      if (periodKey === 'week' && TRENDS.length >= 2) {
+        const curr = TRENDS[TRENDS.length - 1];
+        const prev = TRENDS[TRENDS.length - 2];
+        return {
+          emails: { curr: curr.emails, prev: prev.emails, label: `vs ${prev.week}` },
+          calls: { curr: curr.calls, prev: prev.calls, label: `vs ${prev.week}` },
+          demos: { curr: curr.demos, prev: prev.demos, label: `vs ${prev.week}` },
+          pipeline: { curr: curr.pipeline * 1000, prev: prev.pipeline * 1000, label: `vs ${prev.week}` },
+        };
+      }
+      if (periodKey === 'today' && ACTIVITY_TIMELINE.length >= 2) {
+        const today = ACTIVITY_TIMELINE[ACTIVITY_TIMELINE.length - 1];
+        const yest = ACTIVITY_TIMELINE[ACTIVITY_TIMELINE.length - 2];
+        return {
+          emails: { curr: today.emails, prev: yest.emails, label: `vs ${yest.weekday}` },
+          calls: { curr: today.calls, prev: yest.calls, label: `vs ${yest.weekday}` },
+          demos: { curr: today.meetings, prev: yest.meetings, label: `vs ${yest.weekday}` },
+          pipeline: { curr: today.deals, prev: yest.deals, label: `vs ${yest.weekday}` },
+        };
+      }
+      return null;
+    }
+
+    // ─── KPI TARGETS (per person) ─────────────────────
+    const KPI_TARGETS = {
+      today:  { emails:5,  calls:5,  demos:1, deals:2, pipeline:20000 },
+      week:   { emails:25, calls:20, demos:3, deals:8, pipeline:100000 },
+      month:  { emails:100,calls:80, demos:12,deals:30,pipeline:400000 },
+      q1:     { emails:300,calls:240,demos:36,deals:90,pipeline:1200000 },
+      q2:     { emails:300,calls:240,demos:36,deals:90,pipeline:1200000 },
+      q3:     { emails:300,calls:240,demos:36,deals:90,pipeline:1200000 },
+      q4:     { emails:300,calls:240,demos:36,deals:90,pipeline:1200000 },
+    };
+
+    // ─── SAL DEALS (Demo Details per AE) ─────────────
+    // Company names of deals in SAL (Book 1st Demo) stage, grouped by AE short name
+    const SAL_DEALS = {
+      'Florian': ['Goldbeck', 'Abdulaziz Alrayes (Inbound)', 'Mitsubishi', 'Weishaupt', 'Driventic', 'Dolores Salgueiro (Inbound)', 'Balluff', 'Relloe'],
+      'Tobias': ['Hochtief', 'dp.now: PwC', 'Kubota', 'GN', 'ÖBB', 'Sky', 'IKB Upsell', 'Mer', 'Pia Group', 'Evotec', 'Evonik', 'Telefonica', 'Würth Group', 'Schulz Systemtechnik', 'Saudi Landscape', 'Asahi International', 'convergint technologies', 'CBRE', 'Hamburger Energienetze', 'Strabag PFS', 'OGE - Value Expansion', 'Wacker Neuson', 'ADAC SE'],
+      'Julius': ['Revolut', 'EQT', 'Ally (World50)', 'Primark', 'Little John LLC', 'Capgemini (World50)', 'Capgemini — World50 Indy Spring 2026', 'Aurubis', 'MS Schramberg', 'HAYS PLC', 'Cielo', 'KPS Capital', 'Infosys', 'India Times', 'SIEGENIA GROUP', 'Prym', 'Sain Consulting', 'Veka AG', 'ISS World', 'Egger (McKinsey)'],
+      'Edmond': ['Playlist', 'Alliance Healthcare', 'Bunge', 'Hansgrohe', 'Handtmann', 'Emirates Flight Catering'],
+      'Romeo': ['Clutch Technologies', 'InPost España', 's.Oliver Group', 'BURGER Group', 'Familienheim Rhein-Neckar', 'MOSOLF Group', 'PM-International'],
+      'Linh': ['LEDVANCE', 'MTU Aero Engines', 'Mass Mutual', 'Kevin Tinnes (Inbound)', 'Ravensburger', 'Starbucks (USA)'],
+      'Temoc': ['Glencore', 'Amphenol'],
+      'Michael': ['UBP - Union Bancaire Privée', 'Henry Chang (Inbound)', 'Adil TLESHOV (Inbound)', 'Korian Deutschland', 'Bart Reynolds (Inbound)', 'BOSCH Real Estate', 'Microsoft', 'dp.now Partnership', 'swisslog', 'Munich Airport', 'LATAM Airlines', 'MSC Cruises', 'Temenos', 'KUKA'],
+      'Vincent': ['Telekom'],
+      'Patricia': ['Axpo Power', 'Atruvia', 'Leadec', 'Vogelsang'],
+    };
+
+    function kpiClass(val, target) {
+      if (!target || target === 0) return '';
+      const ratio = val / target;
+      if (ratio >= 1) return 'kpi-hit';
+      if (ratio >= 0.5) return 'kpi-warn';
+      return 'kpi-miss';
+    }
+
+    // ─── MANUAL INPUT (Supabase) ──────────────────────
+    const SUPABASE_URL = 'https://mgiurwlumbxiqutsnocz.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_4AUOsSt7OYyggoZU8lAkww_h_79Q_9n';
+    const SB_HEADERS = {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+    };
+
+    const ACT_TYPES = [
+      { key:'linkedin', label:'LinkedIn Outreach', field:'linkedin', icon:'\uD83D\uDD17' },
+      { key:'outreach_email', label:'Outreach Email', field:'emails', icon:'\u2709\uFE0F' },
+      { key:'followup_email', label:'Follow-up Email', field:'replies', icon:'\u21A9\uFE0F' },
+      { key:'cold_call', label:'Cold Call', field:'coldCalls', icon:'\uD83D\uDCDE' },
+      { key:'followup_call', label:'Follow-up Call', field:'followUpCalls', icon:'\uD83D\uDD01' },
+      { key:'demo', label:'Demo', field:'demos', icon:'\uD83C\uDFAC' },
+    ];
+    const TEAM_NAMES = ['Florian','Tobias','Julius','Edmond','Romeo','Linh','Temoc','Michael','Vincent','Patricia'];
+
+    // In-memory cache of Supabase data (loaded on init + after mutations)
+    let _manualCache = [];
+    let _manualLoaded = false;
+    let _manualLoading = false;
+
+    async function loadManualActs() {
+      if (_manualLoading) return;
+      _manualLoading = true;
+      try {
+        const resp = await fetch(SUPABASE_URL + '/rest/v1/manual_activities?select=*&order=created_at.desc', { headers: SB_HEADERS });
+        if (resp.ok) {
+          _manualCache = await resp.json();
+          _manualLoaded = true;
+        } else {
+          console.warn('Supabase load failed:', resp.status, await resp.text());
+          // Fallback to localStorage
+          try { _manualCache = JSON.parse(localStorage.getItem('LIO_MANUAL_FALLBACK') || '[]'); } catch { _manualCache = []; }
+        }
+      } catch (err) {
+        console.warn('Supabase unreachable, using localStorage fallback:', err);
+        try { _manualCache = JSON.parse(localStorage.getItem('LIO_MANUAL_FALLBACK') || '[]'); } catch { _manualCache = []; }
+      }
+      _manualLoading = false;
+    }
+
+    function getManualActs() { return _manualCache; }
+
+    async function addManualActivity(person, type, count, date, note) {
+      const entry = { person, activity_type: type, count: Number(count)||1, activity_date: date, note: note||'', created_by: 'dashboard' };
+      try {
+        const resp = await fetch(SUPABASE_URL + '/rest/v1/manual_activities', {
+          method: 'POST', headers: SB_HEADERS, body: JSON.stringify(entry)
+        });
+        if (resp.ok) {
+          const [created] = await resp.json();
+          _manualCache.unshift(created);
+          // Also save to localStorage as backup
+          localStorage.setItem('LIO_MANUAL_FALLBACK', JSON.stringify(_manualCache));
+        } else {
+          console.error('Supabase insert failed:', await resp.text());
+          // Fallback: save locally
+          const local = { ...entry, id: Date.now(), created_at: new Date().toISOString() };
+          _manualCache.unshift(local);
+          localStorage.setItem('LIO_MANUAL_FALLBACK', JSON.stringify(_manualCache));
+        }
+      } catch (err) {
+        console.error('Supabase unreachable:', err);
+        const local = { ...entry, id: Date.now(), created_at: new Date().toISOString() };
+        _manualCache.unshift(local);
+        localStorage.setItem('LIO_MANUAL_FALLBACK', JSON.stringify(_manualCache));
+      }
+      closeManualModal();
+      render();
+    }
+
+    async function deleteManualAct(id) {
+      try {
+        await fetch(SUPABASE_URL + '/rest/v1/manual_activities?id=eq.' + id, {
+          method: 'DELETE', headers: SB_HEADERS
+        });
+      } catch (err) { console.warn('Delete failed:', err); }
+      _manualCache = _manualCache.filter(a => a.id !== id);
+      localStorage.setItem('LIO_MANUAL_FALLBACK', JSON.stringify(_manualCache));
+      render();
+    }
+
+    function getPeriodRange(periodKey) {
+      switch(periodKey) {
+        case 'today': return ['2026-03-16','2026-03-16'];
+        case 'week': return ['2026-03-10','2026-03-16'];
+        case 'month': return ['2026-03-01','2026-03-31'];
+        case 'q1': return ['2026-01-01','2026-03-31'];
+        case 'q2': return ['2026-04-01','2026-06-30'];
+        case 'q3': return ['2026-07-01','2026-09-30'];
+        case 'q4': return ['2026-10-01','2026-12-31'];
+        default: return ['2026-01-01','2026-12-31'];
+      }
+    }
+
+    function getManualForPeriod(periodKey) {
+      const [s, e] = getPeriodRange(periodKey);
+      const counts = {};
+      _manualCache.forEach(a => {
+        const d = a.activity_date || a.date;
+        if (d >= s && d <= e) {
+          const p = a.person;
+          if (!counts[p]) counts[p] = {};
+          const t = ACT_TYPES.find(x => x.key === (a.activity_type || a.type));
+          if (t) {
+            counts[p][t.field] = (counts[p][t.field]||0) + (a.count||1);
+            if (t.field === 'coldCalls' || t.field === 'followUpCalls') {
+              counts[p]['calls'] = (counts[p]['calls']||0) + (a.count||1);
+              counts[p]['callsConnected'] = (counts[p]['callsConnected']||0) + (a.count||1);
+            }
+          }
+        }
+      });
+      return counts;
+    }
+
+    function getManualEntriesForPeriod(periodKey) {
+      const [s, e] = getPeriodRange(periodKey);
+      return _manualCache.filter(a => {
+        const d = a.activity_date || a.date;
+        return d >= s && d <= e;
+      });
+    }
+
+    let manualModalOpen = false;
+    function openManualModal() { manualModalOpen = true; render(); }
+    function closeManualModal() { manualModalOpen = false; render(); }
+
+    function submitManualForm() {
+      const p = document.getElementById('mi_person').value;
+      const t = document.getElementById('mi_type').value;
+      const c = document.getElementById('mi_count').value;
+      const d = document.getElementById('mi_date').value;
+      const n = document.getElementById('mi_note').value;
+      if (!p || !t || !d) return;
+      addManualActivity(p, t, c, d, n);
+    }
+
+    // ─── SYNC FROM SUPABASE ───────────────────────────
+    // Data is synced to Supabase by Claude (via MCP tools).
+    // The sync button reads the latest data from Supabase — no API keys needed.
+    let syncInProgress = false;
+
+    function showSyncOverlay(message, status, progress) {
+      let overlay = document.getElementById('syncOverlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'syncOverlay';
+        overlay.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;background:rgba(26,27,53,0.95);border:1px solid rgba(99,102,241,0.4);border-radius:12px;padding:16px 20px;backdrop-filter:blur(12px);color:#e2e8f0;font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,0.4);max-width:340px;min-width:280px;';
+        document.body.appendChild(overlay);
+      }
+      const isError = status === 'error';
+      const isDone = status === 'done';
+      const iconStyle = isDone ? '' : (isError ? '' : 'animation:spin 1s linear infinite;display:inline-block;');
+      const icon = isDone ? '✓' : (isError ? '✕' : '⟳');
+      const iconColor = isDone ? '#34d399' : (isError ? '#f87171' : '#a5b4fc');
+      const titleText = isDone ? 'Sync complete' : (isError ? 'Sync error' : 'Syncing...');
+      let progressBar = '';
+      if (typeof progress === 'number' && !isDone && !isError) {
+        progressBar = `<div style="margin-top:8px;height:3px;border-radius:2px;background:rgba(99,102,241,0.15);overflow:hidden;"><div style="height:100%;border-radius:2px;background:linear-gradient(90deg,#6366f1,#a5b4fc);width:${progress}%;transition:width 0.3s ease;"></div></div>`;
+      }
+      const closeBtn = (isDone || isError) ? `<button onclick="removeSyncOverlay()" style="margin-top:10px;font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.15);color:#a5b4fc;cursor:pointer;">Close</button>` : '';
+      overlay.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span style="font-size:18px;${iconStyle}color:${iconColor};">${icon}</span>
+          <strong style="color:${iconColor};">${titleText}</strong>
+        </div>
+        <p style="color:#94a3b8;font-size:11px;line-height:1.5;">${message}</p>
+        ${progressBar}
+        <div style="display:flex;gap:4px;">${closeBtn}</div>
+      `;
+    }
+
+    function removeSyncOverlay() {
+      const o = document.getElementById('syncOverlay');
+      if (o) o.remove();
+    }
+
+    function resetSyncBtn() {
+      const btn = document.getElementById('syncBtn');
+      const icon = document.getElementById('syncIcon');
+      const txt = document.getElementById('syncText');
+      if (btn) {
+        btn.classList.remove('animate-pulse');
+        if (icon) icon.style.animation = '';
+        if (txt) txt.textContent = 'Sync Now';
+        btn.style.borderColor = '';
+        btn.style.background = '';
+      }
+      syncInProgress = false;
+    }
+
+    async function triggerSync() {
+      if (syncInProgress) return;
+      syncInProgress = true;
+
+      const btn = document.getElementById('syncBtn');
+      const icon = document.getElementById('syncIcon');
+      const txt = document.getElementById('syncText');
+      if (btn) {
+        btn.classList.add('animate-pulse');
+        if (icon) icon.style.animation = 'spin 1s linear infinite';
+        if (txt) txt.textContent = 'Syncing...';
+      }
+
+      showSyncOverlay('Loading latest data from database...', 'loading', 20);
+
+      try {
+        // Fetch all metrics from Supabase dashboard_sync table
+        const resp = await fetch(SUPABASE_URL + '/rest/v1/dashboard_sync?select=*', {
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+        });
+
+        if (!resp.ok) {
+          throw new Error('Database returned ' + resp.status);
+        }
+
+        const rows = await resp.json();
+        if (!rows || rows.length === 0) {
+          showSyncOverlay('No synced data found in database yet. Data is synced by the backend — ask Claude to "sync the outbound dashboard" to populate it.', 'error');
+          resetSyncBtn();
+          return;
+        }
+
+        showSyncOverlay('Processing ' + rows.length + ' metrics...', 'loading', 60);
+
+        // Group rows by period and person
+        const grouped = {}; // { period: { person: { metric: value } } }
+        let latestSync = null;
+        for (const row of rows) {
+          const { period, person_short, metric, value, synced_at } = row;
+          if (!grouped[period]) grouped[period] = {};
+          if (!grouped[period][person_short]) grouped[period][person_short] = {};
+          grouped[period][person_short][metric] = Number(value);
+          if (!latestSync || synced_at > latestSync) latestSync = synced_at;
+        }
+
+        showSyncOverlay('Updating dashboard...', 'loading', 85);
+
+        // Apply synced data to PERIODS
+        const metrics = ['emails', 'replies', 'calls', 'callsConnected', 'callsMissed', 'coldCalls', 'followUpCalls',
+                         'linkedin', 'demos', 'deals', 'pipeline', 'sals', 'sqls', 'opps'];
+        let updatedCount = 0;
+        for (const pk of ['today', 'week', 'month', 'q1']) {
+          if (!PERIODS[pk] || !PERIODS[pk].team || !grouped[pk]) continue;
+          for (const person of PERIODS[pk].team) {
+            const syncData = grouped[pk][person.short];
+            if (!syncData) continue;
+            for (const m of metrics) {
+              if (syncData[m] !== undefined) {
+                person[m] = syncData[m];
+                updatedCount++;
+              }
+            }
+          }
+        }
+
+        // Update sync timestamp
+        if (latestSync) LAST_SYNC = latestSync;
+
+        render();
+
+        const syncTime = latestSync ? new Date(latestSync).toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : 'unknown';
+        showSyncOverlay(`Updated ${updatedCount} metrics.<br><span style="font-size:10px;color:#64748b;">Data from: ${syncTime}</span>`, 'done');
+
+      } catch (e) {
+        console.error('Sync error:', e);
+        showSyncOverlay('Could not load data: ' + e.message + '<br><span style="font-size:10px;color:#64748b;">Ask Claude to "sync the outbound dashboard" to refresh data.</span>', 'error');
+      } finally {
+        resetSyncBtn();
+      }
+    }
+
+    // ─── STATE ────────────────────────────────────────
+    let selectedPeriod = 'week';
+    let selectedPerson = 'All';
+    let customRange = null; // { from: 'YYYY-MM-DD', to: 'YYYY-MM-DD', label: '...' }
+    let datePickerOpen = false;
+
+    // ─── DATE RANGE HELPERS ──────────────────────────
+    function parseDE(dateStr) { // 'DD.MM.YYYY' → Date
+      const [d,m,y] = dateStr.split('.').map(Number);
+      return new Date(y, m-1, d);
+    }
+    function fmtDE(date) { // Date → 'DD.MM.YYYY'
+      return String(date.getDate()).padStart(2,'0') + '.' + String(date.getMonth()+1).padStart(2,'0') + '.' + date.getFullYear();
+    }
+    function fmtShort(date) { // Date → 'DD.MM.'
+      return String(date.getDate()).padStart(2,'0') + '.' + String(date.getMonth()+1).padStart(2,'0') + '.';
+    }
+
+    // Map a custom date range to the best-fit existing period
+    function mapRangeToPeriod(from, to) {
+      const f = new Date(from), t = new Date(to);
+      const now = new Date();
+      const todayStr = now.toISOString().slice(0,10);
+
+      // Exact today
+      if (from === todayStr && to === todayStr) return 'today';
+
+      // Check if range matches current week (Mon-Sun of KW11)
+      const mon = new Date(2026, 2, 10), sun = new Date(2026, 2, 16);
+      if (f <= mon && t >= sun) return 'week';
+
+      // Check if range covers full March 2026
+      const m1 = new Date(2026, 2, 1), m31 = new Date(2026, 2, 31);
+      if (f <= m1 && t >= m31) return 'month';
+
+      // Check quarters
+      if (f <= new Date(2026, 0, 1) && t >= new Date(2026, 2, 31)) return 'q1';
+      if (f <= new Date(2026, 3, 1) && t >= new Date(2026, 5, 30)) return 'q2';
+      if (f <= new Date(2026, 6, 1) && t >= new Date(2026, 8, 30)) return 'q3';
+      if (f <= new Date(2026, 9, 1) && t >= new Date(2026, 11, 31)) return 'q4';
+
+      // Fallback: find the smallest period that overlaps most
+      const daysDiff = Math.round((t - f) / 86400000);
+      if (daysDiff === 0) return 'today';
+      if (daysDiff <= 7) return 'week';
+      if (daysDiff <= 31) return 'month';
+      return 'q1'; // default for large ranges
+    }
+
+    function applyCustomRange(from, to) {
+      const fDate = new Date(from), tDate = new Date(to);
+      const mapped = mapRangeToPeriod(from, to);
+      customRange = {
+        from, to,
+        label: fmtShort(fDate) + ' – ' + fmtShort(tDate),
+        mappedPeriod: mapped,
+      };
+      selectedPeriod = mapped;
+      datePickerOpen = false;
+      render();
+    }
+
+    function clearCustomRange() {
+      customRange = null;
+      datePickerOpen = false;
+      selectedPeriod = 'week';
+      render();
+    }
+
+    function toggleDatePicker() {
+      datePickerOpen = !datePickerOpen;
+      const pop = document.getElementById('datePickerPop');
+      if (pop) pop.classList.toggle('open', datePickerOpen);
+    }
+
+    // Preset ranges
+    function getPresetRange(key) {
+      const now = new Date(2026, 2, 16); // current date
+      switch(key) {
+        case 'today': return { from:'2026-03-16', to:'2026-03-16' };
+        case 'yesterday': return { from:'2026-03-15', to:'2026-03-15' };
+        case 'thisWeek': return { from:'2026-03-16', to:'2026-03-22' }; // CW12 (Mon–Sun)
+        case 'lastWeek': return { from:'2026-03-09', to:'2026-03-15' }; // CW11 (Mon–Sun)
+        case 'thisMonth': return { from:'2026-03-01', to:'2026-03-31' };
+        case 'lastMonth': return { from:'2026-02-01', to:'2026-02-28' };
+        case 'thisQuarter': return { from:'2026-01-01', to:'2026-03-31' };
+        case 'last30': {
+          const start = new Date(now); start.setDate(start.getDate() - 30);
+          return { from: start.toISOString().slice(0,10), to:'2026-03-16' };
+        }
+        default: return null;
+      }
+    }
+
+    function getTeamData() {
+      const period = PERIODS[selectedPeriod];
+      if (!period || !period.team || period.team.length === 0) return [];
+      const mc = getManualForPeriod(selectedPeriod);
+      const merged = period.team.map(p => {
+        const m = mc[p.short];
+        if (!m) return { ...p, _hasManual: false };
+        return {
+          ...p,
+          emails: p.emails + (m.emails||0),
+          replies: p.replies + (m.replies||0),
+          linkedin: p.linkedin + (m.linkedin||0),
+          coldCalls: p.coldCalls + (m.coldCalls||0),
+          followUpCalls: p.followUpCalls + (m.followUpCalls||0),
+          calls: p.calls + (m.calls||0),
+          callsConnected: p.callsConnected + (m.callsConnected||0),
+          demos: p.demos + (m.demos||0),
+          _hasManual: true,
+          _manual: m,
+        };
+      });
+      if (selectedPerson === 'All') return merged;
+      return merged.filter(t => t.short === selectedPerson);
+    }
+
+    function getAllPersonNames() {
+      // Collect from all periods that have data
+      const names = new Set();
+      Object.values(PERIODS).forEach(p => {
+        if (p.team) p.team.forEach(t => names.add(t.short));
+      });
+      return [...names];
+    }
+
+    // ─── RENDER ───────────────────────────────────────
+    function render() {
+      const data = getTeamData();
+      const period = PERIODS[selectedPeriod];
+      const hasData = data.length > 0;
+
+      const totals = hasData ? {
+        emails: data.reduce((s,p) => s+p.emails, 0),
+        calls: data.reduce((s,p) => s+p.calls, 0),
+        callsConnected: data.reduce((s,p) => s+(p.callsConnected||0), 0),
+        callsMissed: data.reduce((s,p) => s+(p.callsMissed||0), 0),
+        coldCalls: data.reduce((s,p) => s+(p.coldCalls||0), 0),
+        followUpCalls: data.reduce((s,p) => s+(p.followUpCalls||0), 0),
+        demos: data.reduce((s,p) => s+p.demos, 0),
+        pipeline: data.reduce((s,p) => s+p.pipeline, 0),
+        deals: data.reduce((s,p) => s+p.deals, 0),
+        sals: data.reduce((s,p) => s+p.sals, 0),
+        sqls: data.reduce((s,p) => s+p.sqls, 0),
+        opps: data.reduce((s,p) => s+p.opps, 0),
+        replies: data.reduce((s,p) => s+p.replies, 0),
+        linkedin: data.reduce((s,p) => s+p.linkedin, 0),
+        touchpoints: data.reduce((s,p) => s+p.emails+p.calls+p.linkedin, 0),
+      } : null;
+
+      // Person filter options
+      const personNames = getAllPersonNames();
+      const personOpts = ['All', ...personNames].map(p =>
+        `<option value="${p}" ${p===selectedPerson?'selected':''}>${p}</option>`
+      ).join('');
+
+      // Period pills
+      const periodDefs = [
+        { key:'today', label:'Day' },
+        { key:'week', label:'Week' },
+        { key:'month', label:'Month' },
+        { key:'q1', label:'Q1' },
+        { key:'q2', label:'Q2' },
+        { key:'q3', label:'Q3' },
+        { key:'q4', label:'Q4' },
+      ];
+      const isCustomActive = !!customRange;
+      const periodPills = periodDefs.map(p =>
+        `<button data-period="${p.key}" class="pill px-3 py-1.5 rounded-lg text-xs font-medium border ${!isCustomActive && selectedPeriod===p.key ? 'pill-active' : 'border-slate-700/50 text-slate-400 hover:text-slate-300 hover:border-slate-600'}">${p.label}</button>`
+      ).join('');
+
+      // Custom range pill + popover
+      const drFrom = customRange ? customRange.from : '2026-03-10';
+      const drTo = customRange ? customRange.to : '2026-03-13';
+      const customPillClass = isCustomActive
+        ? 'pill-active'
+        : 'border-slate-700/50 text-slate-400 hover:text-slate-300 hover:border-slate-600';
+      const datePickerHTML = `
+        <div class="date-picker-anchor">
+          <button id="dateRangeBtn" class="pill px-3 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-1.5 ${customPillClass}" onclick="toggleDatePicker()">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="11" rx="2"/><path d="M2 7h12M5 1v3M11 1v3"/></svg>
+            ${isCustomActive ? customRange.label : 'Date Range'}
+            ${isCustomActive ? '<span onclick="event.stopPropagation();clearCustomRange()" class="ml-1 text-slate-500 hover:text-red-400" title="Reset">&times;</span>' : ''}
+          </button>
+          <div id="datePickerPop" class="date-picker-pop ${datePickerOpen ? 'open' : ''}">
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-3">Select Date Range</div>
+            <div class="flex flex-wrap gap-1.5 mb-3">
+              <span class="date-range-preset" onclick="applyPreset('today')">Today</span>
+              <span class="date-range-preset" onclick="applyPreset('yesterday')">Yesterday</span>
+              <span class="date-range-preset" onclick="applyPreset('thisWeek')">This Week</span>
+              <span class="date-range-preset" onclick="applyPreset('lastWeek')">Last Week</span>
+              <span class="date-range-preset" onclick="applyPreset('thisMonth')">This Month</span>
+              <span class="date-range-preset" onclick="applyPreset('lastMonth')">Last Month</span>
+              <span class="date-range-preset" onclick="applyPreset('last30')">Last 30 Days</span>
+              <span class="date-range-preset" onclick="applyPreset('thisQuarter')">This Quarter</span>
+            </div>
+            <div class="border-t border-slate-700/40 pt-3 mt-1">
+              <div class="text-[10px] text-slate-500 mb-2">Custom</div>
+              <div class="flex items-center gap-2 mb-3">
+                <div class="flex-1">
+                  <label class="text-[10px] text-slate-500 block mb-1">From</label>
+                  <input type="date" id="drFrom" value="${drFrom}" max="2026-12-31" />
+                </div>
+                <div class="text-slate-600 pt-4">–</div>
+                <div class="flex-1">
+                  <label class="text-[10px] text-slate-500 block mb-1">To</label>
+                  <input type="date" id="drTo" value="${drTo}" max="2026-12-31" />
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="applyDateRange()" class="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-brand-500 text-white hover:bg-brand-600 transition-colors">Apply</button>
+                <button onclick="toggleDatePicker()" class="px-3 py-1.5 rounded-lg text-xs text-slate-400 border border-slate-700/50 hover:border-slate-600 transition-colors">Cancel</button>
+              </div>
+            </div>
+            ${isCustomActive ? '<div class="mt-3 pt-2 border-t border-slate-700/40 flex items-center justify-between"><span class="text-[10px] text-slate-500">Data: ' + PERIODS[customRange.mappedPeriod].label + '</span><span onclick="clearCustomRange()" class="text-[10px] text-red-400/60 cursor-pointer hover:text-red-400">Reset</span></div>' : ''}
+          </div>
+        </div>`;
+
+
+      // No data state
+      const noDataHTML = `<div class="text-center py-16">
+        <div class="text-4xl mb-3 opacity-40">\uD83D\uDCCA</div>
+        <div class="text-lg font-semibold text-slate-400">No data for ${period.label}</div>
+        <div class="text-sm text-slate-500 mt-1">Data will be populated automatically once the period is active.</div>
+      </div>`;
+
+      // Funnel bars
+      const maxFunnel = Math.max(...FUNNEL.map(f => f.count));
+      const funnelHTML = FUNNEL.map(f => {
+        const pctW = Math.max((f.count / maxFunnel) * 100, 5);
+        const esc = f.stage.replace(/'/g, "\\'");
+        if (f.split) {
+          const seg1Pct = (f.split[0].count / f.count) * 100;
+          const seg2Pct = 100 - seg1Pct;
+          return `<div class="flex items-center gap-3 group drillable" onclick="drillFunnel('${esc}')" style="position:relative">
+            <span class="text-[11px] text-slate-400 w-36 text-right truncate shrink-0">${f.stage}</span>
+            <div class="flex-1 h-7 bg-surface-1 rounded overflow-hidden">
+              <div class="bar-animate h-full rounded flex" style="width:${pctW}%">
+                <div class="h-full flex items-center px-2 rounded-l" style="width:${seg1Pct}%;background:${f.split[0].color}" title="${f.split[0].label}: ${f.split[0].count}">
+                  <span class="text-[10px] font-semibold text-white drop-shadow-sm whitespace-nowrap">${f.split[0].label} ${f.split[0].count}</span>
+                </div>
+                <div class="h-full flex items-center px-2 rounded-r" style="width:${seg2Pct}%;background:${f.split[1].color}" title="${f.split[1].label}: ${f.split[1].count}">
+                  <span class="text-[10px] font-semibold text-slate-300 drop-shadow-sm whitespace-nowrap">${f.split[1].label} ${f.split[1].count}</span>
+                </div>
+              </div>
+            </div>
+          </div>`;
+        }
+        return `<div class="flex items-center gap-3 group drillable" onclick="drillFunnel('${esc}')" style="position:relative">
+          <span class="text-[11px] text-slate-400 w-36 text-right truncate shrink-0">${f.stage}</span>
+          <div class="flex-1 h-7 bg-surface-1 rounded overflow-hidden">
+            <div class="bar-animate h-full rounded flex items-center px-2" style="width:${pctW}%;background:${f.color}">
+              <span class="text-[11px] font-semibold text-white drop-shadow-sm">${f.count}</span>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+
+      // Trend chart
+      const trendSVG = buildAreaChart(TRENDS, 'emails', 'calls', '#818cf8', '#a78bfa', 'Emails', 'Calls');
+      const demoSVG = buildBarChart(TRENDS, 'demos', 'pipeline', '#34d399', '#818cf8', 'Demos', 'Pipeline (\u20ACk)');
+
+      // Leaderboard
+      let leaderPipeline = '', leaderDemos = '';
+      if (hasData) {
+        const byPipeline = [...data].sort((a,b) => b.pipeline - a.pipeline).slice(0,5);
+        const byDemos = [...data].sort((a,b) => b.demos - a.demos).slice(0,5);
+        const medals = ['\uD83E\uDD47','\uD83E\uDD48','\uD83E\uDD49','4.','5.'];
+
+        leaderPipeline = byPipeline.map((p,i) =>
+          `<div class="flex items-center gap-3 glass rounded-lg px-4 py-2.5 drillable" onclick="drillPerson('${p.short}')" style="position:relative">
+            <span class="text-base w-7">${medals[i]}</span>
+            <span class="flex-1 font-medium text-white text-sm">${p.short}</span>
+            <span class="font-bold text-emerald-400 text-sm">${fmt(p.pipeline)}</span>
+          </div>`
+        ).join('');
+
+        leaderDemos = byDemos.map((p,i) =>
+          `<div class="flex items-center gap-3 glass rounded-lg px-4 py-2.5 drillable" onclick="drillPerson('${p.short}')" style="position:relative">
+            <span class="text-base w-7">${medals[i]}</span>
+            <span class="flex-1 font-medium text-white text-sm">${p.short}</span>
+            <span class="font-bold text-brand-300 text-sm">${p.demos} Demos</span>
+          </div>`
+        ).join('');
+      }
+
+      // Activity table rows
+      let tableHTML = '';
+      if (hasData) {
+        const tgt = KPI_TARGETS[selectedPeriod] || {};
+        // Rank-based coloring: compute ranks per column
+        const rankFields = ['emails','replies','calls','linkedin','demos','deals','pipeline','sals','sqls','opps'];
+        const ranks = {};
+        rankFields.forEach(f => {
+          const vals = data.map(p => p[f]);
+          const sorted = [...new Set(vals)].sort((a,b) => b - a); // desc unique values
+          ranks[f] = {};
+          data.forEach(p => {
+            const pos = sorted.indexOf(p[f]); // 0 = best
+            const total = sorted.length;
+            if (total <= 1 || p[f] === 0) { ranks[f][p.short] = ''; }
+            else if (pos === 0) { ranks[f][p.short] = 'rank-1'; }
+            else if (pos === 1) { ranks[f][p.short] = 'rank-2'; }
+            else if (pos === 2) { ranks[f][p.short] = 'rank-3'; }
+            else if (pos === total - 1 && p[f] === sorted[total-1]) { ranks[f][p.short] = 'rank-last'; }
+            else { ranks[f][p.short] = ''; }
+          });
+        });
+        // Also rank by touchpoints
+        const tpVals = data.map(p => p.emails + p.calls + p.linkedin);
+        const tpSorted = [...new Set(tpVals)].sort((a,b) => b - a);
+        ranks['tp'] = {};
+        data.forEach((p,i) => {
+          const tp = tpVals[i];
+          const pos = tpSorted.indexOf(tp);
+          const total = tpSorted.length;
+          if (total <= 1 || tp === 0) { ranks['tp'][p.short] = ''; }
+          else if (pos === 0) { ranks['tp'][p.short] = 'rank-1'; }
+          else if (pos === 1) { ranks['tp'][p.short] = 'rank-2'; }
+          else if (pos === 2) { ranks['tp'][p.short] = 'rank-3'; }
+          else if (pos === total - 1 && tp === tpSorted[total-1]) { ranks['tp'][p.short] = 'rank-last'; }
+          else { ranks['tp'][p.short] = ''; }
+        });
+        const rc = (field, person) => ranks[field]?.[person] || '';
+
+        const rows = data.map((p, idx) => {
+          const tp = p.emails + p.calls + p.linkedin;
+          const m = p._manual || {};
+          const mi = (field) => m[field] ? '<span class="text-[9px] text-purple-400 ml-0.5" title="incl. manual">\u270E</span>' : '';
+          const callDisplay = p.calls > 0
+            ? `<span title="${p.callsConnected} reached (1m+), ${p.callsMissed} not reached (<60s/missed)">${p.calls} <span class="text-xs text-slate-500">(${p.callsConnected}\u2713/${p.callsMissed}\u2717)</span></span>${mi('calls')}`
+            : '<span class="text-slate-600">\u2014</span>';
+          return `<tr class="border-b border-slate-800/40 hover:bg-white/[0.02] transition-colors">
+            <td class="py-3 px-3 font-medium text-white cursor-pointer hover:text-brand-300 transition-colors" onclick="drillPerson('${p.short}')">${p.short}${p._hasManual ? '<span class="text-[8px] text-purple-400/60 ml-1">\u270E</span>' : ''}</td>
+            <td class="py-3 px-3 ${rc('emails',p.short)}">${dash(p.emails)}${mi('emails')}</td>
+            <td class="py-3 px-3 ${rc('replies',p.short)}">${dash(p.replies)}${mi('replies')}</td>
+            <td class="py-3 px-3 ${rc('calls',p.short)}">${callDisplay}</td>
+            <td class="py-3 px-3 ${rc('linkedin',p.short)}">${dash(p.linkedin)}${mi('linkedin')}</td>
+            <td class="py-3 px-3 font-semibold text-brand-300 ${rc('tp',p.short)}">${dash(tp)}</td>
+            <td class="py-3 px-3 ${rc('demos',p.short)} drillable" onclick="drillDemos('${p.short}')"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${p.demos > 0 ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-600'}">${p.demos}</span>${mi('demos')}</td>
+            <td class="py-3 px-3 ${rc('deals',p.short)}">${p.deals}</td>
+            <td class="py-3 px-3 font-medium text-emerald-400 ${rc('pipeline',p.short)}">${p.pipeline > 0 ? fmt(p.pipeline) : '<span class="text-slate-600">\u2014</span>'}</td>
+            <td class="py-3 px-3 ${rc('sals',p.short)}">${p.sals}</td>
+            <td class="py-3 px-3 ${rc('sqls',p.short)}">${dash(p.sqls)}</td>
+            <td class="py-3 px-3 ${rc('opps',p.short)}">${dash(p.opps)}</td>
+          </tr>`;
+        }).join('');
+
+        tableHTML = `<div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-slate-700/50">
+                <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Person</th>
+                <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Mail Outreach — First email sent to a prospect (excludes replies Re:/AW:/Fwd:, meeting invites, and internal emails)">Mail Outreach <span class="text-slate-600 normal-case font-normal text-[9px]">ⓘ 1st mail</span></th>
+                <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Follow-up emails sent (Re:/AW:/Fwd:)">Follow-ups</th>
+                <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Total (Reached 1m+ / Not Reached <60s)">Calls <span class="text-slate-600 normal-case">(\u2713/\u2717)</span></th>
+                <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">LinkedIn</th>
+                <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Touchpts</th>
+                <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Demos</th>
+                <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Deals</th>
+                <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Pipeline</th>
+                <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">SALs</th>
+                <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">SQLs</th>
+                <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Opps</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+            <tfoot>
+              <tr class="border-t-2 border-brand-500/30 bg-white/[0.02]">
+                <td class="py-3 px-3 font-bold text-brand-300">Total</td>
+                <td class="py-3 px-3 font-bold">${totals.emails}</td>
+                <td class="py-3 px-3 font-bold">${totals.replies}</td>
+                <td class="py-3 px-3 font-bold">${totals.calls} <span class="text-xs text-slate-500 font-normal">(${totals.callsConnected}\u2713/${totals.callsMissed}\u2717)</span></td>
+                <td class="py-3 px-3 font-bold">${totals.linkedin}</td>
+                <td class="py-3 px-3 font-bold text-brand-300">${totals.touchpoints}</td>
+                <td class="py-3 px-3 font-bold">${totals.demos}</td>
+                <td class="py-3 px-3 font-bold">${totals.deals}</td>
+                <td class="py-3 px-3 font-bold text-emerald-400">${fmt(totals.pipeline)}</td>
+                <td class="py-3 px-3 font-bold">${totals.sals}</td>
+                <td class="py-3 px-3 font-bold">${totals.sqls}</td>
+                <td class="py-3 px-3 font-bold">${totals.opps}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>`;
+      }
+
+      // Conversion rates
+      const connectRate = totals && totals.calls > 0 ? Math.round((totals.callsConnected / totals.calls) * 100) : 0;
+      const delta = getDelta(selectedPeriod);
+
+      document.getElementById('app').innerHTML = `
+        <!-- Header -->
+        <header class="sticky top-0 z-50 glass border-b border-slate-700/30">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center">
+                <span class="text-white font-bold text-sm">L</span>
+              </div>
+              <div>
+                <h1 class="text-xl font-bold text-white tracking-tight">Lio Outbound Dashboard</h1>
+                <p class="text-xs text-slate-400">${isCustomActive ? customRange.label + ' <span class="text-slate-600">(→ ' + period.label + ')</span>' : period.sublabel}</p>
+                <div class="flex items-center gap-2 mt-0.5">
+                  <p class="text-[10px] text-slate-500" title="Last data sync">🔄 Sync: ${formatSyncTime(LAST_SYNC)}</p>
+                  <button id="syncBtn" onclick="triggerSync()" class="text-[10px] px-2 py-0.5 rounded-md bg-brand-500/20 text-brand-300 border border-brand-500/30 hover:bg-brand-500/40 hover:text-white transition-all cursor-pointer flex items-center gap-1" title="Sync data now">
+                    <span id="syncIcon" class="inline-block">\u27F3</span> <span id="syncText">Sync Now</span>
+                  </button>
+                  <span class="text-[9px] ${_manualLoaded ? 'text-emerald-500' : 'text-amber-500'}" title="${_manualLoaded ? 'Supabase connected \u2014 manual data loaded' : 'Supabase not connected \u2014 localStorage fallback'}">${_manualLoaded ? '\u25CF DB' : '\u25CB local'}</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 flex-wrap">
+              <div class="flex items-center gap-1.5" id="periodFilter">
+                ${periodPills}
+              </div>
+              ${datePickerHTML}
+              <select id="personFilter" class="bg-surface-2 border border-slate-700/50 rounded-lg px-3 py-1.5 text-sm text-white cursor-pointer">
+                ${personOpts}
+              </select>
+              <div class="export-anchor">
+                <button id="exportBtn" onclick="toggleExportMenu()" class="pill px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700/50 text-slate-400 hover:text-slate-300 hover:border-slate-600 flex items-center gap-1.5">
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3"/><path d="M2 11v2a1 1 0 001 1h10a1 1 0 001-1v-2"/></svg>
+                  Export
+                </button>
+                <div id="exportDrop" class="export-drop">
+                  <div onclick="exportCSV()" class="export-item">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="1" width="12" height="14" rx="2"/><path d="M5 5h6M5 8h6M5 11h4"/></svg>
+                    <div><div class="font-medium">CSV Export</div><div class="text-[10px] text-slate-500">Activity table as .csv</div></div>
+                  </div>
+                  <div onclick="exportFunnelCSV()" class="export-item">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 3h12L10 9v4l-4 1V9L2 3z"/></svg>
+                    <div><div class="font-medium">Funnel CSV</div><div class="text-[10px] text-slate-500">Pipeline funnel as .csv</div></div>
+                  </div>
+                  <div onclick="exportPDF()" class="export-item border-t border-slate-700/30">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="1" width="12" height="14" rx="2"/><path d="M5 5h2a1.5 1.5 0 010 3H5V5zM5 11h6"/></svg>
+                    <div><div class="font-medium">PDF / Print</div><div class="text-[10px] text-slate-500">Save dashboard as PDF</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-12 space-y-6">
+          ${!hasData ? noDataHTML : `
+          <!-- Scorecards -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="glass glow rounded-xl p-5 drillable" onclick="drillScorecard('emails')">
+              <div class="flex items-center justify-between">
+                <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Outreach Emails</div>
+                ${delta ? `<div>${deltaIcon(delta.emails.curr, delta.emails.prev)}</div>` : ''}
+              </div>
+              <div class="text-3xl font-bold text-white mt-1">${totals.emails}</div>
+              <div class="text-xs text-slate-500 mt-1">${totals.replies} Follow-ups \u00b7 ${totals.emails + totals.replies} Total gesendet</div>
+              ${delta ? `<div class="text-[9px] text-slate-600 mt-0.5">${delta.emails.label}: ${delta.emails.prev}</div>` : ''}
+            </div>
+            <div class="glass glow rounded-xl p-5 drillable" onclick="drillScorecard('calls')">
+              <div class="flex items-center justify-between">
+                <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Outbound Calls</div>
+                ${delta ? `<div>${deltaIcon(delta.calls.curr, delta.calls.prev)}</div>` : ''}
+              </div>
+              <div class="text-3xl font-bold text-white mt-1">${totals.calls}</div>
+              <div class="text-xs text-slate-400 mt-1">${totals.coldCalls} Cold \u00b7 ${totals.followUpCalls} Follow-up</div>
+              <div class="text-xs mt-0.5"><span class="text-emerald-400/80">${totals.callsConnected} reached (1m+)</span> \u00b7 <span class="text-red-400/60">${totals.callsMissed} not reached</span></div>
+              ${delta ? `<div class="text-[9px] text-slate-600 mt-0.5">${delta.calls.label}: ${delta.calls.prev}</div>` : ''}
+            </div>
+            <div class="glass glow rounded-xl p-5 drillable" onclick="drillScorecard('demos')">
+              <div class="flex items-center justify-between">
+                <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Demos Booked</div>
+                ${delta ? `<div>${deltaIcon(delta.demos.curr, delta.demos.prev)}</div>` : ''}
+              </div>
+              <div class="text-3xl font-bold text-white mt-1">${totals.demos}</div>
+              <div class="text-xs text-slate-500 mt-1">${pct(totals.demos, totals.touchpoints)} Touchpoint\u2192Demo</div>
+              ${delta ? `<div class="text-[9px] text-slate-600 mt-0.5">${delta.demos.label}: ${delta.demos.prev}</div>` : ''}
+            </div>
+            <div class="glass glow rounded-xl p-5 drillable" onclick="drillScorecard('pipeline')">
+              <div class="flex items-center justify-between">
+                <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Pipeline Created</div>
+                ${delta ? `<div>${deltaIcon(delta.pipeline.curr, delta.pipeline.prev)}</div>` : ''}
+              </div>
+              <div class="text-3xl font-bold text-white mt-1">${fmt(totals.pipeline)}</div>
+              <div class="text-xs text-slate-500 mt-1">${totals.deals} Deals \u00b7 ${totals.deals > 0 ? fmt(Math.round(totals.pipeline / totals.deals)) + ' avg' : '\u2014'}</div>
+              ${delta ? `<div class="text-[9px] text-slate-600 mt-0.5">${delta.pipeline.label}: ${fmt(delta.pipeline.prev)}</div>` : ''}
+            </div>
+          </div>
+
+          <!-- Activity Table -->
+          <div class="glass glow rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-white">Activities per Person \u2014 ${period.label}</h3>
+              <div class="flex items-center gap-2 flex-wrap justify-end">
+                <span class="text-[10px] text-slate-600 bg-surface-1 px-2 py-0.5 rounded">\u2713 = reached (1m+) \u2717 = not reached (&lt;60s)</span>
+              </div>
+            </div>
+            ${tableHTML}
+            ${hasData ? `<div class="mt-3 pt-3 border-t border-slate-800/30 flex items-center gap-4 flex-wrap">
+              <span class="text-[10px] text-slate-500 font-medium">Rank Legend:</span>
+              <span class="text-[10px] text-slate-500 flex items-center gap-1"><span class="w-3 h-3 rounded rank-1 inline-block border border-emerald-500/30"></span> #1</span>
+              <span class="text-[10px] text-slate-500 flex items-center gap-1"><span class="w-3 h-3 rounded rank-2 inline-block border border-emerald-500/20"></span> #2</span>
+              <span class="text-[10px] text-slate-500 flex items-center gap-1"><span class="w-3 h-3 rounded rank-3 inline-block border border-amber-500/20"></span> #3</span>
+              <span class="text-[10px] text-slate-500 flex items-center gap-1"><span class="w-3 h-3 rounded rank-last inline-block border border-red-500/20"></span> Last</span>
+              <span class="text-[10px] text-slate-600 ml-auto">Targets/${period.label}: ${(KPI_TARGETS[selectedPeriod]||{}).emails||'?'}E \u00B7 ${(KPI_TARGETS[selectedPeriod]||{}).calls||'?'}C \u00B7 ${(KPI_TARGETS[selectedPeriod]||{}).demos||'?'}D \u00B7 ${(KPI_TARGETS[selectedPeriod]||{}).deals||'?'}Deals \u00B7 ${fmt((KPI_TARGETS[selectedPeriod]||{}).pipeline||0)} Pipeline</span>
+            </div>` : ''}
+          </div>
+
+          <!-- Pipeline Date Range Filter -->
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-slate-500 font-medium">Pipeline & Funnel Date Range:</span>
+              <div class="flex gap-1 flex-wrap" id="pipelineDateBtns">
+                <button onclick="setPipelineDateRange('all')" class="pill text-[10px] px-2.5 py-1 rounded-full border border-slate-700 text-slate-400 hover:text-white pill-active" data-range="all">All Time</button>
+                <button onclick="setPipelineDateRange('q1')" class="pill text-[10px] px-2.5 py-1 rounded-full border border-slate-700 text-slate-400 hover:text-white" data-range="q1">Q1 2026</button>
+                <button onclick="setPipelineDateRange('jan')" class="pill text-[10px] px-2.5 py-1 rounded-full border border-slate-700 text-slate-400 hover:text-white" data-range="jan">Jan</button>
+                <button onclick="setPipelineDateRange('feb')" class="pill text-[10px] px-2.5 py-1 rounded-full border border-slate-700 text-slate-400 hover:text-white" data-range="feb">Feb</button>
+                <button onclick="setPipelineDateRange('mar')" class="pill text-[10px] px-2.5 py-1 rounded-full border border-slate-700 text-slate-400 hover:text-white" data-range="mar">Mar</button>
+                <button onclick="setPipelineDateRange('thisWeek')" class="pill text-[10px] px-2.5 py-1 rounded-full border border-slate-700 text-slate-400 hover:text-white" data-range="thisWeek">This Week</button>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <input type="date" id="pipelineFrom" min="2026-01-01" max="2026-12-31" class="bg-surface-2 border border-slate-700/50 rounded-lg text-[11px] text-slate-300 px-2 py-1 outline-none focus:border-brand-500/50" onchange="applyPipelineCustomRange()">
+              <span class="text-[10px] text-slate-600">–</span>
+              <input type="date" id="pipelineTo" min="2026-01-01" max="2026-12-31" class="bg-surface-2 border border-slate-700/50 rounded-lg text-[11px] text-slate-300 px-2 py-1 outline-none focus:border-brand-500/50" onchange="applyPipelineCustomRange()">
+            </div>
+          </div>
+
+          <!-- Pipeline Funnel + Conversion -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="glass glow rounded-xl p-5">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="text-lg font-semibold text-white">Deal Pipeline</h3>
+                  <span id="pipelineSublabel" class="text-[10px] text-slate-500">All Deals \u00B7 All Time \u00B7 As of ${formatSyncTime(LAST_SYNC).split(' at')[0]}</span>
+                </div>
+                <div class="flex gap-1.5">
+                  <button onclick="filterFunnel('all')" id="fAll" class="pill text-[10px] px-2.5 py-1 rounded-full border border-slate-700 text-slate-400 hover:text-white pill-active">All Deals</button>
+                  <button onclick="filterFunnel('active')" id="fActive" class="pill text-[10px] px-2.5 py-1 rounded-full border border-slate-700 text-slate-400 hover:text-white">Active</button>
+                  <button onclick="filterFunnel('closed')" id="fClosed" class="pill text-[10px] px-2.5 py-1 rounded-full border border-slate-700 text-slate-400 hover:text-white">Closed</button>
+                </div>
+              </div>
+              <div id="funnelContainer" class="space-y-1.5">${funnelHTML}</div>
+            </div>
+            <div class="glass glow rounded-xl p-5">
+              <div class="mb-4">
+                <h3 class="text-lg font-semibold text-white">Conversion Funnel</h3>
+                <span id="conversionSublabel" class="text-[10px] text-slate-500">How Deals flow through the pipeline \u00B7 All Time</span>
+              </div>
+              <div id="conversionContainer">${buildConversionFunnel()}</div>
+            </div>
+          </div>
+
+          <!-- Win Rate & Deal Velocity -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="glass glow rounded-xl p-5">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="text-lg font-semibold text-white">Win Rate & Efficiency</h3>
+                  <span class="text-[10px] text-slate-500">Win rates of all ${FUNNEL.reduce((s,f)=>s+f.count,0)} Deals · All Time</span>
+                </div>
+              </div>
+              ${buildWinRateSection()}
+            </div>
+            <div class="glass glow rounded-xl p-5">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="text-lg font-semibold text-white">Deal Velocity</h3>
+                  <span class="text-[10px] text-slate-500">Cycle times & Pipeline per Stage · All Time</span>
+                </div>
+              </div>
+              ${buildDealVelocity()}
+            </div>
+          </div>
+
+          <!-- Cycle Time -->
+          <div class="glass glow rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-lg font-semibold text-white">Sales Cycle Time</h3>
+                <span class="text-[10px] text-slate-500">Milestones & Cycle Times · ${CYCLE_TIME.closedWonAnalyzed} Closed Won Deals</span>
+              </div>
+            </div>
+            ${buildCycleTime()}
+          </div>
+
+          <!-- Trend Charts -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="glass glow rounded-xl p-5">
+              <h3 class="text-lg font-semibold text-white mb-4">Activity Trend</h3>
+              ${trendSVG}
+            </div>
+            <div class="glass glow rounded-xl p-5">
+              <h3 class="text-lg font-semibold text-white mb-4">Demos & Pipeline Trend</h3>
+              ${demoSVG}
+            </div>
+          </div>
+
+          <!-- WoW Comparison -->
+          <div class="glass glow rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-lg font-semibold text-white">Week-over-Week Comparison</h3>
+                <span class="text-[10px] text-slate-500">CW01 \u2013 CW12 2026 \u00B7 Current Week: CW12</span>
+              </div>
+            </div>
+            ${buildWoWComparison()}
+          </div>
+
+          <!-- Deal Stage Heatmap -->
+          <div class="glass glow rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-lg font-semibold text-white">Deal Stage Heatmap</h3>
+                <span class="text-[10px] text-slate-500">Active Deals per Person & Stage · Snapshot ${period.label}</span>
+              </div>
+            </div>
+            ${buildDealStageHeatmap()}
+          </div>
+
+          <!-- Leaderboard -->
+          <div class="glass glow rounded-xl p-5">
+            <h3 class="text-lg font-semibold text-white mb-4">Leaderboard \u2014 ${period.label}</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Pipeline Value</h4>
+                <div class="space-y-2">${leaderPipeline}</div>
+              </div>
+              <div>
+                <h4 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Demos Booked</h4>
+                <div class="space-y-2">${leaderDemos}</div>
+              </div>
+            </div>
+          </div>
+          `}
+
+          <!-- Manual entries log -->
+          ${(()=>{
+            const entries = getManualEntriesForPeriod(selectedPeriod);
+            if (entries.length === 0) return '';
+            return `<div class="glass rounded-2xl p-6 mt-6">
+              <h3 class="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
+                <span class="text-base">\u270F\uFE0F</span> Manual Entries <span class="text-xs text-slate-500">(${entries.length})</span>
+              </h3>
+              <div class="space-y-2">
+                ${entries.map(a => {
+                  const aType = a.activity_type || a.type;
+                  const aDate = a.activity_date || a.date;
+                  const t = ACT_TYPES.find(x=>x.key===aType);
+                  return `<div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/[0.02] border border-slate-800/40 text-sm">
+                    <span>${t?t.icon:'\u2022'}</span>
+                    <span class="font-medium text-white">${a.person}</span>
+                    <span class="text-slate-400">${t?t.label:aType}</span>
+                    <span class="text-brand-300 font-semibold">\u00D7${a.count}</span>
+                    <span class="text-slate-500 text-xs">${aDate}</span>
+                    ${a.note ? `<span class="text-slate-500 text-xs italic">${a.note}</span>` : ''}
+                    <span class="ml-auto text-slate-600 hover:text-red-400 cursor-pointer text-xs" onclick="deleteManualAct(${a.id})" title="Delete">\u2717</span>
+                  </div>`;
+                }).join('')}
+              </div>
+            </div>`;
+          })()}
+
+          <div class="text-center text-xs text-slate-600 pt-4">
+            Lio Outbound Dashboard \u2014 Auto-generated \u2014 Data from Attio (Deals + Aircall + Emails) + Manual Entries \u2014 Sync: ${formatSyncTime(LAST_SYNC)}
+          </div>
+        </main>
+
+        <!-- FAB: Add Manual Activity -->
+        <button onclick="openManualModal()" class="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-brand-500 to-purple-600 text-white text-2xl font-bold shadow-lg shadow-brand-500/30 hover:shadow-brand-500/50 hover:scale-110 transition-all flex items-center justify-center" title="Log activity manually">+</button>
+
+        <!-- Manual Input Modal -->
+        ${manualModalOpen ? `
+        <div class="fixed inset-0 z-[100] flex items-center justify-center" onclick="if(event.target===this)closeManualModal()">
+          <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+          <div class="relative glass rounded-2xl p-6 w-full max-w-md mx-4 border border-slate-700/50 shadow-2xl">
+            <div class="flex items-center justify-between mb-5">
+              <h2 class="text-lg font-bold text-white flex items-center gap-2"><span>\u270F\uFE0F</span> Log Activity</h2>
+              <button onclick="closeManualModal()" class="text-slate-400 hover:text-white text-xl">\u2715</button>
+            </div>
+            <div class="space-y-4">
+              <div>
+                <label class="text-xs text-slate-400 block mb-1">Person</label>
+                <select id="mi_person" class="w-full bg-surface-2 border border-slate-700/50 rounded-lg px-3 py-2 text-sm text-white">
+                  <option value="">-- Select --</option>
+                  ${TEAM_NAMES.map(n=>'<option value="'+n+'">'+n+'</option>').join('')}
+                </select>
+              </div>
+              <div>
+                <label class="text-xs text-slate-400 block mb-1">Activity</label>
+                <select id="mi_type" class="w-full bg-surface-2 border border-slate-700/50 rounded-lg px-3 py-2 text-sm text-white">
+                  <option value="">-- Select --</option>
+                  ${ACT_TYPES.map(t=>'<option value="'+t.key+'">'+t.icon+' '+t.label+'</option>').join('')}
+                </select>
+              </div>
+              <div class="flex gap-3">
+                <div class="flex-1">
+                  <label class="text-xs text-slate-400 block mb-1">Count</label>
+                  <input type="number" id="mi_count" value="1" min="1" max="100" class="w-full bg-surface-2 border border-slate-700/50 rounded-lg px-3 py-2 text-sm text-white" />
+                </div>
+                <div class="flex-1">
+                  <label class="text-xs text-slate-400 block mb-1">Date</label>
+                  <input type="date" id="mi_date" value="2026-03-16" class="w-full bg-surface-2 border border-slate-700/50 rounded-lg px-3 py-2 text-sm text-white" />
+                </div>
+              </div>
+              <div>
+                <label class="text-xs text-slate-400 block mb-1">Note <span class="text-slate-600">(optional)</span></label>
+                <input type="text" id="mi_note" placeholder="e.g. LinkedIn message to Company X" class="w-full bg-surface-2 border border-slate-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-600" />
+              </div>
+              <button onclick="submitManualForm()" class="w-full py-2.5 rounded-lg text-sm font-semibold bg-gradient-to-r from-brand-500 to-purple-600 text-white hover:opacity-90 transition-opacity">Save</button>
+            </div>
+          </div>
+        </div>
+        ` : ''}
+      `;
+
+      // Attach event listeners
+      document.getElementById('personFilter').addEventListener('change', function() {
+        selectedPerson = this.value;
+        render();
+      });
+
+      document.querySelectorAll('#periodFilter button').forEach(btn => {
+        btn.addEventListener('click', function() {
+          customRange = null; // clear custom range when standard pill is clicked
+          selectedPeriod = this.dataset.period;
+          render();
+        });
+      });
+
+      // Close popups on outside click
+      document.addEventListener('click', function handler(e) {
+        if (datePickerOpen && !e.target.closest('.date-picker-anchor')) {
+          datePickerOpen = false;
+          const pop = document.getElementById('datePickerPop');
+          if (pop) pop.classList.remove('open');
+        }
+        if (exportMenuOpen && !e.target.closest('.export-anchor')) {
+          exportMenuOpen = false;
+          const drop = document.getElementById('exportDrop');
+          if (drop) drop.classList.remove('open');
+        }
+      });
+    }
+
+    function applyDateRange() {
+      const from = document.getElementById('drFrom').value;
+      const to = document.getElementById('drTo').value;
+      if (!from || !to) return;
+      if (from > to) { // swap if reversed
+        applyCustomRange(to, from);
+      } else {
+        applyCustomRange(from, to);
+      }
+    }
+
+    function applyPreset(key) {
+      const range = getPresetRange(key);
+      if (range) applyCustomRange(range.from, range.to);
+    }
+
+    // ─── EXPORT ──────────────────────────────────────
+    let exportMenuOpen = false;
+
+    function toggleExportMenu() {
+      exportMenuOpen = !exportMenuOpen;
+      const drop = document.getElementById('exportDrop');
+      if (drop) drop.classList.toggle('open', exportMenuOpen);
+      if (exportMenuOpen) {
+        setTimeout(() => {
+          document.addEventListener('click', closeExportOnOutside, { once: true });
+        }, 0);
+      }
+    }
+    function closeExportOnOutside(e) {
+      if (!e.target.closest('.export-anchor')) {
+        exportMenuOpen = false;
+        const drop = document.getElementById('exportDrop');
+        if (drop) drop.classList.remove('open');
+      }
+    }
+
+    function downloadFile(content, filename, mime) {
+      const blob = new Blob(['\uFEFF' + content], { type: mime + ';charset=utf-8' }); // BOM for Excel
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      exportMenuOpen = false;
+      const drop = document.getElementById('exportDrop');
+      if (drop) drop.classList.remove('open');
+    }
+
+    function exportCSV() {
+      const period = PERIODS[selectedPeriod];
+      if (!period || !period.team.length) return;
+      let data = period.team;
+      if (selectedPerson !== 'All') data = data.filter(p => p.short === selectedPerson);
+
+      const headers = ['Person','Emails','Replies','Calls','Calls Connected','Calls Missed','Cold Calls','Follow-Up Calls','LinkedIn','Touchpoints','Demos','Deals','Pipeline','SALs','SQLs','Opps'];
+      const rows = data.map(p => [
+        p.name, p.emails, p.replies, p.calls, p.callsConnected, p.callsMissed,
+        p.coldCalls, p.followUpCalls, p.linkedin, p.emails+p.calls+p.linkedin,
+        p.demos, p.deals, p.pipeline, p.sals, p.sqls, p.opps,
+      ]);
+
+      // Totals row
+      const totals = headers.slice(1).map((_, i) => rows.reduce((s, r) => s + (r[i+1]||0), 0));
+      rows.push(['TOTAL', ...totals]);
+
+      const csvContent = [headers, ...rows].map(r =>
+        r.map(v => typeof v === 'string' && v.includes(',') ? `"${v}"` : v).join(';')
+      ).join('\n');
+
+      const ts = new Date().toISOString().slice(0,10);
+      downloadFile(csvContent, `lio-outbound-${period.label.replace(/\s/g,'_')}-${ts}.csv`, 'text/csv');
+    }
+
+    function exportFunnelCSV() {
+      const headers = ['Stage','Count','% of Total'];
+      const total = FUNNEL.reduce((s,f) => s + f.count, 0);
+      const rows = FUNNEL.map(f => [
+        f.stage, f.count, ((f.count/total)*100).toFixed(1) + '%',
+      ]);
+      rows.push(['TOTAL', total, '100%']);
+
+      const csvContent = [headers, ...rows].map(r =>
+        r.map(v => typeof v === 'string' && v.includes(',') ? `"${v}"` : v).join(';')
+      ).join('\n');
+
+      const ts = new Date().toISOString().slice(0,10);
+      downloadFile(csvContent, `lio-funnel-${ts}.csv`, 'text/csv');
+    }
+
+    function exportPDF() {
+      exportMenuOpen = false;
+      const drop = document.getElementById('exportDrop');
+      if (drop) drop.classList.remove('open');
+
+      // Inject a print header
+      let printHeader = document.getElementById('printHeader');
+      if (!printHeader) {
+        printHeader = document.createElement('div');
+        printHeader.id = 'printHeader';
+        printHeader.style.display = 'none';
+        document.getElementById('app').prepend(printHeader);
+      }
+      const period = PERIODS[selectedPeriod];
+      const filterLabel = selectedPerson !== 'All' ? ` · Filter: ${selectedPerson}` : '';
+      printHeader.innerHTML = `
+        <div style="padding:20px 24px;border-bottom:2px solid #6366f1;margin-bottom:16px">
+          <h1 style="font-size:20px;font-weight:800;color:#111;margin-bottom:4px">Lio Outbound Dashboard</h1>
+          <p style="font-size:12px;color:#666">${period.label} · ${period.sublabel}${filterLabel} · Export: ${new Date().toLocaleDateString('en-US')}</p>
+        </div>`;
+
+      window.print();
+    }
+
+    // ─── SVG CHART HELPERS ────────────────────────────
+
+    function buildAreaChart(data, key1, key2, color1, color2, label1, label2) {
+      const W = 520, H = 200, pad = { t:20, r:20, b:30, l:40 };
+      const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+      const maxVal = Math.max(...data.map(d => Math.max(d[key1], d[key2]))) * 1.1;
+      const n = data.length;
+
+      function x(i) { return pad.l + (i / (n-1)) * cw; }
+      function y(v) { return pad.t + ch - (v / maxVal) * ch; }
+
+      let path1 = `M${x(0)},${y(data[0][key1])}`;
+      let path2 = `M${x(0)},${y(data[0][key2])}`;
+      for (let i = 1; i < n; i++) {
+        path1 += ` L${x(i)},${y(data[i][key1])}`;
+        path2 += ` L${x(i)},${y(data[i][key2])}`;
+      }
+      const area1 = path1 + ` L${x(n-1)},${pad.t+ch} L${x(0)},${pad.t+ch} Z`;
+      const area2 = path2 + ` L${x(n-1)},${pad.t+ch} L${x(0)},${pad.t+ch} Z`;
+
+      let gridLines = '';
+      for (let i = 0; i <= 4; i++) {
+        const yy = pad.t + (i/4) * ch;
+        const val = Math.round(maxVal * (1 - i/4));
+        gridLines += `<line x1="${pad.l}" y1="${yy}" x2="${W-pad.r}" y2="${yy}" stroke="rgba(100,116,139,0.12)" stroke-dasharray="3"/>`;
+        gridLines += `<text x="${pad.l-6}" y="${yy+4}" fill="#64748b" font-size="10" text-anchor="end">${val}</text>`;
+      }
+
+      let xLabels = '';
+      data.forEach((d, i) => {
+        xLabels += `<text x="${x(i)}" y="${H-6}" fill="#64748b" font-size="10" text-anchor="middle">${d.week}</text>`;
+      });
+
+      let dots = '';
+      data.forEach((d, i) => {
+        dots += `<circle cx="${x(i)}" cy="${y(d[key1])}" r="3" fill="${color1}" stroke="#0a0b14" stroke-width="1.5"/>`;
+        dots += `<circle cx="${x(i)}" cy="${y(d[key2])}" r="3" fill="${color2}" stroke="#0a0b14" stroke-width="1.5"/>`;
+      });
+
+      return `<svg viewBox="0 0 ${W} ${H}" class="w-full" style="max-height:260px">
+        ${gridLines}
+        <path d="${area1}" fill="${color1}" opacity="0.15"/>
+        <path d="${area2}" fill="${color2}" opacity="0.1"/>
+        <path d="${path1}" fill="none" stroke="${color1}" stroke-width="2"/>
+        <path d="${path2}" fill="none" stroke="${color2}" stroke-width="2"/>
+        ${dots}
+        ${xLabels}
+        <circle cx="${W-110}" cy="8" r="4" fill="${color1}"/><text x="${W-102}" y="12" fill="#94a3b8" font-size="10">${label1}</text>
+        <circle cx="${W-50}" cy="8" r="4" fill="${color2}"/><text x="${W-42}" y="12" fill="#94a3b8" font-size="10">${label2}</text>
+      </svg>`;
+    }
+
+    function buildBarChart(data, key1, key2, color1, color2, label1, label2) {
+      const W = 520, H = 200, pad = { t:20, r:50, b:30, l:40 };
+      const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+      const maxVal1 = Math.max(...data.map(d => d[key1])) * 1.2;
+      const maxVal2 = Math.max(...data.map(d => d[key2])) * 1.2;
+      const n = data.length;
+      const bw = (cw / n) * 0.35;
+
+      function x(i) { return pad.l + (i + 0.5) * (cw / n); }
+      function y1(v) { return pad.t + ch - (v / maxVal1) * ch; }
+      function y2(v) { return pad.t + ch - (v / maxVal2) * ch; }
+
+      let gridLines = '';
+      for (let i = 0; i <= 4; i++) {
+        const yy = pad.t + (i/4) * ch;
+        const val = Math.round(maxVal1 * (1 - i/4));
+        gridLines += `<line x1="${pad.l}" y1="${yy}" x2="${W-pad.r}" y2="${yy}" stroke="rgba(100,116,139,0.12)" stroke-dasharray="3"/>`;
+        gridLines += `<text x="${pad.l-6}" y="${yy+4}" fill="#64748b" font-size="10" text-anchor="end">${val}</text>`;
+      }
+
+      let bars = '';
+      data.forEach((d, i) => {
+        const cx = x(i);
+        const h1 = (d[key1] / maxVal1) * ch;
+        const h2 = (d[key2] / maxVal2) * ch;
+        bars += `<rect x="${cx - bw - 1}" y="${pad.t + ch - h1}" width="${bw}" height="${h1}" rx="3" fill="${color1}"/>`;
+        bars += `<rect x="${cx + 1}" y="${pad.t + ch - h2}" width="${bw}" height="${h2}" rx="3" fill="${color2}" opacity="0.6"/>`;
+        bars += `<text x="${cx}" y="${H-6}" fill="#64748b" font-size="10" text-anchor="middle">${d.week}</text>`;
+      });
+
+      return `<svg viewBox="0 0 ${W} ${H}" class="w-full" style="max-height:260px">
+        ${gridLines}
+        ${bars}
+        <rect x="${W-120}" y="4" width="10" height="10" rx="2" fill="${color1}"/><text x="${W-106}" y="13" fill="#94a3b8" font-size="10">${label1}</text>
+        <rect x="${W-55}" y="4" width="10" height="10" rx="2" fill="${color2}" opacity="0.6"/><text x="${W-41}" y="13" fill="#94a3b8" font-size="10">${label2}</text>
+      </svg>`;
+    }
+
+    function buildWinRateSection() {
+      // Extract counts from FUNNEL data
+      const won = FUNNEL.find(f => f.stage === 'Closed Won')?.count || 0;
+      const lost = FUNNEL.find(f => f.stage === 'Lost')?.count || 0;
+      const noFit = FUNNEL.find(f => f.stage === 'No Fit')?.count || 0;
+      const badTiming = FUNNEL.find(f => f.stage === 'Bad Timing')?.count || 0;
+      const totalClosed = won + lost + noFit + badTiming;
+      const totalDecided = won + lost; // Excluding No Fit / Bad Timing (not real losses)
+
+      const winRate = totalClosed > 0 ? (won / totalClosed * 100) : 0;
+      const closeRate = totalDecided > 0 ? (won / totalDecided * 100) : 0;
+      const lostRate = totalClosed > 0 ? (lost / totalClosed * 100) : 0;
+      const noFitRate = totalClosed > 0 ? (noFit / totalClosed * 100) : 0;
+      const badTimingRate = totalClosed > 0 ? (badTiming / totalClosed * 100) : 0;
+
+      // Active pipeline
+      const activeStages = ['Outbound Prospect','Outbound Lead','Inbound Lead','SAL (Book 1st Demo)','SQL (Demo Done)','RFX','Opportunity','Vendor of Choice','Order Review','Verbal Commit.','Contract Neg.','Signing','Pilot ARR'];
+      const activePipeline = FUNNEL.filter(f => activeStages.includes(f.stage)).reduce((s,f) => s + f.count, 0);
+      const totalDeals = FUNNEL.reduce((s,f) => s + f.count, 0);
+
+      // Donut chart SVG
+      const radius = 52, cx = 60, cy = 60, stroke = 10;
+      const circ = 2 * Math.PI * radius;
+      const wonArc = (won / totalClosed) * circ;
+      const lostArc = (lost / totalClosed) * circ;
+      const noFitArc = (noFit / totalClosed) * circ;
+      const badTimingArc = (badTiming / totalClosed) * circ;
+
+      const donut = `<svg width="120" height="120" viewBox="0 0 120 120" class="shrink-0">
+        <circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="#1a1b35" stroke-width="${stroke}"/>
+        <circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="#34d399" stroke-width="${stroke}"
+          stroke-dasharray="${wonArc} ${circ - wonArc}" stroke-dashoffset="0" transform="rotate(-90 ${cx} ${cy})" stroke-linecap="round"/>
+        <circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="#f87171" stroke-width="${stroke}"
+          stroke-dasharray="${lostArc} ${circ - lostArc}" stroke-dashoffset="${-wonArc}" transform="rotate(-90 ${cx} ${cy})"/>
+        <circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="#64748b" stroke-width="${stroke}"
+          stroke-dasharray="${noFitArc} ${circ - noFitArc}" stroke-dashoffset="${-(wonArc + lostArc)}" transform="rotate(-90 ${cx} ${cy})"/>
+        <circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="#94a3b8" stroke-width="${stroke}"
+          stroke-dasharray="${badTimingArc} ${circ - badTimingArc}" stroke-dashoffset="${-(wonArc + lostArc + noFitArc)}" transform="rotate(-90 ${cx} ${cy})"/>
+        <text x="${cx}" y="${cy - 4}" text-anchor="middle" fill="white" font-size="18" font-weight="bold">${winRate.toFixed(1)}%</text>
+        <text x="${cx}" y="${cy + 12}" text-anchor="middle" fill="#94a3b8" font-size="9">Win Rate</text>
+      </svg>`;
+
+      return `<div class="flex items-start gap-5">
+        ${donut}
+        <div class="flex-1 space-y-3">
+          <div class="grid grid-cols-2 gap-2">
+            <div class="p-2.5 rounded-lg" style="background:#111225">
+              <div class="text-lg font-bold text-emerald-400">${closeRate.toFixed(1)}%</div>
+              <div class="text-[9px] text-slate-500 leading-tight">Close Rate<br><span class="text-slate-600">Won vs Lost (excl. No Fit)</span></div>
+            </div>
+            <div class="p-2.5 rounded-lg" style="background:#111225">
+              <div class="text-lg font-bold text-white">${totalDeals}</div>
+              <div class="text-[9px] text-slate-500 leading-tight">Total Deals<br><span class="text-slate-600">${activePipeline} active · ${totalClosed} closed</span></div>
+            </div>
+          </div>
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2">
+              <div class="h-2 rounded-full bg-emerald-400" style="width:${winRate}%"></div>
+              <span class="text-[10px] text-emerald-400 font-medium w-20 shrink-0">Won ${won} (${winRate.toFixed(0)}%)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="h-2 rounded-full bg-red-400" style="width:${lostRate}%"></div>
+              <span class="text-[10px] text-red-400 font-medium w-20 shrink-0">Lost ${lost} (${lostRate.toFixed(0)}%)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="h-2 rounded-full bg-slate-500" style="width:${noFitRate}%"></div>
+              <span class="text-[10px] text-slate-400 font-medium w-20 shrink-0">No Fit ${noFit} (${noFitRate.toFixed(0)}%)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="h-2 rounded-full bg-slate-400" style="width:${badTimingRate}%"></div>
+              <span class="text-[10px] text-slate-400 font-medium w-20 shrink-0">Bad T. ${badTiming} (${badTimingRate.toFixed(0)}%)</span>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    // Activity Timeline data from Attio (2026-03-13 sync)
+    const ACTIVITY_TIMELINE = [
+      { date:'07.03.', weekday:'Sa', emails:6,  calls:0, meetings:3,  deals:7  },
+      { date:'08.03.', weekday:'So', emails:10, calls:0, meetings:2,  deals:6  },
+      { date:'09.03.', weekday:'Mo', emails:35, calls:0, meetings:50, deals:18 },
+      { date:'10.03.', weekday:'Di', emails:39, calls:0, meetings:44, deals:19 },
+      { date:'11.03.', weekday:'Mi', emails:14, calls:0, meetings:48, deals:9  },
+      { date:'12.03.', weekday:'Do', emails:18, calls:0, meetings:53, deals:22 },
+      { date:'13.03.', weekday:'Fr', emails:38, calls:0, meetings:42, deals:10 },
+    ];
+
+    // Cycle Time data from Attio (2026-03-13 sync)
+    const CYCLE_TIME = {
+      closedWonAnalyzed: 50,    // Closed Won deals with beginning_of_sales_cycle
+      // Milestone coverage
+      milestones: [
+        { id:'bos',    label:'Sales Cycle Start', date:'01.06.2023', coverage:50, coveragePct:100, color:'#818cf8', icon:'🎯' },
+        { id:'sign',   label:'Signing',           date:'26.02.2026', coverage:49, coveragePct:98,  color:'#34d399', icon:'✍️' },
+        { id:'impl',   label:'Impl. Start',       date:'04.05.2026', coverage:47, coveragePct:94,  color:'#f59e0b', icon:'🚀' },
+        { id:'deploy', label:'Deployment',         date:'15.12.2024', coverage:16, coveragePct:32,  color:'#a78bfa', icon:'🟢' },
+      ],
+      // Phase durations (days between milestones)
+      phases: [
+        { from:'Sales Cycle Start', to:'Signing', days:1001, label:'~33 months', color:'#818cf8', note:'Batch data' },
+        { from:'Signing', to:'Impl. Start', days:67, label:'~10 weeks', color:'#34d399', note:'Operationally relevant' },
+      ],
+      // Active pipeline "age" (days since beginning_of_sales_cycle or created_at)
+      activeDealAge: [
+        { stage:'SAL', count:95, avgDaysSinceBOS:0, color:'#7c3aed' },
+        { stage:'SQL', count:66, avgDaysSinceBOS:0, color:'#5b21b6' },
+        { stage:'Opportunity', count:70, avgDaysSinceBOS:0, color:'#8b5cf6' },
+        { stage:'Vendor of Choice', count:22, avgDaysSinceBOS:0, color:'#7e22ce' },
+      ],
+      // Deal value distribution for Closed Won (all 83 deals, from Attio)
+      valueDistribution: [
+        { range:'< €20k', count:14, pct:17 },
+        { range:'€20k–50k', count:31, pct:37 },
+        { range:'€50k–100k', count:25, pct:30 },
+        { range:'> €100k', count:13, pct:16 },
+      ],
+      avgDealValue: 60507,
+      totalARR: 5022043,
+      dataQualityNote: 'Milestone data originates from a batch import. Individual deal cycle times will be tracked correctly from Q2 2026.',
+    };
+
+    // Deal Velocity data from Attio (2026-03-13 sync)
+    const DEAL_VELOCITY = {
+      avgCycleDays: 126,        // Avg days created_at → signing_date (Closed Won) — not verifiable from simple reports
+      closedWonCount: 83,
+      closedWonWithSignDate: 45,
+      avgDealValue: 60507,      // Attio: mean deal value of Closed Won deals
+      totalPipelineValue: 31833803, // Attio: sum of all deal values across all stages
+      stages: [
+        { stage:'SAL', count:95, pipeline:3219000, avgValue:48045, avgDaysInStage:0, color:'#7c3aed' },
+        { stage:'SQL', count:66, pipeline:3314000, avgValue:50985, avgDaysInStage:0, color:'#6d28d9' },
+        { stage:'RFX', count:14, pipeline:2124260, avgValue:151733, avgDaysInStage:0, color:'#5b21b6' },
+        { stage:'Opportunity', count:70, pipeline:6035500, avgValue:100592, avgDaysInStage:0, color:'#8b5cf6' },
+        { stage:'Vendor of Choice', count:22, pipeline:2869500, avgValue:143475, avgDaysInStage:0, color:'#7e22ce' },
+        { stage:'Order Review', count:6, pipeline:430250, avgValue:71708, avgDaysInStage:0, color:'#c084fc' },
+        { stage:'Contract Neg.', count:8, pipeline:552000, avgValue:92000, avgDaysInStage:0, color:'#9333ea' },
+        { stage:'Signing', count:4, pipeline:319828, avgValue:79957, avgDaysInStage:0, color:'#a855f7' },
+      ],
+      activePipeline: 18864338,  // Sum of SAL through Signing pipeline values
+      activeDeals: 285,          // Sum of SAL through Signing deal counts
+    };
+
+    // Deal Stage Heatmap — person × stage matrix (active deals snapshot)
+    const DEAL_STAGE_HEATMAP = {
+      stages: ['Outbound Prospect','Outbound Lead','Inbound Lead','SAL','SQL','RFX','Opportunity','Vendor of Choice','Order Review','Contract Neg.','Signing'],
+      stageColors: ['#818cf8','#6366f1','#a78bfa','#7c3aed','#6d28d9','#5b21b6','#8b5cf6','#7e22ce','#c084fc','#9333ea','#a855f7'],
+      people: [
+        { short:'Florian',  counts:[ 0, 1,  3,  8,  1, 0,  1, 0, 0, 0, 0] },
+        { short:'Tobias',   counts:[ 1, 0,  2, 23, 23, 2, 10, 3, 5, 0, 1] },
+        { short:'Julius',   counts:[ 2, 0,  9, 19,  8, 1, 12, 3, 0, 1, 0] },
+        { short:'Edmond',   counts:[ 0, 0,  5,  5, 18, 2, 11, 3, 0, 0, 0] },
+        { short:'Romeo',    counts:[ 0, 0,  0,  7,  0, 0,  1, 0, 0, 0, 0] },
+        { short:'Linh',     counts:[ 0, 0,  3,  6,  0, 1,  5, 1, 1, 0, 0] },
+        { short:'Temoc',    counts:[ 0, 0,  1,  2,  0, 0,  0, 0, 0, 0, 0] },
+        { short:'Michael',  counts:[46, 9,109, 14,  6, 1,  3, 6, 0, 1, 0] },
+        { short:'Vincent',  counts:[ 2, 3,  2,  1,  3, 2, 11, 3, 0, 0, 1] },
+        { short:'Patricia', counts:[22, 6,  2,  4,  4, 5,  9, 1, 0, 4, 2] },
+      ],
+    };
+
+    function buildActivityTimeline() {
+      const data = ACTIVITY_TIMELINE;
+      const metrics = ['emails','calls','meetings','deals'];
+      const metricLabels = { emails:'Emails', calls:'Calls', meetings:'Meetings', deals:'Deals' };
+      const metricColors = { emails:'#818cf8', calls:'#a78bfa', meetings:'#34d399', deals:'#f59e0b' };
+
+      // Heatmap intensity: for each metric, scale 0-1 based on max in that row
+      function intensity(val, max) {
+        if (max === 0) return 0;
+        return val / max;
+      }
+
+      function cellColor(val, max, baseColor) {
+        const i = intensity(val, max);
+        if (i === 0) return 'rgba(26,27,53,0.5)';
+        // Mix base color with opacity
+        const opacity = 0.15 + i * 0.7;
+        return baseColor.replace(')', `,${opacity})`).replace('rgb', 'rgba').replace('#', '');
+      }
+
+      function hexToRgba(hex, opacity) {
+        const r = parseInt(hex.slice(1,3), 16);
+        const g = parseInt(hex.slice(3,5), 16);
+        const b = parseInt(hex.slice(5,7), 16);
+        return `rgba(${r},${g},${b},${opacity})`;
+      }
+
+      // Totals row
+      const totals = {};
+      metrics.forEach(m => { totals[m] = data.reduce((s,d) => s + d[m], 0); });
+
+      return `<div class="overflow-x-auto">
+        <table class="w-full text-[11px]">
+          <thead>
+            <tr>
+              <th class="text-left py-2 px-2 text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-16"></th>
+              ${data.map(d => `<th class="text-center py-2 px-1.5 w-14">
+                <div class="text-[10px] font-medium ${d.weekday === 'Sa' || d.weekday === 'So' ? 'text-slate-600' : 'text-slate-400'}">${d.weekday}</div>
+                <div class="text-[9px] text-slate-600">${d.date}</div>
+              </th>`).join('')}
+              <th class="text-center py-2 px-2 text-[10px] font-semibold text-slate-500 w-14">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${metrics.map(m => {
+              const maxVal = Math.max(...data.map(d => d[m]));
+              return `<tr>
+                <td class="py-1.5 px-2">
+                  <div class="flex items-center gap-1.5">
+                    <div class="w-2 h-2 rounded-full shrink-0" style="background:${metricColors[m]}"></div>
+                    <span class="text-slate-400 font-medium">${metricLabels[m]}</span>
+                  </div>
+                </td>
+                ${data.map(d => {
+                  const val = d[m];
+                  const i = intensity(val, maxVal);
+                  const bg = val === 0 ? 'rgba(26,27,53,0.4)' : hexToRgba(metricColors[m], 0.12 + i * 0.55);
+                  const textColor = val === 0 ? '#475569' : (i > 0.7 ? '#ffffff' : '#94a3b8');
+                  const isWeekend = d.weekday === 'Sa' || d.weekday === 'So';
+                  return `<td class="py-1.5 px-1">
+                    <div class="text-center py-1.5 rounded-md font-semibold" style="background:${bg};color:${textColor}${isWeekend ? ';opacity:0.6' : ''}">${val}</div>
+                  </td>`;
+                }).join('')}
+                <td class="py-1.5 px-2 text-center font-bold text-white">${totals[m]}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+      <!-- Daily activity sparkline -->
+      <div class="mt-3 pt-3 border-t border-slate-800/40">
+        <div class="flex items-end gap-1 justify-between" style="height:40px">
+          ${data.map(d => {
+            const total = d.emails + d.calls + d.meetings + d.deals;
+            const maxTotal = Math.max(...data.map(x => x.emails + x.calls + x.meetings + x.deals));
+            const h = maxTotal > 0 ? Math.max((total / maxTotal) * 36, 3) : 3;
+            const isWeekend = d.weekday === 'Sa' || d.weekday === 'So';
+            const isToday = d.date === '13.03.';
+            return `<div class="flex-1 flex flex-col items-center gap-0.5">
+              <div class="w-full rounded-sm ${isToday ? 'bg-brand-400' : isWeekend ? 'bg-slate-700' : 'bg-brand-500/60'}" style="height:${h}px" title="${d.weekday} ${d.date}: ${total} activities"></div>
+              <span class="text-[8px] ${isToday ? 'text-brand-300 font-bold' : 'text-slate-600'}">${total}</span>
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="text-[9px] text-slate-600 text-right mt-1">Total activity per day (Emails + Calls + Meetings + Deals)</div>
+      </div>`;
+    }
+
+    function buildDealVelocity() {
+      const v = DEAL_VELOCITY;
+      const maxPipeline = Math.max(...v.stages.map(s => s.pipeline));
+
+      // Cycle time gauge
+      const targetDays = 90;
+      const gaugeAngle = Math.min((v.avgCycleDays / 180) * 180, 180);
+      const targetAngle = (targetDays / 180) * 180;
+
+      return `<div class="space-y-4">
+        <!-- Cycle Time + Avg Deal Value -->
+        <div class="grid grid-cols-2 gap-2">
+          <div class="p-3 rounded-lg text-center" style="background:#111225">
+            <div class="text-2xl font-bold text-white">${v.avgCycleDays}</div>
+            <div class="text-[10px] text-slate-500">Avg. Days to Close</div>
+            <div class="text-[9px] text-slate-600 mt-0.5">Created → Signing</div>
+          </div>
+          <div class="p-3 rounded-lg text-center" style="background:#111225">
+            <div class="text-2xl font-bold text-emerald-400">${fmt(v.avgDealValue)}</div>
+            <div class="text-[10px] text-slate-500">Avg. Deal Value</div>
+            <div class="text-[9px] text-slate-600 mt-0.5">${v.closedWonCount} Won Deals</div>
+          </div>
+        </div>
+
+        <!-- Active Pipeline per Stage -->
+        <div>
+          <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-2">Active Pipeline per Stage</div>
+          <div class="space-y-1.5">
+            ${v.stages.map(s => {
+              const w = Math.max((s.pipeline / maxPipeline) * 100, 12);
+              return `<div class="flex items-center gap-2">
+                <span class="text-[10px] text-slate-400 w-24 text-right truncate shrink-0">${s.stage}</span>
+                <div class="flex-1 h-6 bg-surface-1 rounded overflow-hidden">
+                  <div class="bar-animate h-full rounded flex items-center justify-between px-2" style="width:${w}%;background:${s.color}">
+                    <span class="text-[10px] font-semibold text-white">${s.count} deals</span>
+                    <span class="text-[10px] font-bold text-white/80">${fmt(s.pipeline)}</span>
+                  </div>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- Summary row -->
+        <div class="flex items-center justify-between p-2.5 rounded-lg" style="background:#111225">
+          <div>
+            <span class="text-[10px] text-slate-400">Total Active Pipeline</span>
+            <div class="text-lg font-bold text-white">${fmt(v.activePipeline)}</div>
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] text-slate-400">${v.activeDeals} active Deals</span>
+            <div class="text-lg font-bold text-brand-300">${fmt(Math.round(v.activePipeline / v.activeDeals))} avg</div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function buildCycleTime() {
+      const ct = CYCLE_TIME;
+
+      // --- Milestone Journey Waterfall ---
+      const totalSpan = 1001 + 67; // total days BOS→Impl
+      function phaseWidth(days) { return Math.max((days / totalSpan) * 100, 8); }
+
+      const milestoneJourney = `
+        <div class="mb-4">
+          <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-2">Deal Journey · Milestones</div>
+          <!-- Waterfall bar -->
+          <div class="flex items-center gap-0 h-10 rounded-lg overflow-hidden mb-2">
+            <div class="h-full flex items-center justify-center px-2" style="width:${phaseWidth(1001)}%;background:rgba(129,140,248,0.25);border-right:2px solid #34d399">
+              <span class="text-[9px] font-semibold text-brand-300 truncate">Sales Cycle · ~33 Mo.</span>
+            </div>
+            <div class="h-full flex items-center justify-center px-2" style="width:${phaseWidth(67)}%;background:rgba(52,211,153,0.25)">
+              <span class="text-[9px] font-semibold text-emerald-300 truncate">Sign→Impl · 67d</span>
+            </div>
+          </div>
+          <!-- Milestone markers -->
+          <div class="flex items-start text-[9px]">
+            <div class="flex-shrink-0" style="width:2%">
+              <div class="text-center">
+                <div class="text-slate-500">🎯</div>
+                <div class="text-slate-500 font-medium">Start</div>
+              </div>
+            </div>
+            <div class="flex-1"></div>
+            <div class="flex-shrink-0 text-center" style="width:auto">
+              <div class="text-emerald-400">✍️</div>
+              <div class="text-emerald-400 font-medium">Signing</div>
+            </div>
+            <div class="flex-shrink-0 text-center ml-4" style="width:auto">
+              <div class="text-amber-400">🚀</div>
+              <div class="text-amber-400 font-medium">Impl.</div>
+            </div>
+          </div>
+        </div>`;
+
+      // --- Phase Detail Cards ---
+      const phaseCards = `
+        <div class="grid grid-cols-2 gap-2 mb-4">
+          ${ct.phases.map(p => `
+            <div class="p-3 rounded-lg" style="background:#111225">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[9px] text-slate-500 uppercase tracking-wider">${p.from} → ${p.to}</span>
+              </div>
+              <div class="text-xl font-bold text-white">${p.days} <span class="text-[11px] text-slate-400 font-normal">Days</span></div>
+              <div class="text-[10px] ${p.note === 'Operationally relevant' ? 'text-emerald-400' : 'text-slate-600'}">${p.label} · ${p.note}</div>
+            </div>
+          `).join('')}
+        </div>`;
+
+      // --- Milestone Coverage ---
+      const coverageBars = `
+        <div class="mb-4">
+          <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-2">Milestone Coverage (${ct.closedWonAnalyzed} Deals)</div>
+          <div class="space-y-1">
+            ${ct.milestones.map(m => `
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] text-slate-400 w-28 text-right truncate shrink-0">${m.icon} ${m.label}</span>
+                <div class="flex-1 h-5 bg-surface-1 rounded overflow-hidden">
+                  <div class="bar-animate h-full rounded flex items-center px-2" style="width:${m.coveragePct}%;background:${m.color}30;border-left:3px solid ${m.color}">
+                    <span class="text-[10px] font-semibold" style="color:${m.color}">${m.coverage}/${ct.closedWonAnalyzed} (${m.coveragePct}%)</span>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>`;
+
+      // --- Deal Value Distribution ---
+      const maxPct = Math.max(...ct.valueDistribution.map(d => d.pct));
+      const valueDist = `
+        <div class="mb-3">
+          <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-2">Deal Value Distribution</div>
+          <div class="flex items-end gap-1.5 h-16">
+            ${ct.valueDistribution.map(d => {
+              const h = Math.max((d.pct / maxPct) * 56, 8);
+              return `<div class="flex-1 flex flex-col items-center justify-end gap-0.5">
+                <span class="text-[9px] font-bold text-white">${d.count}</span>
+                <div class="w-full rounded-t" style="height:${h}px;background:linear-gradient(to top, #6366f1, #818cf8)"></div>
+                <span class="text-[8px] text-slate-500 mt-0.5">${d.range}</span>
+              </div>`;
+            }).join('')}
+          </div>
+          <div class="flex items-center justify-between mt-2 text-[10px]">
+            <span class="text-slate-500">Avg: <span class="text-white font-semibold">${fmt(ct.avgDealValue)}</span></span>
+            <span class="text-slate-500">Total ARR: <span class="text-emerald-400 font-semibold">${fmt(ct.totalARR)}</span></span>
+          </div>
+        </div>`;
+
+      // --- Data Quality Note ---
+      const dataNote = `
+        <div class="flex items-start gap-2 p-2.5 rounded-lg" style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.15)">
+          <span class="text-amber-400 text-[11px] mt-0.5 shrink-0">⚠</span>
+          <span class="text-[9px] text-amber-400/80 leading-relaxed">${ct.dataQualityNote}</span>
+        </div>`;
+
+      return `<div class="space-y-4">
+        ${milestoneJourney}
+        ${phaseCards}
+        ${coverageBars}
+        ${valueDist}
+        ${dataNote}
+      </div>`;
+    }
+
+    let wowViewMode = 'last4'; // 'last4', 'all', 'q1', 'q2', etc.
+    function setWoWView(mode) { wowViewMode = mode; render(); }
+
+    function buildWoWComparison() {
+      if (TRENDS.length < 2) return '';
+      // Filter weeks based on view mode
+      let weeks;
+      const currentKW = 12;
+      switch(wowViewMode) {
+        case 'all': weeks = TRENDS; break;
+        case 'q1': weeks = TRENDS.filter(w => { const n = parseInt(w.week.replace('CW','')); return n >= 1 && n <= 13; }); break;
+        case 'q2': weeks = TRENDS.filter(w => { const n = parseInt(w.week.replace('CW','')); return n >= 14 && n <= 26; }); break;
+        case 'last4': weeks = TRENDS.slice(-4); break;
+        case 'last8': weeks = TRENDS.slice(-8); break;
+        default: weeks = TRENDS.slice(-4);
+      }
+      if (weeks.length === 0) return '<div class="text-sm text-slate-500 text-center py-4">No data for this period</div>';
+
+      const metrics = [
+        { key:'emails', label:'Outreach', color:'#818cf8', format: v => v },
+        { key:'calls', label:'Calls', color:'#a78bfa', format: v => v },
+        { key:'demos', label:'Demos', color:'#34d399', format: v => v },
+        { key:'pipeline', label:'Pipeline', color:'#f59e0b', format: v => '\u20AC' + v + 'k' },
+      ];
+
+      // Filter pills
+      const filterPills = ['last4','last8','q1','all'].map(mode => {
+        const labels = { last4:'Last 4', last8:'Last 8', q1:'Q1', all:'All' };
+        const active = wowViewMode === mode;
+        return `<button onclick="setWoWView('${mode}')" class="px-2.5 py-1 rounded-lg text-[10px] font-medium transition-all ${active ? 'bg-brand-500/20 text-brand-300 border border-brand-500/40' : 'text-slate-500 border border-slate-700/30 hover:text-slate-300'}">${labels[mode]}</button>`;
+      }).join('');
+
+      // Table header
+      const header = weeks.map((w, i) => {
+        const kwNum = parseInt(w.week.replace('CW',''));
+        const isCurrent = kwNum === currentKW;
+        return `<th class="py-2 px-2 text-center text-[10px] font-semibold ${isCurrent ? 'text-brand-300' : 'text-slate-500'} uppercase tracking-wider whitespace-nowrap">${w.week}${isCurrent ? ' \u25CF' : ''}</th>`;
+      }).join('');
+
+      // Table rows with delta badges
+      const rows = metrics.map(m => {
+        const cells = weeks.map((w, i) => {
+          const val = w[m.key];
+          const prev = i > 0 ? weeks[i-1][m.key] : null;
+          const kwNum = parseInt(w.week.replace('CW',''));
+          const isCurrent = kwNum === currentKW;
+
+          let deltaHTML = '';
+          if (prev !== null && prev > 0) {
+            const changePct = Math.round(((val - prev) / prev) * 100);
+            if (changePct > 0) deltaHTML = `<div class="text-[8px] text-emerald-400 font-semibold">\u25B2${changePct}%</div>`;
+            else if (changePct < 0) deltaHTML = `<div class="text-[8px] text-red-400 font-semibold">\u25BC${Math.abs(changePct)}%</div>`;
+            else deltaHTML = `<div class="text-[8px] text-slate-600">\u21920%</div>`;
+          } else if (prev === 0 && val > 0) {
+            deltaHTML = `<div class="text-[8px] text-emerald-400">\u2191new</div>`;
+          }
+
+          return `<td class="py-2 px-2 text-center ${isCurrent ? 'bg-brand-500/5' : ''}">
+            <div class="text-xs font-bold ${isCurrent ? 'text-white' : 'text-slate-300'}">${m.format(val)}</div>
+            ${deltaHTML}
+          </td>`;
+        }).join('');
+
+        // Trend sparkline
+        const maxVal = Math.max(...weeks.map(w => w[m.key]), 1);
+        const spark = `<td class="py-2 px-2">
+          <div class="flex items-end gap-0.5 h-5">
+            ${weeks.map((w, i) => {
+              const h = Math.max((w[m.key] / maxVal) * 18, 2);
+              const kwNum = parseInt(w.week.replace('CW',''));
+              const isCurrent = kwNum === currentKW;
+              return `<div class="flex-1 rounded-sm" style="height:${h}px;background:${isCurrent ? m.color : m.color + '40'}"></div>`;
+            }).join('')}
+          </div>
+        </td>`;
+
+        return `<tr class="border-b border-slate-800/30">
+          <td class="py-2 px-2">
+            <div class="flex items-center gap-1.5">
+              <div class="w-2 h-2 rounded-full" style="background:${m.color}"></div>
+              <span class="text-[11px] text-slate-400 font-medium">${m.label}</span>
+            </div>
+          </td>
+          ${cells}
+          ${spark}
+        </tr>`;
+      }).join('');
+
+      // Totals per week
+      const totalRow = `<tr class="border-t border-slate-700/50">
+        <td class="py-2 px-2 text-[10px] text-slate-500 font-semibold">Total</td>
+        ${weeks.map((w, i) => {
+          const total = w.emails + w.calls + w.demos;
+          const prev = i > 0 ? weeks[i-1].emails + weeks[i-1].calls + weeks[i-1].demos : null;
+          const kwNum = parseInt(w.week.replace('CW',''));
+          const isCurrent = kwNum === currentKW;
+          let dHTML = '';
+          if (prev !== null && prev > 0) {
+            const ch = Math.round(((total - prev) / prev) * 100);
+            dHTML = ch > 0 ? `<span class="text-emerald-400">+${ch}%</span>` : ch < 0 ? `<span class="text-red-400">${ch}%</span>` : '';
+          }
+          return `<td class="py-2 px-2 text-center ${isCurrent ? 'bg-brand-500/5' : ''}">
+            <span class="text-[11px] font-bold ${isCurrent ? 'text-white' : 'text-slate-400'}">${total}</span>
+            <span class="text-[8px] ml-1">${dHTML}</span>
+          </td>`;
+        }).join('')}
+        <td></td>
+      </tr>`;
+
+      return `<div class="flex items-center gap-1.5 mb-3">${filterPills}</div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-700/40">
+              <th class="py-2 px-2 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-20">Metric</th>
+              ${header}
+              <th class="py-2 px-2 text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-16">Trend</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+            ${totalRow}
+          </tbody>
+        </table>
+      </div>`;
+    }
+
+    function buildDealStageHeatmap() {
+      const hm = DEAL_STAGE_HEATMAP;
+      const stages = hm.stages;
+      const people = hm.people;
+
+      // Find global max for color scaling
+      const allCounts = people.flatMap(p => p.counts);
+      const maxVal = Math.max(...allCounts, 1);
+
+      // Stage totals
+      const stageTotals = stages.map((_, si) => people.reduce((s, p) => s + p.counts[si], 0));
+      const grandTotal = stageTotals.reduce((s, v) => s + v, 0);
+
+      function heatColor(val) {
+        if (val === 0) return 'rgba(26,27,53,0.5)';
+        const intensity = val / maxVal;
+        if (intensity < 0.25) return `rgba(99,102,241,${0.12 + intensity * 0.3})`;
+        if (intensity < 0.5) return `rgba(99,102,241,${0.2 + intensity * 0.4})`;
+        if (intensity < 0.75) return `rgba(124,58,237,${0.25 + intensity * 0.35})`;
+        return `rgba(139,92,246,${0.4 + intensity * 0.35})`;
+      }
+
+      // Header row
+      const headerCells = stages.map((s, i) =>
+        `<th class="py-2 px-1 text-center" style="min-width:44px">
+          <div class="text-[8px] text-slate-500 font-medium leading-tight truncate" title="${s}">${s.length > 8 ? s.slice(0,7)+'.' : s}</div>
+        </th>`
+      ).join('');
+
+      // Person rows
+      const personRows = people.map(p => {
+        const rowTotal = p.counts.reduce((s, v) => s + v, 0);
+        const cells = p.counts.map((val, si) => {
+          const bg = heatColor(val);
+          const textClass = val === 0 ? 'text-slate-700' : val >= maxVal * 0.5 ? 'text-white font-bold' : 'text-slate-300 font-medium';
+          return `<td class="py-0 px-0 text-center">
+            <div class="mx-0.5 my-0.5 rounded h-9 flex items-center justify-center text-[11px] ${textClass}" style="background:${bg}" title="${p.short}: ${val} Deals in ${stages[si]}">
+              ${val > 0 ? val : '<span class="text-[9px]">\u00B7</span>'}
+            </div>
+          </td>`;
+        }).join('');
+        return `<tr>
+          <td class="py-0 px-2 text-[11px] text-slate-400 font-medium whitespace-nowrap">${p.short}</td>
+          ${cells}
+          <td class="py-0 px-2 text-center text-[11px] font-semibold text-white">${rowTotal}</td>
+        </tr>`;
+      }).join('');
+
+      // Totals row
+      const totalCells = stageTotals.map(t =>
+        `<td class="py-1.5 px-0 text-center">
+          <span class="text-[10px] font-bold text-slate-300">${t}</span>
+        </td>`
+      ).join('');
+
+      // Stage distribution mini bar at bottom
+      const maxStageTotal = Math.max(...stageTotals, 1);
+      const distBars = stageTotals.map((t, i) => {
+        const w = Math.max((t / maxStageTotal) * 100, 3);
+        return `<td class="py-0 px-0">
+          <div class="mx-0.5 h-1.5 rounded-full" style="width:${w}%;background:${hm.stageColors[i]};opacity:0.6" title="${stages[i]}: ${t}"></div>
+        </td>`;
+      }).join('');
+
+      // Color legend
+      const legendSteps = [0, 5, 10, 15, 20, 25, 30];
+      const legend = legendSteps.map(v =>
+        `<div class="flex items-center gap-1">
+          <div class="w-3 h-3 rounded-sm" style="background:${heatColor(v)}"></div>
+          <span class="text-[8px] text-slate-600">${v}</span>
+        </div>`
+      ).join('');
+
+      return `<div class="overflow-x-auto">
+        <table class="w-full" style="border-spacing:0">
+          <thead>
+            <tr class="border-b border-slate-700/30">
+              <th class="py-2 px-2 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-20">Person</th>
+              ${headerCells}
+              <th class="py-2 px-2 text-center text-[10px] font-semibold text-slate-500 uppercase tracking-wider">\u03A3</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${personRows}
+            <tr class="border-t border-slate-700/30">
+              <td class="py-1.5 px-2 text-[10px] text-slate-500 font-semibold">\u03A3</td>
+              ${totalCells}
+              <td class="py-1.5 px-2 text-center text-[11px] font-bold text-brand-300">${grandTotal}</td>
+            </tr>
+            <tr>
+              <td></td>
+              ${distBars}
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="flex items-center gap-3 mt-3 pt-2 border-t border-slate-700/20">
+          <span class="text-[9px] text-slate-600">Intensity:</span>
+          <div class="flex items-center gap-2">${legend}</div>
+          <span class="text-[9px] text-slate-600 ml-auto">${grandTotal} active Deals \u00B7 ${stages.length} Stages</span>
+        </div>
+      </div>`;
+    }
+
+    function buildConversionFunnel() {
+      const stages = [
+        { stage:'Prospect', count:92, desc:'Outbound contacts identified', color:'#818cf8' },
+        { stage:'Lead', count:157, desc:'Inbound + Outbound qualified', color:'#7c3aed' },
+        { stage:'SAL', count:95, desc:'Sales Accepted Lead \u2014 1st demo booked', color:'#6d28d9' },
+        { stage:'SQL', count:66, desc:'Sales Qualified Lead \u2014 Demo done & Fit', color:'#5b21b6' },
+        { stage:'Opportunity', count:70, desc:'Workshop interest / active evaluation', color:'#8b5cf6' },
+        { stage:'Won', count:83, desc:'Deal closed', color:'#34d399' },
+      ];
+      const maxC = Math.max(...stages.map(s => s.count));
+      return `<div class="space-y-0">
+        ${stages.map((s, i) => {
+          const widthPct = Math.max((s.count / maxC) * 100, 25);
+          const next = stages[i + 1];
+          const rate = next ? Math.round((next.count / s.count) * 100) : null;
+          const dropOff = next ? s.count - next.count : null;
+          const isWon = s.stage === 'Won';
+          return `<div>
+            <div class="flex items-center gap-3">
+              <div class="relative" style="width:${widthPct}%">
+                <div class="h-9 rounded-lg flex items-center px-3 gap-2" style="background:${s.color}${isWon ? '' : ''}">
+                  <span class="text-sm font-bold text-white">${s.count}</span>
+                  <span class="text-[11px] font-semibold text-white/90">${s.stage}</span>
+                </div>
+              </div>
+              <span class="text-[10px] text-slate-500 leading-tight flex-1">${s.desc}</span>
+            </div>
+            ${rate !== null ? `<div class="flex items-center gap-2 ml-4 my-0.5">
+              <div class="flex items-center gap-1">
+                <svg width="12" height="14" viewBox="0 0 12 14"><path d="M6 0v10M2 7l4 4 4-4" stroke="#64748b" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="text-[11px] font-bold ${rate >= 80 ? 'text-emerald-400' : rate >= 50 ? 'text-brand-300' : 'text-amber-400'}">${rate}%</span>
+                <span class="text-[10px] text-slate-600">Conversion</span>
+              </div>
+              ${dropOff > 0 ? `<span class="text-[10px] text-slate-600">\u00B7 ${dropOff < 0 ? '+' : '-'}${Math.abs(dropOff)} Drop-off</span>` : `<span class="text-[10px] text-slate-600">\u00B7 +${Math.abs(dropOff)} more (Lateral Entry)</span>`}
+            </div>` : ''}
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="mt-4 grid grid-cols-4 gap-2">
+        <div class="text-center p-2 rounded-lg" style="background:#111225">
+          <div class="text-base font-bold text-brand-300">${pct(95, 157)}</div>
+          <div class="text-[9px] text-slate-500">Lead\u2192SAL</div>
+        </div>
+        <div class="text-center p-2 rounded-lg" style="background:#111225">
+          <div class="text-base font-bold text-brand-300">${pct(66, 95)}</div>
+          <div class="text-[9px] text-slate-500">SAL\u2192SQL</div>
+        </div>
+        <div class="text-center p-2 rounded-lg" style="background:#111225">
+          <div class="text-base font-bold text-amber-400">${pct(70, 66)}</div>
+          <div class="text-[9px] text-slate-500">SQL\u2192Opp</div>
+        </div>
+        <div class="text-center p-2 rounded-lg" style="background:#111225">
+          <div class="text-base font-bold text-emerald-400">${pct(83, 70)}</div>
+          <div class="text-[9px] text-slate-500">Opp\u2192Won</div>
+        </div>
+      </div>`;
+    }
+
+    // ─── FUNNEL FILTER ────────────────────────────────
+    const FUNNEL_GROUPS = {
+      all: FUNNEL.map(f => f.stage),
+      active: ['Outbound Prospect','Outbound Lead','Inbound Lead','SAL (Book 1st Demo)','SQL (Demo Done)','RFX','Opportunity','Vendor of Choice','Order Review','Verbal Commit.','Contract Neg.','Signing','Pilot ARR'],
+      closed: ['Closed Won','Lost','No Fit','Bad Timing'],
+    };
+    function filterFunnel(mode) {
+      document.querySelectorAll('#fAll,#fActive,#fClosed').forEach(b => b.classList.remove('pill-active'));
+      document.getElementById('f' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('pill-active');
+      const allowed = FUNNEL_GROUPS[mode];
+      const filtered = FUNNEL.filter(f => allowed.includes(f.stage));
+      const maxF = Math.max(...filtered.map(f => f.count));
+      document.getElementById('funnelContainer').innerHTML = filtered.map(f => {
+        const pctW = Math.max((f.count / maxF) * 100, 5);
+        if (f.split) {
+          const seg1Pct = (f.split[0].count / f.count) * 100;
+          const seg2Pct = 100 - seg1Pct;
+          return `<div class="flex items-center gap-3 group">
+            <span class="text-[11px] text-slate-400 w-36 text-right truncate shrink-0">${f.stage}</span>
+            <div class="flex-1 h-7 bg-surface-1 rounded overflow-hidden">
+              <div class="bar-animate h-full rounded flex" style="width:${pctW}%">
+                <div class="h-full flex items-center px-2 rounded-l" style="width:${seg1Pct}%;background:${f.split[0].color}" title="${f.split[0].label}: ${f.split[0].count}">
+                  <span class="text-[10px] font-semibold text-white drop-shadow-sm whitespace-nowrap">${f.split[0].label} ${f.split[0].count}</span>
+                </div>
+                <div class="h-full flex items-center px-2 rounded-r" style="width:${seg2Pct}%;background:${f.split[1].color}" title="${f.split[1].label}: ${f.split[1].count}">
+                  <span class="text-[10px] font-semibold text-slate-300 drop-shadow-sm whitespace-nowrap">${f.split[1].label} ${f.split[1].count}</span>
+                </div>
+              </div>
+            </div>
+          </div>`;
+        }
+        return `<div class="flex items-center gap-3 group">
+          <span class="text-[11px] text-slate-400 w-36 text-right truncate shrink-0">${f.stage}</span>
+          <div class="flex-1 h-7 bg-surface-1 rounded overflow-hidden">
+            <div class="bar-animate h-full rounded flex items-center px-2" style="width:${pctW}%;background:${f.color}">
+              <span class="text-[11px] font-semibold text-white drop-shadow-sm">${f.count}</span>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // ─── PIPELINE DATE RANGE FILTER ─────────────────────
+    let activePipelineDateRange = 'all';
+
+    function getPipelineDateBounds(range) {
+      const y = 2026;
+      switch(range) {
+        case 'q1':       return { from: `${y}-01-01`, to: `${y}-03-31`, label: 'Q1 2026' };
+        case 'jan':      return { from: `${y}-01-01`, to: `${y}-01-31`, label: 'January 2026' };
+        case 'feb':      return { from: `${y}-02-01`, to: `${y}-02-28`, label: 'February 2026' };
+        case 'mar':      return { from: `${y}-03-01`, to: `${y}-03-31`, label: 'March 2026' };
+        case 'thisWeek': {
+          const now = new Date();
+          const day = now.getDay(); // 0=Sun,1=Mon,...
+          const diffToMon = day === 0 ? -6 : 1 - day; // shift to Monday
+          const mon = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMon);
+          const sun = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 6);
+          const pad = d => String(d).padStart(2,'0');
+          const f = `${mon.getFullYear()}-${pad(mon.getMonth()+1)}-${pad(mon.getDate())}`;
+          const t = `${sun.getFullYear()}-${pad(sun.getMonth()+1)}-${pad(sun.getDate())}`;
+          return { from: f, to: t, label: `This Week (${f.slice(5)} – ${t.slice(5)})` };
+        }
+        default:         return { from: null, to: null, label: 'All Time' };
+      }
+    }
+
+    function setPipelineDateRange(range) {
+      activePipelineDateRange = range;
+      // Update button states
+      document.querySelectorAll('#pipelineDateBtns button').forEach(btn => {
+        btn.classList.toggle('pill-active', btn.getAttribute('data-range') === range);
+      });
+      const bounds = getPipelineDateBounds(range);
+      // Update date inputs
+      const fromEl = document.getElementById('pipelineFrom');
+      const toEl = document.getElementById('pipelineTo');
+      if (bounds.from) {
+        fromEl.value = bounds.from;
+        toEl.value = bounds.to;
+      } else {
+        fromEl.value = '';
+        toEl.value = '';
+      }
+      applyPipelineDateFilter(bounds.label);
+    }
+
+    function applyPipelineCustomRange() {
+      const fromVal = document.getElementById('pipelineFrom').value;
+      const toVal = document.getElementById('pipelineTo').value;
+      if (!fromVal || !toVal) return;
+      // Clear preset button active state
+      document.querySelectorAll('#pipelineDateBtns button').forEach(btn => btn.classList.remove('pill-active'));
+      activePipelineDateRange = 'custom';
+      const label = `${fromVal.slice(5).replace('-','/')} – ${toVal.slice(5).replace('-','/')}`;
+      applyPipelineDateFilter(label);
+    }
+
+    function applyPipelineDateFilter(label) {
+      // Update sublabels
+      const syncDate = formatSyncTime(LAST_SYNC).split(' at')[0];
+      const pSub = document.getElementById('pipelineSublabel');
+      const cSub = document.getElementById('conversionSublabel');
+      if (pSub) pSub.textContent = `All Deals · ${label} · As of ${syncDate}`;
+      if (cSub) cSub.textContent = `How Deals flow through the pipeline · ${label}`;
+
+      // Note: Full date-based filtering requires per-deal date data from Attio.
+      // Currently FUNNEL data is an aggregate snapshot. When date-filtered data
+      // becomes available in Supabase, the funnel will re-render with filtered counts.
+      // For now, the UI state + sublabels update, and "All Time" shows all data.
+      if (activePipelineDateRange !== 'all') {
+        // Show a subtle indicator that date filtering is active
+        const fc = document.getElementById('funnelContainer');
+        const cc = document.getElementById('conversionContainer');
+        if (fc && !document.getElementById('pipelineDateNotice')) {
+          fc.insertAdjacentHTML('beforebegin', `<div id="pipelineDateNotice" class="text-[9px] text-amber-400/70 mb-2 flex items-center gap-1"><svg width="12" height="12" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 9v4m0 4h.01M12 3l9.66 16.59A1 1 0 0 1 20.77 21H3.23a1 1 0 0 1-.89-1.41L12 3z"/></svg> Date-filtered pipeline data will be available with the next Attio sync.</div>`);
+        }
+      } else {
+        const notice = document.getElementById('pipelineDateNotice');
+        if (notice) notice.remove();
+      }
+    }
+
+    // ─── DRILL-DOWN ─────────────────────────────────────
+    function showDrill(title, subtitle, bodyHTML) {
+      const el = document.getElementById('drillContent');
+      el.innerHTML = `
+        <div class="flex items-center justify-between p-5 border-b border-slate-700/30">
+          <div>
+            <h3 class="text-lg font-semibold text-white">${title}</h3>
+            <span class="text-[10px] text-slate-500">${subtitle}</span>
+          </div>
+          <button onclick="closeDrill()" class="w-8 h-8 rounded-lg bg-surface-2 text-slate-400 hover:text-white hover:bg-surface-3 flex items-center justify-center text-lg transition-colors">&times;</button>
+        </div>
+        <div class="p-5">${bodyHTML}</div>`;
+      document.getElementById('drillModal').classList.add('active');
+    }
+    function closeDrill() {
+      document.getElementById('drillModal').classList.remove('active');
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrill(); });
+
+    // Drill: Scorecard metric breakdown per person
+    function drillScorecard(metric) {
+      const period = PERIODS[selectedPeriod];
+      let data = period.team;
+      if (selectedPerson !== 'All') data = data.filter(p => p.short === selectedPerson || p.name === selectedPerson);
+      if (!data.length) return;
+
+      const labels = {
+        emails: { title:'Emails Sent', color:'#818cf8', sub:'replies', subLabel:'Replies' },
+        calls: { title:'Outbound Calls', color:'#a78bfa', sub:'callsConnected', subLabel:'Reached' },
+        demos: { title:'Demos Booked', color:'#34d399', sub:null },
+        pipeline: { title:'Pipeline Created', color:'#34d399', sub:'deals', subLabel:'Deals' },
+      };
+      const cfg = labels[metric] || { title:metric, color:'#818cf8' };
+      const sorted = [...data].sort((a,b) => (b[metric]||0) - (a[metric]||0));
+      const maxVal = Math.max(...sorted.map(p => p[metric]||0), 1);
+      const tgt = KPI_TARGETS[selectedPeriod] || {};
+      const target = tgt[metric] || 0;
+
+      const bars = sorted.map(p => {
+        const val = p[metric] || 0;
+        const w = Math.max((val / maxVal) * 100, 4);
+        const subVal = cfg.sub ? (p[cfg.sub]||0) : null;
+        const valDisplay = metric === 'pipeline' ? fmt(val) : val;
+        const clickAttr = metric === 'demos' ? `onclick="event.stopPropagation();drillDemos('${p.short}')" style="cursor:pointer"` : '';
+        return `<div class="flex items-center gap-2 mb-1.5" ${clickAttr}>
+          <span class="text-[11px] text-slate-400 w-16 text-right shrink-0">${p.short}</span>
+          <div class="flex-1 h-7 bg-surface-1 rounded overflow-hidden">
+            <div class="h-full rounded flex items-center px-2 gap-2" style="width:${w}%;background:${cfg.color}30;border-left:3px solid ${cfg.color}">
+              <span class="text-[11px] font-bold text-white">${valDisplay}</span>
+              ${subVal !== null ? `<span class="text-[9px] text-slate-400">(${subVal} ${cfg.subLabel})</span>` : ''}
+            </div>
+          </div>
+          ${target > 0 ? `<span class="text-[9px] shrink-0 ${val >= target ? 'text-emerald-400' : val >= target*0.5 ? 'text-amber-400' : 'text-red-400'}">${Math.round(val/target*100)}%</span>` : ''}
+        </div>`;
+      }).join('');
+
+      const total = sorted.reduce((s,p) => s + (p[metric]||0), 0);
+      const totalDisplay = metric === 'pipeline' ? fmt(total) : total;
+
+      const demoHint = metric === 'demos' ? '<div class="mt-2 text-[9px] text-slate-600 text-center">💡 Click a person for deal details</div>' : '';
+      showDrill(cfg.title, `${period.label} · Per Person`, `
+        ${bars}
+        <div class="mt-3 pt-3 border-t border-slate-700/30 flex items-center justify-between">
+          <span class="text-[11px] text-slate-400">Total</span>
+          <span class="text-sm font-bold text-white">${totalDisplay}</span>
+        </div>
+        ${target > 0 ? `<div class="mt-1 text-[10px] text-slate-500">Target per person: ${metric === 'pipeline' ? fmt(target) : target}</div>` : ''}
+        ${demoHint}
+      `);
+    }
+
+    // Drill: Demo details per AE
+    function drillDemos(aeName) {
+      const deals = SAL_DEALS[aeName] || [];
+      if (!deals.length) {
+        showDrill(`Demos — ${aeName}`, 'No demos found in SAL Stage', `
+          <div class="text-center py-8 text-slate-500">
+            <div class="text-3xl mb-2">📭</div>
+            <div class="text-sm">No SAL deals found for ${aeName}</div>
+          </div>
+        `);
+        return;
+      }
+
+      const listHTML = deals.map((company, i) => {
+        const isInbound = company.includes('(Inbound)');
+        const badge = isInbound
+          ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 font-medium">Inbound</span>'
+          : '<span class="text-[9px] px-1.5 py-0.5 rounded bg-brand-500/15 text-brand-300 font-medium">Outbound</span>';
+        return `<div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-white/[0.03] transition-colors ${i > 0 ? 'border-t border-slate-800/30' : ''}">
+          <span class="text-[11px] text-slate-600 w-5 text-right">${i + 1}.</span>
+          <span class="text-[11px] font-medium text-white flex-1">${company.replace(' (Inbound)', '')}</span>
+          ${badge}
+        </div>`;
+      }).join('');
+
+      showDrill(`Demos — ${aeName}`, `${deals.length} Deals in SAL Stage (Book 1st Demo)`, `
+        <div class="space-y-0">${listHTML}</div>
+        <div class="mt-3 pt-3 border-t border-slate-700/30 flex items-center justify-between">
+          <span class="text-[11px] text-slate-400">Total SAL Deals</span>
+          <span class="text-sm font-bold text-emerald-400">${deals.length}</span>
+        </div>
+      `);
+    }
+
+    // Drill: Funnel stage detail
+    function drillFunnel(stageName) {
+      const stage = FUNNEL.find(f => f.stage === stageName);
+      if (!stage) return;
+      const total = FUNNEL.reduce((s,f) => s + f.count, 0);
+      const pctOfTotal = ((stage.count / total) * 100).toFixed(1);
+
+      // Find previous and next stages for context
+      const idx = FUNNEL.findIndex(f => f.stage === stageName);
+      const prev = idx > 0 ? FUNNEL[idx-1] : null;
+      const next = idx < FUNNEL.length-1 ? FUNNEL[idx+1] : null;
+      const convFromPrev = prev ? ((stage.count / prev.count) * 100).toFixed(1) : null;
+      const convToNext = next ? ((next.count / stage.count) * 100).toFixed(1) : null;
+
+      let splitHTML = '';
+      if (stage.split) {
+        splitHTML = `<div class="mt-3">
+          <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-2">Breakdown</div>
+          ${stage.split.map(s => {
+            const w = Math.max((s.count / stage.count) * 100, 10);
+            return `<div class="flex items-center gap-2 mb-1">
+              <span class="text-[10px] text-slate-400 w-16 text-right">${s.label}</span>
+              <div class="flex-1 h-6 bg-surface-1 rounded overflow-hidden">
+                <div class="h-full rounded flex items-center px-2" style="width:${w}%;background:${s.color}">
+                  <span class="text-[10px] font-semibold text-white">${s.count} (${((s.count/stage.count)*100).toFixed(0)}%)</span>
+                </div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>`;
+      }
+
+      showDrill(stage.stage, `${stage.count} Deals · ${pctOfTotal}% of all Deals`, `
+        <div class="grid grid-cols-3 gap-3 mb-4">
+          <div class="p-3 rounded-lg text-center" style="background:#1a1b35">
+            <div class="text-2xl font-bold text-white">${stage.count}</div>
+            <div class="text-[10px] text-slate-500">Deals in Stage</div>
+          </div>
+          <div class="p-3 rounded-lg text-center" style="background:#1a1b35">
+            <div class="text-2xl font-bold" style="color:${stage.color}">${pctOfTotal}%</div>
+            <div class="text-[10px] text-slate-500">Share of total</div>
+          </div>
+          <div class="p-3 rounded-lg text-center" style="background:#1a1b35">
+            <div class="text-2xl font-bold text-brand-300">#${idx+1}</div>
+            <div class="text-[10px] text-slate-500">Pipeline Position</div>
+          </div>
+        </div>
+        ${convFromPrev !== null ? `<div class="flex items-center gap-2 mb-1.5 text-[11px]">
+          <span class="text-slate-500">← From ${prev.stage}:</span>
+          <span class="font-semibold text-white">${prev.count} → ${stage.count}</span>
+          <span class="text-brand-300 font-bold">${convFromPrev}% Conv.</span>
+          <span class="text-red-400/60 text-[10px]">(−${prev.count - stage.count} Drop-off)</span>
+        </div>` : ''}
+        ${convToNext !== null ? `<div class="flex items-center gap-2 mb-1.5 text-[11px]">
+          <span class="text-slate-500">→ To ${next.stage}:</span>
+          <span class="font-semibold text-white">${stage.count} → ${next.count}</span>
+          <span class="text-brand-300 font-bold">${convToNext}% Conv.</span>
+          <span class="text-red-400/60 text-[10px]">(−${stage.count - next.count} Drop-off)</span>
+        </div>` : ''}
+        ${splitHTML}
+      `);
+    }
+
+    // Drill: Person detail (from leaderboard)
+    function drillPerson(personShort) {
+      const period = PERIODS[selectedPeriod];
+      const p = period.team.find(t => t.short === personShort);
+      if (!p) return;
+      const tgt = KPI_TARGETS[selectedPeriod] || {};
+      const tp = p.emails + p.calls + p.linkedin;
+
+      const metrics = [
+        { label:'Emails', val:p.emails, target:tgt.emails, color:'#818cf8' },
+        { label:'Replies', val:p.replies, target:null, color:'#818cf8' },
+        { label:'Calls', val:p.calls, target:tgt.calls, color:'#a78bfa', extra:`${p.callsConnected}✓ ${p.callsMissed}✗` },
+        { label:'LinkedIn', val:p.linkedin, target:null, color:'#c084fc' },
+        { label:'Touchpoints', val:tp, target:null, color:'#6366f1' },
+        { label:'Demos', val:p.demos, target:tgt.demos, color:'#34d399' },
+        { label:'Deals', val:p.deals, target:tgt.deals, color:'#f59e0b' },
+        { label:'Pipeline', val:p.pipeline, target:tgt.pipeline, color:'#34d399', isCurrency:true },
+        { label:'SALs', val:p.sals, target:null, color:'#7c3aed' },
+        { label:'SQLs', val:p.sqls, target:null, color:'#5b21b6' },
+        { label:'Opps', val:p.opps, target:null, color:'#8b5cf6' },
+      ];
+
+      const maxMetric = Math.max(...metrics.map(m => m.target || m.val || 0), 1);
+
+      const rows = metrics.map(m => {
+        const valDisplay = m.isCurrency ? fmt(m.val) : m.val;
+        const pctTarget = m.target ? Math.round((m.val / m.target) * 100) : null;
+        const barMax = m.target || Math.max(...period.team.map(t => {
+          if (m.label === 'Pipeline') return t.pipeline;
+          if (m.label === 'Touchpoints') return t.emails + t.calls + t.linkedin;
+          return t[m.label.toLowerCase()] || 0;
+        }), 1);
+        const w = Math.max((m.val / barMax) * 100, 2);
+        return `<div class="flex items-center gap-2 mb-1">
+          <span class="text-[10px] text-slate-400 w-20 text-right shrink-0">${m.label}</span>
+          <div class="flex-1 h-5 bg-surface-1 rounded overflow-hidden relative">
+            <div class="h-full rounded flex items-center px-1.5" style="width:${w}%;background:${m.color}25;border-left:2px solid ${m.color}">
+              <span class="text-[10px] font-semibold text-white">${valDisplay}</span>
+              ${m.extra ? `<span class="text-[8px] text-slate-400 ml-1">(${m.extra})</span>` : ''}
+            </div>
+            ${m.target ? `<div class="absolute top-0 bottom-0 w-px bg-emerald-400/40" style="left:${Math.min(100, (m.target / barMax) * 100)}%" title="Target: ${m.isCurrency ? fmt(m.target) : m.target}"></div>` : ''}
+          </div>
+          ${pctTarget !== null ? `<span class="text-[9px] w-10 text-right shrink-0 font-bold ${pctTarget >= 100 ? 'text-emerald-400' : pctTarget >= 50 ? 'text-amber-400' : 'text-red-400'}">${pctTarget}%</span>` : '<span class="w-10"></span>'}
+        </div>`;
+      }).join('');
+
+      showDrill(p.name, `${period.label} · All Metrics`, `
+        ${rows}
+        <div class="mt-3 pt-3 border-t border-slate-700/30 text-[10px] text-slate-500">
+          Targets: ${tgt.emails||'–'}E · ${tgt.calls||'–'}C · ${tgt.demos||'–'}D · ${tgt.deals||'–'} Deals · ${fmt(tgt.pipeline||0)} Pipeline
+        </div>
+      `);
+    }
+
+    // ─── INIT ─────────────────────────────────────────
+    // Load manual activities from Supabase, then render (only if authenticated)
+    if (sessionStorage.getItem(AUTH_KEY) === 'true') {
+      render();
+      loadManualActs().then(() => { render(); });
+    } else {
+      // Will be triggered by unlockDashboard() after PIN entry
+      window._pendingInit = true;
+    }
+
+    // Override unlockDashboard to also load data
+    const _origUnlock = unlockDashboard;
+    unlockDashboard = function() {
+      document.getElementById('authGate').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      render();
+      loadManualActs().then(() => { render(); });
+    };
+  </script>
+</body>
+</html>
