@@ -137,71 +137,71 @@
     // Call rule: "Call with [AE]" under 60s = not reached. 1m+ = connected.
     // "Missed call from [AE]" = not reached.
 
-    let LAST_SYNC = '2026-03-16T15:00:00+01:00'; // ISO timestamp of last data sync
+    let LAST_SYNC = '2026-03-18T14:30:00+01:00'; // ISO timestamp of last data sync
 
     const PERIODS = {
       today: {
-        label: 'Today (03/16)',
-        sublabel: 'Monday, March 16, 2026',
+        label: 'Today (03/18)',
+        sublabel: 'Wednesday, March 18, 2026',
         team: [
-          { name:'Florian Wanzeck', short:'Florian', emails:0, replies:1, calls:6, callsConnected:0, callsMissed:6, coldCalls:6, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Tobias Rohringer', short:'Tobias', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Julius Kaiser', short:'Julius', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Edmond Clemens', short:'Edmond', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Romeo Vogt', short:'Romeo', emails:3, replies:1, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Linh Cao', short:'Linh', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Temoc Chavero', short:'Temoc', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Michael Schmid', short:'Michael', emails:0, replies:1, calls:1, callsConnected:0, callsMissed:1, coldCalls:1, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Vincent Nusmeier', short:'Vincent', emails:0, replies:1, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Patricia Hölscher', short:'Patricia', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Florian Wanzeck', short:'Florian', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Tobias Rohringer', short:'Tobias', emails:1, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Julius Kaiser', short:'Julius', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Edmond Clemens', short:'Edmond', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Romeo Vogt', short:'Romeo', emails:1, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Linh Cao', short:'Linh', emails:0, replies:1, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Temoc Chavero', short:'Temoc', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Michael Schmid', short:'Michael', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Vincent Nusmeier', short:'Vincent', emails:0, replies:1, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Patricia Hölscher', short:'Patricia', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
         ]
       },
       week: {
-        label: 'CW11',
-        sublabel: 'Mar 9 \u2013 15, 2026',
+        label: 'CW12',
+        sublabel: 'Mar 16 \u2013 22, 2026',
         team: [
-          { name:'Florian Wanzeck', short:'Florian', emails:4, replies:4, calls:16, callsConnected:2, callsMissed:14, coldCalls:16, followUpCalls:0, linkedin:0, demos:3, deals:2, pipeline:80000, sals:2, sqls:0, opps:0 },
-          { name:'Tobias Rohringer', short:'Tobias', emails:0, replies:2, calls:1, callsConnected:1, callsMissed:0, coldCalls:1, followUpCalls:0, linkedin:0, demos:2, deals:5, pipeline:230000, sals:4, sqls:0, opps:0 },
-          { name:'Julius Kaiser', short:'Julius', emails:1, replies:2, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:1, deals:1, pipeline:40000, sals:4, sqls:0, opps:0 },
-          { name:'Edmond Clemens', short:'Edmond', emails:1, replies:2, calls:3, callsConnected:1, callsMissed:2, coldCalls:3, followUpCalls:0, linkedin:0, demos:1, deals:2, pipeline:90000, sals:4, sqls:0, opps:0 },
-          { name:'Romeo Vogt', short:'Romeo', emails:4, replies:3, calls:4, callsConnected:2, callsMissed:2, coldCalls:4, followUpCalls:0, linkedin:0, demos:2, deals:6, pipeline:240000, sals:6, sqls:0, opps:0 },
-          { name:'Linh Cao', short:'Linh', emails:1, replies:0, calls:2, callsConnected:1, callsMissed:1, coldCalls:2, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:1, sqls:0, opps:0 },
-          { name:'Temoc Chavero', short:'Temoc', emails:0, replies:1, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:1, sqls:0, opps:0 },
-          { name:'Michael Schmid', short:'Michael', emails:2, replies:1, calls:1, callsConnected:0, callsMissed:1, coldCalls:1, followUpCalls:0, linkedin:0, demos:0, deals:1, pipeline:40000, sals:3, sqls:0, opps:0 },
-          { name:'Vincent Nusmeier', short:'Vincent', emails:2, replies:1, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Patricia Hölscher', short:'Patricia', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Florian Wanzeck', short:'Florian', emails:1, replies:2, calls:6, callsConnected:0, callsMissed:6, coldCalls:6, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Tobias Rohringer', short:'Tobias', emails:2, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Julius Kaiser', short:'Julius', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Edmond Clemens', short:'Edmond', emails:2, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:1, deals:0, pipeline:0, sals:1, sqls:0, opps:0 },
+          { name:'Romeo Vogt', short:'Romeo', emails:6, replies:2, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:4, deals:0, pipeline:0, sals:4, sqls:0, opps:0 },
+          { name:'Linh Cao', short:'Linh', emails:0, replies:1, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Temoc Chavero', short:'Temoc', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Michael Schmid', short:'Michael', emails:5, replies:4, calls:1, callsConnected:0, callsMissed:1, coldCalls:1, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:4, deals:0, pipeline:0, sals:4, sqls:0, opps:0 },
+          { name:'Vincent Nusmeier', short:'Vincent', emails:0, replies:4, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Patricia Hölscher', short:'Patricia', emails:0, replies:5, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
         ]
       },
       month: {
         label: 'March 2026',
         sublabel: 'Mar 1 \u2013 31, 2026',
         team: [
-          { name:'Florian Wanzeck', short:'Florian', emails:4, replies:5, calls:28, callsConnected:9, callsMissed:19, coldCalls:28, followUpCalls:0, linkedin:0, demos:3, deals:4, pipeline:160000, sals:6, sqls:0, opps:0 },
-          { name:'Tobias Rohringer', short:'Tobias', emails:0, replies:2, calls:1, callsConnected:1, callsMissed:0, coldCalls:1, followUpCalls:0, linkedin:0, demos:3, deals:8, pipeline:1060000, sals:5, sqls:0, opps:1 },
-          { name:'Julius Kaiser', short:'Julius', emails:1, replies:2, calls:2, callsConnected:0, callsMissed:2, coldCalls:2, followUpCalls:0, linkedin:0, demos:1, deals:1, pipeline:40000, sals:4, sqls:0, opps:1 },
-          { name:'Edmond Clemens', short:'Edmond', emails:2, replies:3, calls:3, callsConnected:1, callsMissed:2, coldCalls:3, followUpCalls:0, linkedin:0, demos:4, deals:4, pipeline:180000, sals:4, sqls:1, opps:1 },
-          { name:'Romeo Vogt', short:'Romeo', emails:4, replies:3, calls:15, callsConnected:7, callsMissed:8, coldCalls:15, followUpCalls:0, linkedin:0, demos:3, deals:7, pipeline:280000, sals:7, sqls:0, opps:0 },
-          { name:'Linh Cao', short:'Linh', emails:3, replies:1, calls:10, callsConnected:3, callsMissed:7, coldCalls:10, followUpCalls:0, linkedin:0, demos:1, deals:0, pipeline:0, sals:1, sqls:0, opps:0 },
-          { name:'Temoc Chavero', short:'Temoc', emails:2, replies:4, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:1, sqls:0, opps:0 },
-          { name:'Michael Schmid', short:'Michael', emails:4, replies:3, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:2, pipeline:90000, sals:4, sqls:0, opps:1 },
-          { name:'Vincent Nusmeier', short:'Vincent', emails:2, replies:1, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Patricia Hölscher', short:'Patricia', emails:0, replies:3, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Florian Wanzeck', short:'Florian', emails:6, replies:9, calls:36, callsConnected:13, callsMissed:23, coldCalls:36, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:6, deals:9, pipeline:160000, sals:6, sqls:0, opps:0 },
+          { name:'Tobias Rohringer', short:'Tobias', emails:2, replies:3, calls:4, callsConnected:2, callsMissed:2, coldCalls:4, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:5, deals:8, pipeline:1060000, sals:5, sqls:0, opps:1 },
+          { name:'Julius Kaiser', short:'Julius', emails:0, replies:0, calls:1, callsConnected:0, callsMissed:1, coldCalls:1, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:5, deals:16, pipeline:40000, sals:5, sqls:0, opps:1 },
+          { name:'Edmond Clemens', short:'Edmond', emails:7, replies:4, calls:3, callsConnected:1, callsMissed:2, coldCalls:3, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:7, deals:11, pipeline:480000, sals:7, sqls:2, opps:1 },
+          { name:'Romeo Vogt', short:'Romeo', emails:11, replies:7, calls:14, callsConnected:4, callsMissed:10, coldCalls:14, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:9, deals:9, pipeline:360000, sals:9, sqls:0, opps:0 },
+          { name:'Linh Cao', short:'Linh', emails:4, replies:2, calls:17, callsConnected:7, callsMissed:10, coldCalls:17, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:1, deals:2, pipeline:0, sals:1, sqls:0, opps:0 },
+          { name:'Temoc Chavero', short:'Temoc', emails:4, replies:6, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:1, deals:3, pipeline:0, sals:1, sqls:0, opps:0 },
+          { name:'Michael Schmid', short:'Michael', emails:10, replies:9, calls:2, callsConnected:1, callsMissed:1, coldCalls:2, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:5, deals:5, pipeline:90000, sals:5, sqls:0, opps:1 },
+          { name:'Vincent Nusmeier', short:'Vincent', emails:2, replies:5, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Patricia Hölscher', short:'Patricia', emails:0, replies:8, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
         ]
       },
       q1: {
         label: 'Q1 2026',
         sublabel: 'January \u2013 March 2026',
         team: [
-          { name:'Florian Wanzeck', short:'Florian', emails:4, replies:5, calls:28, callsConnected:9, callsMissed:19, coldCalls:28, followUpCalls:0, linkedin:0, demos:4, deals:6, pipeline:240000, sals:8, sqls:0, opps:0 },
-          { name:'Tobias Rohringer', short:'Tobias', emails:0, replies:2, calls:63, callsConnected:19, callsMissed:44, coldCalls:63, followUpCalls:0, linkedin:0, demos:11, deals:30, pipeline:2817000, sals:13, sqls:10, opps:2 },
-          { name:'Julius Kaiser', short:'Julius', emails:1, replies:2, calls:16, callsConnected:6, callsMissed:10, coldCalls:16, followUpCalls:0, linkedin:0, demos:12, deals:12, pipeline:782000, sals:15, sqls:2, opps:3 },
-          { name:'Edmond Clemens', short:'Edmond', emails:2, replies:3, calls:3, callsConnected:1, callsMissed:2, coldCalls:3, followUpCalls:0, linkedin:0, demos:6, deals:18, pipeline:784800, sals:5, sqls:9, opps:3 },
-          { name:'Romeo Vogt', short:'Romeo', emails:4, replies:3, calls:15, callsConnected:7, callsMissed:8, coldCalls:15, followUpCalls:0, linkedin:0, demos:3, deals:7, pipeline:280000, sals:7, sqls:0, opps:0 },
-          { name:'Linh Cao', short:'Linh', emails:3, replies:1, calls:65, callsConnected:17, callsMissed:48, coldCalls:65, followUpCalls:0, linkedin:0, demos:5, deals:0, pipeline:0, sals:5, sqls:0, opps:0 },
-          { name:'Temoc Chavero', short:'Temoc', emails:2, replies:4, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:1, deals:1, pipeline:60000, sals:2, sqls:0, opps:0 },
-          { name:'Michael Schmid', short:'Michael', emails:4, replies:3, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:16, pipeline:1226000, sals:7, sqls:0, opps:1 },
-          { name:'Vincent Nusmeier', short:'Vincent', emails:2, replies:1, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:4, pipeline:1420000, sals:1, sqls:0, opps:3 },
-          { name:'Patricia H\u00F6lscher', short:'Patricia', emails:0, replies:3, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, demos:0, deals:4, pipeline:390000, sals:1, sqls:0, opps:0 },
+          { name:'Florian Wanzeck', short:'Florian', emails:6, replies:9, calls:36, callsConnected:13, callsMissed:23, coldCalls:36, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:8, deals:13, pipeline:240000, sals:8, sqls:0, opps:0 },
+          { name:'Tobias Rohringer', short:'Tobias', emails:2, replies:3, calls:90, callsConnected:27, callsMissed:63, coldCalls:90, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:13, deals:30, pipeline:2817000, sals:13, sqls:10, opps:2 },
+          { name:'Julius Kaiser', short:'Julius', emails:0, replies:0, calls:37, callsConnected:19, callsMissed:18, coldCalls:37, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:16, deals:47, pipeline:782000, sals:16, sqls:2, opps:3 },
+          { name:'Edmond Clemens', short:'Edmond', emails:7, replies:4, calls:3, callsConnected:1, callsMissed:2, coldCalls:3, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:8, deals:27, pipeline:1094800, sals:8, sqls:9, opps:3 },
+          { name:'Romeo Vogt', short:'Romeo', emails:11, replies:7, calls:14, callsConnected:4, callsMissed:10, coldCalls:14, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:9, deals:9, pipeline:360000, sals:9, sqls:0, opps:0 },
+          { name:'Linh Cao', short:'Linh', emails:4, replies:2, calls:71, callsConnected:24, callsMissed:47, coldCalls:71, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:5, deals:8, pipeline:0, sals:5, sqls:0, opps:0 },
+          { name:'Temoc Chavero', short:'Temoc', emails:4, replies:6, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:2, deals:4, pipeline:60000, sals:2, sqls:0, opps:0 },
+          { name:'Michael Schmid', short:'Michael', emails:10, replies:9, calls:7, callsConnected:3, callsMissed:4, coldCalls:7, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:8, deals:16, pipeline:1226000, sals:8, sqls:0, opps:1 },
+          { name:'Vincent Nusmeier', short:'Vincent', emails:2, replies:5, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:1, deals:6, pipeline:1420000, sals:1, sqls:3, opps:3 },
+          { name:'Patricia Hölscher', short:'Patricia', emails:0, replies:8, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:4, deals:5, pipeline:390000, sals:4, sqls:4, opps:0 },
         ]
       },
       q2: { label: 'Q2 2026', sublabel: 'April \u2013 June 2026', team: [] },
@@ -209,42 +209,72 @@
       q4: { label: 'Q4 2026', sublabel: 'October \u2013 December 2026', team: [] },
     };
 
-    const FUNNEL = [
-      { stage:'Outbound Prospect', count:73, color:'#818cf8' },
-      { stage:'Outbound Lead', count:19, color:'#6366f1' },
-      { stage:'Inbound Lead', count:136, color:'#a78bfa' },
-      { stage:'SAL (Book 1st Demo)', count:95, color:'#7c3aed' },
-      { stage:'SQL (Demo Done)', count:66, color:'#6d28d9' },
-      { stage:'RFX', count:14, color:'#5b21b6' },
-      { stage:'Opportunity', count:70, color:'#8b5cf6' },
-      { stage:'Vendor of Choice', count:22, color:'#7e22ce' },
-      { stage:'Order Review', count:6, color:'#c084fc' },
-      { stage:'Verbal Commit.', count:2, color:'#d8b4fe' },
-      { stage:'Contract Neg.', count:8, color:'#9333ea' },
-      { stage:'Signing', count:4, color:'#a855f7' },
-      { stage:'Pilot ARR', count:2, color:'#e9d5ff' },
-      { stage:'Closed Won', count:83, color:'#34d399' },
-      { stage:'Lost', count:88, color:'#f87171' },
-      { stage:'No Fit', count:337, color:'#64748b', split: [
-        { label:'Company', count:196, color:'#64748b' },
-        { label:'Person', count:141, color:'#475569' }
-      ]},
-      { stage:'Bad Timing', count:40, color:'#94a3b8' },
-    ];
+    // ─── FUNNEL DATA (per period) ─────────────────────
+    // Stage colors & order (shared across all periods)
+    const STAGE_META = {
+      'Outbound Prospect': '#818cf8', 'Outbound Lead': '#6366f1', 'Inbound Lead': '#a78bfa',
+      'SAL (Book 1st Demo)': '#7c3aed', 'SQL (Demo Done)': '#6d28d9', 'RFX': '#5b21b6',
+      'Opportunity': '#8b5cf6', 'Vendor of Choice': '#7e22ce', 'Order Review': '#c084fc',
+      'Verbal Commit.': '#d8b4fe', 'Contract Neg.': '#9333ea', 'Signing': '#a855f7',
+      'Pilot ARR': '#e9d5ff', 'Closed Won': '#34d399', 'Lost': '#f87171',
+      'No Fit': '#64748b', 'Bad Timing': '#94a3b8'
+    };
+    const STAGE_ORDER = Object.keys(STAGE_META);
+
+    function makeFunnel(counts, noFitSplit) {
+      return STAGE_ORDER.map(stage => {
+        const entry = { stage, count: counts[stage] || 0, color: STAGE_META[stage] };
+        if (stage === 'No Fit' && noFitSplit) {
+          entry.split = noFitSplit;
+        }
+        return entry;
+      });
+    }
+
+    const FUNNEL_PERIODS = {
+      all: makeFunnel({
+        'Outbound Prospect':73, 'Outbound Lead':19, 'Inbound Lead':138,
+        'SAL (Book 1st Demo)':103, 'SQL (Demo Done)':66, 'RFX':14,
+        'Opportunity':69, 'Vendor of Choice':28, 'Order Review':7,
+        'Verbal Commit.':2, 'Contract Neg.':10, 'Signing':4,
+        'Pilot ARR':2, 'Closed Won':83, 'Lost':88, 'No Fit':350, 'Bad Timing':42
+      }, [{ label:'Company', count:203, color:'#64748b' }, { label:'Person', count:147, color:'#475569' }]),
+      q1: makeFunnel({
+        'Outbound Prospect':3, 'Outbound Lead':6, 'Inbound Lead':127,
+        'SAL (Book 1st Demo)':73, 'SQL (Demo Done)':21, 'RFX':4,
+        'Opportunity':14, 'Vendor of Choice':10, 'Contract Neg.':4,
+        'Pilot ARR':1, 'Closed Won':2, 'Lost':1, 'No Fit':165, 'Bad Timing':5
+      }),
+      month: makeFunnel({
+        'Outbound Prospect':1, 'Inbound Lead':76,
+        'SAL (Book 1st Demo)':43, 'SQL (Demo Done)':6, 'RFX':1,
+        'Opportunity':4, 'Vendor of Choice':11, 'No Fit':153, 'Bad Timing':2
+      }),
+      week: makeFunnel({
+        'Inbound Lead':12, 'SAL (Book 1st Demo)':12, 'SQL (Demo Done)':2,
+        'Vendor of Choice':1, 'No Fit':10
+      }),
+      today: makeFunnel({
+        'Inbound Lead':3, 'SAL (Book 1st Demo)':4, 'No Fit':3
+      }),
+    };
+
+    let FUNNEL = FUNNEL_PERIODS.all;
+    let activeFunnelPeriod = 'all';
 
     const TRENDS = [
-      { week:'CW01', emails:12, calls:8, demos:2, pipeline:90 },
-      { week:'CW02', emails:25, calls:15, demos:3, pipeline:150 },
-      { week:'CW03', emails:45, calls:28, demos:4, pipeline:220 },
-      { week:'CW04', emails:80, calls:40, demos:5, pipeline:280 },
-      { week:'CW05', emails:95, calls:35, demos:7, pipeline:350 },
-      { week:'CW06', emails:110, calls:50, demos:6, pipeline:410 },
-      { week:'CW07', emails:88, calls:45, demos:8, pipeline:320 },
-      { week:'CW08', emails:102, calls:42, demos:9, pipeline:450 },
-      { week:'CW09', emails:120, calls:55, demos:7, pipeline:380 },
-      { week:'CW10', emails:105, calls:48, demos:10, pipeline:520 },
-      { week:'CW11', emails:15, calls:27, demos:13, pipeline:1430 },
-      { week:'CW12', emails:5, calls:7, demos:0, pipeline:0 },
+      { week:'CW01', emails:12, calls:8, linkedin:0, linkedinDemos:0, demos:2, pipeline:90 },
+      { week:'CW02', emails:25, calls:15, linkedin:0, linkedinDemos:0, demos:3, pipeline:150 },
+      { week:'CW03', emails:45, calls:28, linkedin:0, linkedinDemos:0, demos:4, pipeline:220 },
+      { week:'CW04', emails:80, calls:40, linkedin:0, linkedinDemos:0, demos:5, pipeline:280 },
+      { week:'CW05', emails:95, calls:35, linkedin:0, linkedinDemos:0, demos:7, pipeline:350 },
+      { week:'CW06', emails:110, calls:50, linkedin:0, linkedinDemos:0, demos:6, pipeline:410 },
+      { week:'CW07', emails:88, calls:45, linkedin:0, linkedinDemos:0, demos:8, pipeline:320 },
+      { week:'CW08', emails:102, calls:42, linkedin:0, linkedinDemos:0, demos:9, pipeline:450 },
+      { week:'CW09', emails:120, calls:55, linkedin:0, linkedinDemos:0, demos:7, pipeline:380 },
+      { week:'CW10', emails:105, calls:48, linkedin:0, linkedinDemos:0, demos:10, pipeline:520 },
+      { week:'CW11', emails:16, calls:35, linkedin:0, linkedinDemos:0, demos:13, pipeline:1430 },
+      { week:'CW12', emails:4, calls:7, linkedin:0, linkedinDemos:0, demos:0, pipeline:0 },
     ];
 
     // ─── HELPERS ────────────────────────────────────────
@@ -346,6 +376,7 @@
 
     const ACT_TYPES = [
       { key:'linkedin', label:'LinkedIn Outreach', field:'linkedin', icon:'\uD83D\uDD17' },
+      { key:'linkedin_demo', label:'LinkedIn \u2192 Demo', field:'linkedinDemos', icon:'\uD83D\uDCC5' },
       { key:'outreach_email', label:'Outreach Email', field:'emails', icon:'\u2709\uFE0F' },
       { key:'followup_email', label:'Follow-up Email', field:'replies', icon:'\u21A9\uFE0F' },
       { key:'cold_call', label:'Cold Call', field:'coldCalls', icon:'\uD83D\uDCDE' },
@@ -421,15 +452,34 @@
     }
 
     function getPeriodRange(periodKey) {
+      const now = new Date();
+      const pad = d => String(d).padStart(2,'0');
+      const toISO = dt => `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`;
+      const today = toISO(now);
+      const y = now.getFullYear();
+
+      // Dynamic week: Monday to Sunday of current week
+      const day = now.getDay(); // 0=Sun
+      const diffToMon = day === 0 ? -6 : 1 - day;
+      const mon = new Date(y, now.getMonth(), now.getDate() + diffToMon);
+      const sun = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 6);
+      const weekStart = toISO(mon);
+      const weekEnd = toISO(sun);
+
+      // Dynamic month
+      const monthStart = `${y}-${pad(now.getMonth()+1)}-01`;
+      const lastDay = new Date(y, now.getMonth()+1, 0).getDate();
+      const monthEnd = `${y}-${pad(now.getMonth()+1)}-${pad(lastDay)}`;
+
       switch(periodKey) {
-        case 'today': return ['2026-03-16','2026-03-16'];
-        case 'week': return ['2026-03-10','2026-03-16'];
-        case 'month': return ['2026-03-01','2026-03-31'];
-        case 'q1': return ['2026-01-01','2026-03-31'];
-        case 'q2': return ['2026-04-01','2026-06-30'];
-        case 'q3': return ['2026-07-01','2026-09-30'];
-        case 'q4': return ['2026-10-01','2026-12-31'];
-        default: return ['2026-01-01','2026-12-31'];
+        case 'today': return [today, today];
+        case 'week': return [weekStart, weekEnd];
+        case 'month': return [monthStart, monthEnd];
+        case 'q1': return [`${y}-01-01`,`${y}-03-31`];
+        case 'q2': return [`${y}-04-01`,`${y}-06-30`];
+        case 'q3': return [`${y}-07-01`,`${y}-09-30`];
+        case 'q4': return [`${y}-10-01`,`${y}-12-31`];
+        default: return [`${y}-01-01`,`${y}-12-31`];
       }
     }
 
@@ -579,7 +629,7 @@
 
         // Apply synced data to PERIODS
         const metrics = ['emails', 'replies', 'calls', 'callsConnected', 'callsMissed', 'coldCalls', 'followUpCalls',
-                         'linkedin', 'demos', 'deals', 'pipeline', 'sals', 'sqls', 'opps'];
+                         'linkedin', 'linkedinDemos', 'demos', 'deals', 'pipeline', 'sals', 'sqls', 'opps'];
         let updatedCount = 0;
         for (const pk of ['today', 'week', 'month', 'q1']) {
           if (!PERIODS[pk] || !PERIODS[pk].team || !grouped[pk]) continue;
@@ -594,6 +644,32 @@
             }
           }
         }
+
+        // Update pipeline funnel from _pipeline_ rows
+        const pipelineData = grouped['_pipeline_'] || {};
+        const stageMap = {
+          'Outbound Prospect':'Outbound Prospect', 'Outbound Lead':'Outbound Lead',
+          'Inbound Lead':'Inbound Lead', 'SAL':'SAL (Book 1st Demo)', 'SQL':'SQL (Demo Done)',
+          'RFX':'RFX', 'Opportunity':'Opportunity', 'Vendor of Choice':'Vendor of Choice',
+          'Order Review':'Order Review', 'Verbal Commit':'Verbal Commit.', 'Contract Neg':'Contract Neg.',
+          'Signing':'Signing', 'Pilot ARR':'Pilot ARR', 'Closed Won':'Closed Won',
+          'Lost':'Lost', 'No Fit':'No Fit', 'Bad Timing':'Bad Timing'
+        };
+        for (const periodKey of Object.keys(grouped)) {
+          const pData = grouped[periodKey]?.['_pipeline_'];
+          if (!pData) continue;
+          const counts = {};
+          for (const [shortStage, val] of Object.entries(pData)) {
+            const fullStage = stageMap[shortStage] || shortStage;
+            counts[fullStage] = val;
+          }
+          const funnelKey = periodKey === 'all' ? 'all' : periodKey;
+          if (FUNNEL_PERIODS[funnelKey]) {
+            FUNNEL_PERIODS[funnelKey] = makeFunnel(counts, funnelKey === 'all' ? FUNNEL_PERIODS.all.find(f=>f.split)?.split : undefined);
+          }
+        }
+        // Reset active funnel to match current filter
+        FUNNEL = FUNNEL_PERIODS[activeFunnelPeriod] || FUNNEL_PERIODS.all;
 
         // Update sync timestamp
         if (latestSync) LAST_SYNC = latestSync;
@@ -638,19 +714,27 @@
       // Exact today
       if (from === todayStr && to === todayStr) return 'today';
 
-      // Check if range matches current week (Mon-Sun of KW11)
-      const mon = new Date(2026, 2, 10), sun = new Date(2026, 2, 16);
-      if (f <= mon && t >= sun) return 'week';
+      // Check if range matches current week (Mon-Sun, dynamic)
+      const dow = now.getDay();
+      const diffM = dow === 0 ? -6 : 1 - dow;
+      const cwMon = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffM);
+      const cwSun = new Date(cwMon.getFullYear(), cwMon.getMonth(), cwMon.getDate() + 6);
+      if (f <= cwMon && t >= cwSun) return 'week';
 
-      // Check if range covers full March 2026
-      const m1 = new Date(2026, 2, 1), m31 = new Date(2026, 2, 31);
-      if (f <= m1 && t >= m31) return 'month';
+      // Check if range covers current month
+      const yr = now.getFullYear(), mo = now.getMonth();
+      const m1 = new Date(yr, mo, 1), mLast = new Date(yr, mo + 1, 0);
+      if (f <= m1 && t >= mLast) return 'month';
 
-      // Check quarters
-      if (f <= new Date(2026, 0, 1) && t >= new Date(2026, 2, 31)) return 'q1';
-      if (f <= new Date(2026, 3, 1) && t >= new Date(2026, 5, 30)) return 'q2';
-      if (f <= new Date(2026, 6, 1) && t >= new Date(2026, 8, 30)) return 'q3';
-      if (f <= new Date(2026, 9, 1) && t >= new Date(2026, 11, 31)) return 'q4';
+      // Check quarters (dynamic)
+      const qIdx = Math.floor(mo / 3);
+      const quarters = [[0,2],[3,5],[6,8],[9,11]];
+      const qKeys = ['q1','q2','q3','q4'];
+      for (let qi = 0; qi < 4; qi++) {
+        const qs = new Date(yr, quarters[qi][0], 1);
+        const qe = new Date(yr, quarters[qi][1] + 1, 0);
+        if (f <= qs && t >= qe) return qKeys[qi];
+      }
 
       // Fallback: find the smallest period that overlaps most
       const daysDiff = Math.round((t - f) / 86400000);
@@ -688,18 +772,48 @@
 
     // Preset ranges
     function getPresetRange(key) {
-      const now = new Date(2026, 2, 16); // current date
+      const now = new Date();
+      const pad = d => String(d).padStart(2,'0');
+      const toISO = dt => `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`;
+      const today = toISO(now);
+      const y = now.getFullYear();
+      const m = now.getMonth(); // 0-based
+
+      // Yesterday
+      const yd = new Date(y, m, now.getDate() - 1);
+
+      // This week: Monday to Sunday
+      const dow = now.getDay(); // 0=Sun
+      const diffMon = dow === 0 ? -6 : 1 - dow;
+      const mon = new Date(y, m, now.getDate() + diffMon);
+      const sun = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 6);
+
+      // Last week
+      const lMon = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() - 7);
+      const lSun = new Date(lMon.getFullYear(), lMon.getMonth(), lMon.getDate() + 6);
+
+      // This month
+      const mEnd = new Date(y, m + 1, 0); // last day of current month
+
+      // Last month
+      const lmStart = new Date(y, m - 1, 1);
+      const lmEnd = new Date(y, m, 0);
+
+      // This quarter
+      const qStart = new Date(y, Math.floor(m / 3) * 3, 1);
+      const qEnd = new Date(y, Math.floor(m / 3) * 3 + 3, 0);
+
       switch(key) {
-        case 'today': return { from:'2026-03-16', to:'2026-03-16' };
-        case 'yesterday': return { from:'2026-03-15', to:'2026-03-15' };
-        case 'thisWeek': return { from:'2026-03-16', to:'2026-03-22' }; // CW12 (Mon–Sun)
-        case 'lastWeek': return { from:'2026-03-09', to:'2026-03-15' }; // CW11 (Mon–Sun)
-        case 'thisMonth': return { from:'2026-03-01', to:'2026-03-31' };
-        case 'lastMonth': return { from:'2026-02-01', to:'2026-02-28' };
-        case 'thisQuarter': return { from:'2026-01-01', to:'2026-03-31' };
+        case 'today': return { from: today, to: today };
+        case 'yesterday': return { from: toISO(yd), to: toISO(yd) };
+        case 'thisWeek': return { from: toISO(mon), to: toISO(sun) };
+        case 'lastWeek': return { from: toISO(lMon), to: toISO(lSun) };
+        case 'thisMonth': return { from: `${y}-${pad(m+1)}-01`, to: toISO(mEnd) };
+        case 'lastMonth': return { from: toISO(lmStart), to: toISO(lmEnd) };
+        case 'thisQuarter': return { from: toISO(qStart), to: toISO(qEnd) };
         case 'last30': {
-          const start = new Date(now); start.setDate(start.getDate() - 30);
-          return { from: start.toISOString().slice(0,10), to:'2026-03-16' };
+          const start = new Date(y, m, now.getDate() - 30);
+          return { from: toISO(start), to: today };
         }
         default: return null;
       }
@@ -717,11 +831,18 @@
           emails: p.emails + (m.emails||0),
           replies: p.replies + (m.replies||0),
           linkedin: p.linkedin + (m.linkedin||0),
+          linkedinDemos: (p.linkedinDemos||0) + (m.linkedinDemos||0),
           coldCalls: p.coldCalls + (m.coldCalls||0),
           followUpCalls: p.followUpCalls + (m.followUpCalls||0),
           calls: p.calls + (m.calls||0),
           callsConnected: p.callsConnected + (m.callsConnected||0),
+          callsMissed: Math.max(0, (p.calls + (m.calls||0)) - (p.callsConnected + (m.callsConnected||0))),
           demos: p.demos + (m.demos||0),
+          deals: p.deals + (m.deals||0),
+          pipeline: p.pipeline + (m.pipeline||0),
+          sals: p.sals + (m.sals||0),
+          sqls: p.sqls + (m.sqls||0),
+          opps: p.opps + (m.opps||0),
           _hasManual: true,
           _manual: m,
         };
@@ -737,6 +858,101 @@
         if (p.team) p.team.forEach(t => names.add(t.short));
       });
       return [...names];
+    }
+
+    // ─── EVENT LEADS DATA ─────────────────────────────
+    const EVENT_LEADS = [
+      { name:'ProcureCon West', total:58, form:16, demo:37, consultantDemo:1, noFit:0, pipeline:0, nurture:3, partnership:1, upsell:0, arr:0 },
+      { name:'BME Symposium 2025', total:80, form:37, demo:30, consultantDemo:0, noFit:4, pipeline:5, nurture:0, partnership:0, upsell:0, arr:0 },
+      { name:'SSOW Orlando', total:30, form:5, demo:19, consultantDemo:0, noFit:0, pipeline:0, nurture:1, partnership:5, upsell:0, arr:0 },
+      { name:'DPW 2025 Amsterdam', total:64, form:28, demo:17, consultantDemo:5, noFit:1, pipeline:11, upsell:2, nurture:0, partnership:0, arr:6750000 },
+      { name:'World 50 Indy 2026', total:31, form:0, demo:0, consultantDemo:0, noFit:0, pipeline:1, nurture:27, partnership:3, upsell:0, arr:0 },
+      { name:'Bits & Bots 2025', total:55, form:0, demo:0, consultantDemo:0, noFit:0, pipeline:0, nurture:0, partnership:0, upsell:0, arr:0 },
+      { name:'dp now CPO Dinner', total:5, form:0, demo:0, consultantDemo:0, noFit:0, pipeline:0, nurture:0, partnership:0, upsell:0, arr:0 },
+      { name:'World 50 Atlanta 2025', total:16, form:0, demo:0, consultantDemo:0, noFit:0, pipeline:0, nurture:0, partnership:0, upsell:0, arr:0 },
+      { name:'Bearing Point Prague', total:10, form:0, demo:0, consultantDemo:0, noFit:0, pipeline:0, nurture:0, partnership:0, upsell:0, arr:0 },
+      { name:'eLösungstage 2025', total:27, form:0, demo:0, consultantDemo:0, noFit:0, pipeline:1, nurture:0, partnership:0, upsell:0, arr:60000 },
+    ];
+
+    function buildEventLeadsSection() {
+      const totalLeads = EVENT_LEADS.reduce((s,e) => s+e.total, 0);
+      const totalDemos = EVENT_LEADS.reduce((s,e) => s+e.demo+e.consultantDemo+e.upsell, 0);
+      const totalARR = EVENT_LEADS.reduce((s,e) => s+e.arr, 0);
+      const sorted = [...EVENT_LEADS].sort((a,b) => b.total - a.total);
+      const maxTotal = Math.max(...sorted.map(e => e.total));
+
+      // Summary KPIs
+      const kpis = `<div class="grid grid-cols-4 gap-3 mb-5">
+        <div class="text-center p-3 rounded-lg" style="background:#111225">
+          <div class="text-xl font-bold text-white">${totalLeads}</div>
+          <div class="text-[9px] text-slate-500">Total Leads</div>
+        </div>
+        <div class="text-center p-3 rounded-lg" style="background:#111225">
+          <div class="text-xl font-bold text-emerald-400">${totalDemos}</div>
+          <div class="text-[9px] text-slate-500">Demos Booked</div>
+        </div>
+        <div class="text-center p-3 rounded-lg" style="background:#111225">
+          <div class="text-xl font-bold text-brand-300">${totalLeads > 0 ? Math.round(totalDemos/totalLeads*100) : 0}%</div>
+          <div class="text-[9px] text-slate-500">Lead\u2192Demo</div>
+        </div>
+        <div class="text-center p-3 rounded-lg" style="background:#111225">
+          <div class="text-xl font-bold text-amber-400">${totalARR > 0 ? '\u20AC' + (totalARR/1000000).toFixed(1) + 'M' : '\u2014'}</div>
+          <div class="text-[9px] text-slate-500">Expected ARR</div>
+        </div>
+      </div>`;
+
+      // Event rows with stacked funnel bars
+      const rows = sorted.map(e => {
+        const allDemos = e.demo + e.consultantDemo + e.upsell;
+        const conv = e.total > 0 && allDemos > 0 ? Math.round(allDemos/e.total*100) : 0;
+        const barW = Math.max((e.total / maxTotal) * 100, 8);
+
+        // Stacked bar segments
+        const segments = [
+          { count:e.demo, color:'#34d399', label:'Demo' },
+          { count:e.consultantDemo, color:'#6ee7b7', label:'Consult.' },
+          { count:e.upsell, color:'#a7f3d0', label:'Upsell' },
+          { count:e.form, color:'#818cf8', label:'Form' },
+          { count:e.nurture, color:'#fbbf24', label:'Nurture' },
+          { count:e.partnership, color:'#c084fc', label:'Partner' },
+          { count:e.pipeline, color:'#60a5fa', label:'Pipeline' },
+          { count:e.noFit, color:'#64748b', label:'No Fit' },
+        ].filter(s => s.count > 0);
+        const assigned = segments.reduce((s,seg) => s+seg.count, 0);
+        const unassigned = Math.max(0, e.total - assigned); // guard: never negative
+        if (unassigned > 0) segments.push({ count:unassigned, color:'#1e293b', label:'No Status' });
+        if (assigned > e.total) console.warn(`Event "${e.name}": segments (${assigned}) > total (${e.total}). Data inconsistency.`);
+
+        const barHTML = segments.map(seg => {
+          const w = (seg.count / e.total) * 100;
+          return `<div class="h-full flex items-center justify-center" style="width:${w}%;background:${seg.color}" title="${seg.label}: ${seg.count}">
+            ${w > 12 ? `<span class="text-[8px] font-semibold text-white drop-shadow-sm">${seg.count}</span>` : ''}
+          </div>`;
+        }).join('');
+
+        return `<div class="flex items-center gap-3 mb-2">
+          <span class="text-[11px] text-slate-400 w-40 text-right truncate shrink-0" title="${e.name}">${e.name}</span>
+          <div class="flex-1">
+            <div class="h-7 rounded overflow-hidden flex" style="width:${barW}%">${barHTML}</div>
+          </div>
+          <span class="text-[11px] text-white font-semibold w-8 text-right">${e.total}</span>
+          <span class="text-[10px] w-14 text-right ${conv >= 50 ? 'text-emerald-400 font-bold' : conv > 0 ? 'text-brand-300' : 'text-slate-600'}">${conv > 0 ? conv + '% Demo' : '\u2014'}</span>
+        </div>`;
+      }).join('');
+
+      // Legend
+      const legend = `<div class="flex flex-wrap gap-3 mt-3 pt-3 border-t border-slate-700/30">
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm" style="background:#34d399"></span><span class="text-[9px] text-slate-500">Demo</span></span>
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm" style="background:#6ee7b7"></span><span class="text-[9px] text-slate-500">Consultant Demo</span></span>
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm" style="background:#818cf8"></span><span class="text-[9px] text-slate-500">Form</span></span>
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm" style="background:#fbbf24"></span><span class="text-[9px] text-slate-500">Nurture</span></span>
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm" style="background:#c084fc"></span><span class="text-[9px] text-slate-500">Partnership</span></span>
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm" style="background:#60a5fa"></span><span class="text-[9px] text-slate-500">Already in Pipeline</span></span>
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm" style="background:#64748b"></span><span class="text-[9px] text-slate-500">No Fit</span></span>
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm" style="background:#1e293b;border:1px solid #334155"></span><span class="text-[9px] text-slate-500">No Status</span></span>
+      </div>`;
+
+      return kpis + rows + legend;
     }
 
     // ─── RENDER ───────────────────────────────────────
@@ -760,6 +976,7 @@
         opps: data.reduce((s,p) => s+p.opps, 0),
         replies: data.reduce((s,p) => s+p.replies, 0),
         linkedin: data.reduce((s,p) => s+p.linkedin, 0),
+        linkedinDemos: data.reduce((s,p) => s+(p.linkedinDemos||0), 0),
         touchpoints: data.reduce((s,p) => s+p.emails+p.calls+p.linkedin, 0),
       } : null;
 
@@ -876,10 +1093,11 @@
       const demoSVG = buildBarChart(TRENDS, 'demos', 'pipeline', '#34d399', '#818cf8', 'Demos', 'Pipeline (\u20ACk)');
 
       // Leaderboard
-      let leaderPipeline = '', leaderDemos = '';
+      let leaderPipeline = '', leaderDemos = '', leaderLinkedin = '';
       if (hasData) {
         const byPipeline = [...data].sort((a,b) => b.pipeline - a.pipeline).slice(0,5);
         const byDemos = [...data].sort((a,b) => b.demos - a.demos).slice(0,5);
+        const byLinkedin = [...data].sort((a,b) => b.linkedin - a.linkedin).filter(p => p.linkedin > 0).slice(0,5);
         const medals = ['\uD83E\uDD47','\uD83E\uDD48','\uD83E\uDD49','4.','5.'];
 
         leaderPipeline = byPipeline.map((p,i) =>
@@ -897,6 +1115,14 @@
             <span class="font-bold text-brand-300 text-sm">${p.demos} Demos</span>
           </div>`
         ).join('');
+
+        leaderLinkedin = byLinkedin.length > 0 ? byLinkedin.map((p,i) =>
+          `<div class="flex items-center gap-3 glass rounded-lg px-4 py-2.5 drillable" onclick="drillPerson('${p.short}')" style="position:relative">
+            <span class="text-base w-7">${medals[i]}</span>
+            <span class="flex-1 font-medium text-white text-sm">${p.short}</span>
+            <span class="font-bold text-purple-400 text-sm">${p.linkedin} LI${(p.linkedinDemos||0) > 0 ? ` \u2192 ${p.linkedinDemos} Demo` : ''}</span>
+          </div>`
+        ).join('') : '<div class="text-sm text-slate-600 py-2">No LinkedIn outreach yet</div>';
       }
 
       // Activity table rows
@@ -904,7 +1130,7 @@
       if (hasData) {
         const tgt = KPI_TARGETS[selectedPeriod] || {};
         // Rank-based coloring: compute ranks per column
-        const rankFields = ['emails','replies','calls','linkedin','demos','deals','pipeline','sals','sqls','opps'];
+        const rankFields = ['emails','replies','calls','linkedin','linkedinDemos','demos','deals','pipeline','sals','sqls','opps'];
         const ranks = {};
         rankFields.forEach(f => {
           const vals = data.map(p => p[f]);
@@ -951,6 +1177,7 @@
             <td class="py-3 px-3 ${rc('replies',p.short)}">${dash(p.replies)}${mi('replies')}</td>
             <td class="py-3 px-3 ${rc('calls',p.short)}">${callDisplay}</td>
             <td class="py-3 px-3 ${rc('linkedin',p.short)}">${dash(p.linkedin)}${mi('linkedin')}</td>
+            <td class="py-3 px-3">${p.linkedinDemos > 0 ? `<span class="text-emerald-400">${p.linkedinDemos}</span> <span class="text-[9px] text-slate-500">${pct(p.linkedinDemos, p.linkedin)}</span>` : dash(0)}${mi('linkedinDemos')}</td>
             <td class="py-3 px-3 font-semibold text-brand-300 ${rc('tp',p.short)}">${dash(tp)}</td>
             <td class="py-3 px-3 ${rc('demos',p.short)} drillable" onclick="drillDemos('${p.short}')"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${p.demos > 0 ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-600'}">${p.demos}</span>${mi('demos')}</td>
             <td class="py-3 px-3 ${rc('deals',p.short)}">${p.deals}</td>
@@ -969,7 +1196,8 @@
                 <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Mail Outreach — First email sent to a prospect (excludes replies Re:/AW:/Fwd:, meeting invites, and internal emails)">Mail Outreach <span class="text-slate-600 normal-case font-normal text-[9px]">ⓘ 1st mail</span></th>
                 <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Follow-up emails sent (Re:/AW:/Fwd:)">Follow-ups</th>
                 <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider" title="Total (Reached 1m+ / Not Reached <60s)">Calls <span class="text-slate-600 normal-case">(\u2713/\u2717)</span></th>
-                <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">LinkedIn</th>
+                <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider" title="LinkedIn Outreach Messages Sent">LI Out</th>
+                <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider" title="LinkedIn Outreach → Demo Conversion">LI\u2192Demo</th>
                 <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Touchpts</th>
                 <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Demos</th>
                 <th class="text-left py-3 px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Deals</th>
@@ -987,6 +1215,7 @@
                 <td class="py-3 px-3 font-bold">${totals.replies}</td>
                 <td class="py-3 px-3 font-bold">${totals.calls} <span class="text-xs text-slate-500 font-normal">(${totals.callsConnected}\u2713/${totals.callsMissed}\u2717)</span></td>
                 <td class="py-3 px-3 font-bold">${totals.linkedin}</td>
+                <td class="py-3 px-3 font-bold">${totals.linkedinDemos > 0 ? `<span class="text-emerald-400">${totals.linkedinDemos}</span> <span class="text-[9px] text-slate-500 font-normal">${pct(totals.linkedinDemos, totals.linkedin)}</span>` : dash(0)}</td>
                 <td class="py-3 px-3 font-bold text-brand-300">${totals.touchpoints}</td>
                 <td class="py-3 px-3 font-bold">${totals.demos}</td>
                 <td class="py-3 px-3 font-bold">${totals.deals}</td>
@@ -1059,7 +1288,7 @@
         <main class="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-12 space-y-6">
           ${!hasData ? noDataHTML : `
           <!-- Scorecards -->
-          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <div class="glass glow rounded-xl p-5 drillable" onclick="drillScorecard('emails')">
               <div class="flex items-center justify-between">
                 <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Outreach Emails</div>
@@ -1079,6 +1308,14 @@
               <div class="text-xs mt-0.5"><span class="text-emerald-400/80">${totals.callsConnected} reached (1m+)</span> \u00b7 <span class="text-red-400/60">${totals.callsMissed} not reached</span></div>
               ${delta ? `<div class="text-[9px] text-slate-600 mt-0.5">${delta.calls.label}: ${delta.calls.prev}</div>` : ''}
             </div>
+            <div class="glass glow rounded-xl p-5 drillable" onclick="drillScorecard('linkedin')">
+              <div class="flex items-center justify-between">
+                <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">LinkedIn</div>
+              </div>
+              <div class="text-3xl font-bold text-white mt-1">${totals.linkedin}</div>
+              <div class="text-xs text-slate-500 mt-1">${totals.linkedinDemos} Demos \u00b7 ${pct(totals.linkedinDemos, totals.linkedin)} Conversion</div>
+              <div class="text-xs mt-0.5"><span class="${totals.linkedin > 0 && totals.linkedinDemos > 0 ? 'text-emerald-400/80' : 'text-slate-600'}">${totals.linkedin > 0 ? pct(totals.linkedinDemos, totals.linkedin) + ' LI\u2192Demo' : 'No outreach yet'}</span></div>
+            </div>
             <div class="glass glow rounded-xl p-5 drillable" onclick="drillScorecard('demos')">
               <div class="flex items-center justify-between">
                 <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Demos Booked</div>
@@ -1096,6 +1333,41 @@
               <div class="text-3xl font-bold text-white mt-1">${fmt(totals.pipeline)}</div>
               <div class="text-xs text-slate-500 mt-1">${totals.deals} Deals \u00b7 ${totals.deals > 0 ? fmt(Math.round(totals.pipeline / totals.deals)) + ' avg' : '\u2014'}</div>
               ${delta ? `<div class="text-[9px] text-slate-600 mt-0.5">${delta.pipeline.label}: ${fmt(delta.pipeline.prev)}</div>` : ''}
+            </div>
+          </div>
+
+          <!-- Outreach→Demo Conversion Bar -->
+          <div class="glass glow rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <h3 class="text-sm font-semibold text-white">Outreach → Demo Conversion</h3>
+              <span class="text-[10px] text-slate-500">${period.label}</span>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div class="text-center p-2.5 rounded-lg" style="background:#111225">
+                <div class="text-lg font-bold text-brand-300">${totals.touchpoints > 0 && totals.demos > 0 ? pct(totals.demos, totals.touchpoints) : '—'}</div>
+                <div class="text-[9px] text-slate-500">All Outreach → Demo</div>
+                <div class="text-[8px] text-slate-600">${totals.touchpoints} touches → ${totals.demos} demos</div>
+              </div>
+              <div class="text-center p-2.5 rounded-lg" style="background:#111225">
+                <div class="text-lg font-bold ${totals.emails > 0 && totals.demos > 0 ? 'text-indigo-400' : 'text-slate-600'}">${totals.emails > 0 ? pct(totals.demos, totals.emails) : '—'}</div>
+                <div class="text-[9px] text-slate-500">Email → Demo</div>
+                <div class="text-[8px] text-slate-600">${totals.emails} emails → ${totals.demos} demos</div>
+              </div>
+              <div class="text-center p-2.5 rounded-lg" style="background:#111225">
+                <div class="text-lg font-bold ${connectRate > 0 ? 'text-purple-400' : 'text-slate-600'}">${totals.calls > 0 ? pct(totals.demos, totals.calls) : '—'}</div>
+                <div class="text-[9px] text-slate-500">Call → Demo</div>
+                <div class="text-[8px] text-slate-600">${totals.calls} calls (${connectRate}% connected)</div>
+              </div>
+              <div class="text-center p-2.5 rounded-lg" style="background:#111225">
+                <div class="text-lg font-bold ${totals.linkedin > 0 && totals.linkedinDemos > 0 ? 'text-emerald-400' : 'text-slate-600'}">${totals.linkedin > 0 ? pct(totals.linkedinDemos, totals.linkedin) : '—'}</div>
+                <div class="text-[9px] text-slate-500">LinkedIn → Demo</div>
+                <div class="text-[8px] text-slate-600">${totals.linkedin} LI → ${totals.linkedinDemos} demos</div>
+              </div>
+              <div class="text-center p-2.5 rounded-lg" style="background:#111225">
+                <div class="text-lg font-bold ${totals.sals > 0 ? 'text-amber-400' : 'text-slate-600'}">${totals.demos > 0 ? pct(totals.sals, totals.demos) : '—'}</div>
+                <div class="text-[9px] text-slate-500">Demo → SAL</div>
+                <div class="text-[8px] text-slate-600">${totals.demos} demos → ${totals.sals} SALs</div>
+              </div>
             </div>
           </div>
 
@@ -1169,10 +1441,10 @@
               <div class="flex items-center justify-between mb-4">
                 <div>
                   <h3 class="text-lg font-semibold text-white">Win Rate & Efficiency</h3>
-                  <span class="text-[10px] text-slate-500">Win rates of all ${FUNNEL.reduce((s,f)=>s+f.count,0)} Deals · All Time</span>
+                  <span id="winRateSublabel" class="text-[10px] text-slate-500">Win rates of all ${FUNNEL.reduce((s,f)=>s+f.count,0)} Deals · All Time</span>
                 </div>
               </div>
-              ${buildWinRateSection()}
+              <div id="winRateContainer">${buildWinRateSection()}</div>
             </div>
             <div class="glass glow rounded-xl p-5">
               <div class="flex items-center justify-between mb-4">
@@ -1196,6 +1468,17 @@
             ${buildCycleTime()}
           </div>
 
+          <!-- Event Leads / Messe Funnel -->
+          <div class="glass glow rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-lg font-semibold text-white">Event Leads &mdash; Messe Funnel</h3>
+                <span class="text-[10px] text-slate-500">${EVENT_LEADS.reduce((s,e)=>s+e.total,0)} Leads across ${EVENT_LEADS.length} Events &middot; Data from Attio</span>
+              </div>
+            </div>
+            ${buildEventLeadsSection()}
+          </div>
+
           <!-- Trend Charts -->
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="glass glow rounded-xl p-5">
@@ -1213,7 +1496,7 @@
             <div class="flex items-center justify-between mb-4">
               <div>
                 <h3 class="text-lg font-semibold text-white">Week-over-Week Comparison</h3>
-                <span class="text-[10px] text-slate-500">CW01 \u2013 CW12 2026 \u00B7 Current Week: CW12</span>
+                <span class="text-[10px] text-slate-500">${TRENDS.length > 0 ? TRENDS[0].week + ' \u2013 ' + TRENDS[TRENDS.length-1].week : ''} ${new Date().getFullYear()} \u00B7 Current Week: ${TRENDS.length > 0 ? TRENDS[TRENDS.length-1].week : '?'}</span>
               </div>
             </div>
             ${buildWoWComparison()}
@@ -1233,7 +1516,7 @@
           <!-- Leaderboard -->
           <div class="glass glow rounded-xl p-5">
             <h3 class="text-lg font-semibold text-white mb-4">Leaderboard \u2014 ${period.label}</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <h4 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Pipeline Value</h4>
                 <div class="space-y-2">${leaderPipeline}</div>
@@ -1241,6 +1524,10 @@
               <div>
                 <h4 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Demos Booked</h4>
                 <div class="space-y-2">${leaderDemos}</div>
+              </div>
+              <div>
+                <h4 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">LinkedIn Outreach</h4>
+                <div class="space-y-2">${leaderLinkedin}</div>
               </div>
             </div>
           </div>
@@ -1312,7 +1599,7 @@
                 </div>
                 <div class="flex-1">
                   <label class="text-xs text-slate-400 block mb-1">Date</label>
-                  <input type="date" id="mi_date" value="2026-03-16" class="w-full bg-surface-2 border border-slate-700/50 rounded-lg px-3 py-2 text-sm text-white" />
+                  <input type="date" id="mi_date" value="${new Date().toISOString().slice(0,10)}" class="w-full bg-surface-2 border border-slate-700/50 rounded-lg px-3 py-2 text-sm text-white" />
                 </div>
               </div>
               <div>
@@ -1410,13 +1697,15 @@
     function exportCSV() {
       const period = PERIODS[selectedPeriod];
       if (!period || !period.team.length) return;
-      let data = period.team;
-      if (selectedPerson !== 'All') data = data.filter(p => p.short === selectedPerson);
+      // Use merged data (includes manual entries)
+      let data = getTeamData();
 
-      const headers = ['Person','Emails','Replies','Calls','Calls Connected','Calls Missed','Cold Calls','Follow-Up Calls','LinkedIn','Touchpoints','Demos','Deals','Pipeline','SALs','SQLs','Opps'];
+      const headers = ['Person','Emails','Replies','Calls','Calls Connected','Calls Missed','Cold Calls','Follow-Up Calls','LinkedIn Out','LinkedIn Demos','LI Conversion %','Touchpoints','Demos','Deals','Pipeline','SALs','SQLs','Opps'];
       const rows = data.map(p => [
         p.name, p.emails, p.replies, p.calls, p.callsConnected, p.callsMissed,
-        p.coldCalls, p.followUpCalls, p.linkedin, p.emails+p.calls+p.linkedin,
+        p.coldCalls, p.followUpCalls, p.linkedin, p.linkedinDemos||0,
+        p.linkedin > 0 ? Math.round(((p.linkedinDemos||0) / p.linkedin) * 100) + '%' : '—',
+        p.emails+p.calls+p.linkedin,
         p.demos, p.deals, p.pipeline, p.sals, p.sqls, p.opps,
       ]);
 
@@ -1435,6 +1724,7 @@
     function exportFunnelCSV() {
       const headers = ['Stage','Count','% of Total'];
       const total = FUNNEL.reduce((s,f) => s + f.count, 0);
+      if (total === 0) { alert('No funnel data to export.'); return; }
       const rows = FUNNEL.map(f => [
         f.stage, f.count, ((f.count/total)*100).toFixed(1) + '%',
       ]);
@@ -1640,7 +1930,9 @@
     }
 
     // Activity Timeline data from Attio (2026-03-13 sync)
-    const ACTIVITY_TIMELINE = [
+    // Analytics data — refreshed by scheduled sync tasks (Claude edits HTML).
+    // Sync Now button refreshes PERIODS data only. These update during daily syncs.
+    let ACTIVITY_TIMELINE = [
       { date:'07.03.', weekday:'Sa', emails:6,  calls:0, meetings:3,  deals:7  },
       { date:'08.03.', weekday:'So', emails:10, calls:0, meetings:2,  deals:6  },
       { date:'09.03.', weekday:'Mo', emails:35, calls:0, meetings:50, deals:18 },
@@ -1650,8 +1942,7 @@
       { date:'13.03.', weekday:'Fr', emails:38, calls:0, meetings:42, deals:10 },
     ];
 
-    // Cycle Time data from Attio (2026-03-13 sync)
-    const CYCLE_TIME = {
+    let CYCLE_TIME = {
       closedWonAnalyzed: 50,    // Closed Won deals with beginning_of_sales_cycle
       // Milestone coverage
       milestones: [
@@ -1684,8 +1975,7 @@
       dataQualityNote: 'Milestone data originates from a batch import. Individual deal cycle times will be tracked correctly from Q2 2026.',
     };
 
-    // Deal Velocity data from Attio (2026-03-13 sync)
-    const DEAL_VELOCITY = {
+    let DEAL_VELOCITY = {
       avgCycleDays: 126,        // Avg days created_at → signing_date (Closed Won) — not verifiable from simple reports
       closedWonCount: 83,
       closedWonWithSignDate: 45,
@@ -1705,8 +1995,7 @@
       activeDeals: 285,          // Sum of SAL through Signing deal counts
     };
 
-    // Deal Stage Heatmap — person × stage matrix (active deals snapshot)
-    const DEAL_STAGE_HEATMAP = {
+    let DEAL_STAGE_HEATMAP = {
       stages: ['Outbound Prospect','Outbound Lead','Inbound Lead','SAL','SQL','RFX','Opportunity','Vendor of Choice','Order Review','Contract Neg.','Signing'],
       stageColors: ['#818cf8','#6366f1','#a78bfa','#7c3aed','#6d28d9','#5b21b6','#8b5cf6','#7e22ce','#c084fc','#9333ea','#a855f7'],
       people: [
@@ -1862,7 +2151,7 @@
           </div>
           <div class="text-right">
             <span class="text-[10px] text-slate-400">${v.activeDeals} active Deals</span>
-            <div class="text-lg font-bold text-brand-300">${fmt(Math.round(v.activePipeline / v.activeDeals))} avg</div>
+            <div class="text-lg font-bold text-brand-300">${v.activeDeals > 0 ? fmt(Math.round(v.activePipeline / v.activeDeals)) + ' avg' : '\u2014'}</div>
           </div>
         </div>
       </div>`;
@@ -1983,7 +2272,7 @@
       if (TRENDS.length < 2) return '';
       // Filter weeks based on view mode
       let weeks;
-      const currentKW = 12;
+      const currentKW = (() => { const now = new Date(); const jan1 = new Date(now.getFullYear(),0,1); const days = Math.floor((now - jan1) / 86400000); return Math.ceil((days + jan1.getDay() + 1) / 7); })();
       switch(wowViewMode) {
         case 'all': weeks = TRENDS; break;
         case 'q1': weeks = TRENDS.filter(w => { const n = parseInt(w.week.replace('CW','')); return n >= 1 && n <= 13; }); break;
@@ -1997,6 +2286,7 @@
       const metrics = [
         { key:'emails', label:'Outreach', color:'#818cf8', format: v => v },
         { key:'calls', label:'Calls', color:'#a78bfa', format: v => v },
+        { key:'linkedin', label:'LinkedIn', color:'#c084fc', format: v => v || 0 },
         { key:'demos', label:'Demos', color:'#34d399', format: v => v },
         { key:'pipeline', label:'Pipeline', color:'#f59e0b', format: v => '\u20AC' + v + 'k' },
       ];
@@ -2068,8 +2358,8 @@
       const totalRow = `<tr class="border-t border-slate-700/50">
         <td class="py-2 px-2 text-[10px] text-slate-500 font-semibold">Total</td>
         ${weeks.map((w, i) => {
-          const total = w.emails + w.calls + w.demos;
-          const prev = i > 0 ? weeks[i-1].emails + weeks[i-1].calls + weeks[i-1].demos : null;
+          const total = w.emails + w.calls + (w.linkedin||0);
+          const prev = i > 0 ? weeks[i-1].emails + weeks[i-1].calls + (weeks[i-1].linkedin||0) : null;
           const kwNum = parseInt(w.week.replace('CW',''));
           const isCurrent = kwNum === currentKW;
           let dHTML = '';
@@ -2208,26 +2498,35 @@
     }
 
     function buildConversionFunnel() {
+      // Dynamic: derive counts from current FUNNEL
+      const fc = (stage) => (FUNNEL.find(f => f.stage === stage) || {}).count || 0;
+      const prospectCount = fc('Outbound Prospect') + fc('Outbound Lead');
+      const leadCount = prospectCount + fc('Inbound Lead');
+      const salCount = fc('SAL (Book 1st Demo)');
+      const sqlCount = fc('SQL (Demo Done)');
+      const oppCount = fc('Opportunity') + fc('Vendor of Choice') + fc('Order Review') + fc('Verbal Commit.') + fc('Contract Neg.') + fc('Signing') + fc('Pilot ARR');
+      const wonCount = fc('Closed Won');
+
       const stages = [
-        { stage:'Prospect', count:92, desc:'Outbound contacts identified', color:'#818cf8' },
-        { stage:'Lead', count:157, desc:'Inbound + Outbound qualified', color:'#7c3aed' },
-        { stage:'SAL', count:95, desc:'Sales Accepted Lead \u2014 1st demo booked', color:'#6d28d9' },
-        { stage:'SQL', count:66, desc:'Sales Qualified Lead \u2014 Demo done & Fit', color:'#5b21b6' },
-        { stage:'Opportunity', count:70, desc:'Workshop interest / active evaluation', color:'#8b5cf6' },
-        { stage:'Won', count:83, desc:'Deal closed', color:'#34d399' },
+        { stage:'Prospect', count:prospectCount, desc:'Outbound contacts identified', color:'#818cf8' },
+        { stage:'Lead', count:leadCount, desc:'Inbound + Outbound qualified', color:'#7c3aed' },
+        { stage:'SAL', count:salCount, desc:'Sales Accepted Lead — 1st demo booked', color:'#6d28d9' },
+        { stage:'SQL', count:sqlCount, desc:'Sales Qualified Lead — Demo done & Fit', color:'#5b21b6' },
+        { stage:'Opportunity', count:oppCount, desc:'Workshop interest / active evaluation', color:'#8b5cf6' },
+        { stage:'Won', count:wonCount, desc:'Deal closed', color:'#34d399' },
       ];
-      const maxC = Math.max(...stages.map(s => s.count));
+      const maxC = Math.max(...stages.map(s => s.count), 1);
       return `<div class="space-y-0">
         ${stages.map((s, i) => {
           const widthPct = Math.max((s.count / maxC) * 100, 25);
           const next = stages[i + 1];
-          const rate = next ? Math.round((next.count / s.count) * 100) : null;
+          const rate = (next && s.count > 0) ? Math.round((next.count / s.count) * 100) : null;
           const dropOff = next ? s.count - next.count : null;
           const isWon = s.stage === 'Won';
           return `<div>
             <div class="flex items-center gap-3">
               <div class="relative" style="width:${widthPct}%">
-                <div class="h-9 rounded-lg flex items-center px-3 gap-2" style="background:${s.color}${isWon ? '' : ''}">
+                <div class="h-9 rounded-lg flex items-center px-3 gap-2" style="background:${s.color}">
                   <span class="text-sm font-bold text-white">${s.count}</span>
                   <span class="text-[11px] font-semibold text-white/90">${s.stage}</span>
                 </div>
@@ -2240,42 +2539,44 @@
                 <span class="text-[11px] font-bold ${rate >= 80 ? 'text-emerald-400' : rate >= 50 ? 'text-brand-300' : 'text-amber-400'}">${rate}%</span>
                 <span class="text-[10px] text-slate-600">Conversion</span>
               </div>
-              ${dropOff > 0 ? `<span class="text-[10px] text-slate-600">\u00B7 ${dropOff < 0 ? '+' : '-'}${Math.abs(dropOff)} Drop-off</span>` : `<span class="text-[10px] text-slate-600">\u00B7 +${Math.abs(dropOff)} more (Lateral Entry)</span>`}
+              ${dropOff > 0 ? `<span class="text-[10px] text-slate-600">· -${Math.abs(dropOff)} Drop-off</span>` : dropOff < 0 ? `<span class="text-[10px] text-slate-600">· +${Math.abs(dropOff)} Lateral Entry</span>` : ''}
             </div>` : ''}
           </div>`;
         }).join('')}
       </div>
       <div class="mt-4 grid grid-cols-4 gap-2">
         <div class="text-center p-2 rounded-lg" style="background:#111225">
-          <div class="text-base font-bold text-brand-300">${pct(95, 157)}</div>
-          <div class="text-[9px] text-slate-500">Lead\u2192SAL</div>
+          <div class="text-base font-bold text-brand-300">${salCount && leadCount ? pct(salCount, leadCount) : '—'}</div>
+          <div class="text-[9px] text-slate-500">Lead→SAL</div>
         </div>
         <div class="text-center p-2 rounded-lg" style="background:#111225">
-          <div class="text-base font-bold text-brand-300">${pct(66, 95)}</div>
-          <div class="text-[9px] text-slate-500">SAL\u2192SQL</div>
+          <div class="text-base font-bold text-brand-300">${sqlCount && salCount ? pct(sqlCount, salCount) : '—'}</div>
+          <div class="text-[9px] text-slate-500">SAL→SQL</div>
         </div>
         <div class="text-center p-2 rounded-lg" style="background:#111225">
-          <div class="text-base font-bold text-amber-400">${pct(70, 66)}</div>
-          <div class="text-[9px] text-slate-500">SQL\u2192Opp</div>
+          <div class="text-base font-bold text-amber-400">${oppCount && sqlCount ? pct(oppCount, sqlCount) : '—'}</div>
+          <div class="text-[9px] text-slate-500">SQL→Opp</div>
         </div>
         <div class="text-center p-2 rounded-lg" style="background:#111225">
-          <div class="text-base font-bold text-emerald-400">${pct(83, 70)}</div>
-          <div class="text-[9px] text-slate-500">Opp\u2192Won</div>
+          <div class="text-base font-bold text-emerald-400">${wonCount && oppCount ? pct(wonCount, oppCount) : '—'}</div>
+          <div class="text-[9px] text-slate-500">Opp→Won</div>
         </div>
       </div>`;
     }
 
     // ─── FUNNEL FILTER ────────────────────────────────
-    const FUNNEL_GROUPS = {
-      all: FUNNEL.map(f => f.stage),
-      active: ['Outbound Prospect','Outbound Lead','Inbound Lead','SAL (Book 1st Demo)','SQL (Demo Done)','RFX','Opportunity','Vendor of Choice','Order Review','Verbal Commit.','Contract Neg.','Signing','Pilot ARR'],
-      closed: ['Closed Won','Lost','No Fit','Bad Timing'],
-    };
+    const FUNNEL_ACTIVE_STAGES = ['Outbound Prospect','Outbound Lead','Inbound Lead','SAL (Book 1st Demo)','SQL (Demo Done)','RFX','Opportunity','Vendor of Choice','Order Review','Verbal Commit.','Contract Neg.','Signing','Pilot ARR'];
+    const FUNNEL_CLOSED_STAGES = ['Closed Won','Lost','No Fit','Bad Timing'];
+
     function filterFunnel(mode) {
       document.querySelectorAll('#fAll,#fActive,#fClosed').forEach(b => b.classList.remove('pill-active'));
       document.getElementById('f' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('pill-active');
-      const allowed = FUNNEL_GROUPS[mode];
-      const filtered = FUNNEL.filter(f => allowed.includes(f.stage));
+      const allowed = mode === 'all' ? STAGE_ORDER : mode === 'active' ? FUNNEL_ACTIVE_STAGES : FUNNEL_CLOSED_STAGES;
+      const filtered = FUNNEL.filter(f => allowed.includes(f.stage) && f.count > 0);
+      if (filtered.length === 0) {
+        document.getElementById('funnelContainer').innerHTML = `<div class="text-center py-8 text-slate-500 text-sm">No deals in this view for the selected period.</div>`;
+        return;
+      }
       const maxF = Math.max(...filtered.map(f => f.count));
       document.getElementById('funnelContainer').innerHTML = filtered.map(f => {
         const pctW = Math.max((f.count / maxF) * 100, 5);
@@ -2364,28 +2665,41 @@
     }
 
     function applyPipelineDateFilter(label) {
+      // Map date range to funnel period
+      const rangeToFunnelPeriod = {
+        'all': 'all', 'q1': 'q1', 'mar': 'month', 'feb': 'q1', 'jan': 'q1',
+        'thisWeek': 'week', 'custom': 'all'
+      };
+      const funnelPeriod = rangeToFunnelPeriod[activePipelineDateRange] || 'all';
+      FUNNEL = FUNNEL_PERIODS[funnelPeriod] || FUNNEL_PERIODS.all;
+      activeFunnelPeriod = funnelPeriod;
+
       // Update sublabels
       const syncDate = formatSyncTime(LAST_SYNC).split(' at')[0];
+      const totalDeals = FUNNEL.reduce((s,f) => s + f.count, 0);
       const pSub = document.getElementById('pipelineSublabel');
       const cSub = document.getElementById('conversionSublabel');
-      if (pSub) pSub.textContent = `All Deals · ${label} · As of ${syncDate}`;
+      if (pSub) pSub.textContent = `${totalDeals} Deals · ${label} · As of ${syncDate}`;
       if (cSub) cSub.textContent = `How Deals flow through the pipeline · ${label}`;
 
-      // Note: Full date-based filtering requires per-deal date data from Attio.
-      // Currently FUNNEL data is an aggregate snapshot. When date-filtered data
-      // becomes available in Supabase, the funnel will re-render with filtered counts.
-      // For now, the UI state + sublabels update, and "All Time" shows all data.
-      if (activePipelineDateRange !== 'all') {
-        // Show a subtle indicator that date filtering is active
-        const fc = document.getElementById('funnelContainer');
-        const cc = document.getElementById('conversionContainer');
-        if (fc && !document.getElementById('pipelineDateNotice')) {
-          fc.insertAdjacentHTML('beforebegin', `<div id="pipelineDateNotice" class="text-[9px] text-amber-400/70 mb-2 flex items-center gap-1"><svg width="12" height="12" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 9v4m0 4h.01M12 3l9.66 16.59A1 1 0 0 1 20.77 21H3.23a1 1 0 0 1-.89-1.41L12 3z"/></svg> Date-filtered pipeline data will be available with the next Attio sync.</div>`);
-        }
-      } else {
-        const notice = document.getElementById('pipelineDateNotice');
-        if (notice) notice.remove();
-      }
+      // Update Win Rate sublabel
+      const wrSub = document.getElementById('winRateSublabel');
+      if (wrSub) wrSub.textContent = `Win rates of all ${totalDeals} Deals · ${label}`;
+
+      // Re-render funnel bars (respecting active/closed filter)
+      filterFunnel(document.querySelector('#fAll.pill-active') ? 'all' : document.querySelector('#fActive.pill-active') ? 'active' : 'closed');
+
+      // Re-render conversion funnel
+      const cc = document.getElementById('conversionContainer');
+      if (cc) cc.innerHTML = buildConversionFunnel();
+
+      // Re-render win rate section
+      const wr = document.getElementById('winRateContainer');
+      if (wr) wr.innerHTML = buildWinRateSection();
+
+      // Remove old notice if any
+      const notice = document.getElementById('pipelineDateNotice');
+      if (notice) notice.remove();
     }
 
     // ─── DRILL-DOWN ─────────────────────────────────────
@@ -2417,6 +2731,7 @@
       const labels = {
         emails: { title:'Emails Sent', color:'#818cf8', sub:'replies', subLabel:'Replies' },
         calls: { title:'Outbound Calls', color:'#a78bfa', sub:'callsConnected', subLabel:'Reached' },
+        linkedin: { title:'LinkedIn Outreach', color:'#c084fc', sub:'linkedinDemos', subLabel:'Demos' },
         demos: { title:'Demos Booked', color:'#34d399', sub:null },
         pipeline: { title:'Pipeline Created', color:'#34d399', sub:'deals', subLabel:'Deals' },
       };
@@ -2568,7 +2883,8 @@
         { label:'Emails', val:p.emails, target:tgt.emails, color:'#818cf8' },
         { label:'Replies', val:p.replies, target:null, color:'#818cf8' },
         { label:'Calls', val:p.calls, target:tgt.calls, color:'#a78bfa', extra:`${p.callsConnected}✓ ${p.callsMissed}✗` },
-        { label:'LinkedIn', val:p.linkedin, target:null, color:'#c084fc' },
+        { label:'LinkedIn Out', val:p.linkedin, target:null, color:'#c084fc' },
+        { label:'LI\u2192Demo', val:p.linkedinDemos||0, target:null, color:'#c084fc', extra: p.linkedin > 0 ? pct(p.linkedinDemos||0, p.linkedin) + ' conv.' : '' },
         { label:'Touchpoints', val:tp, target:null, color:'#6366f1' },
         { label:'Demos', val:p.demos, target:tgt.demos, color:'#34d399' },
         { label:'Deals', val:p.deals, target:tgt.deals, color:'#f59e0b' },
