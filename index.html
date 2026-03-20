@@ -137,7 +137,7 @@
     // Call rule: "Call with [AE]" under 60s = not reached. 1m+ = connected.
     // "Missed call from [AE]" = not reached.
 
-    let LAST_SYNC = '2026-03-20T15:30:00+01:00'; // ISO timestamp of last data sync
+    let LAST_SYNC = new Date().toISOString(); // Will be updated from Supabase on load
 
     const PERIODS = {
       today: {
@@ -579,7 +579,35 @@
       syncInProgress = false;
     }
 
-    async function triggerSync() {
+    // Helper: format relative time ago
+    function timeAgo(isoStr) {
+      const now = new Date();
+      const then = new Date(isoStr);
+      const diffMs = now - then;
+      const diffMin = Math.floor(diffMs / 60000);
+      const diffHrs = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+      if (diffMin < 1) return 'just now';
+      if (diffMin < 60) return diffMin + 'm ago';
+      if (diffHrs < 24) return diffHrs + 'h ' + (diffMin % 60) + 'm ago';
+      return diffDays + 'd ago';
+    }
+
+    // Update the sync status display in header
+    function updateSyncDisplay() {
+      const el = document.getElementById('syncTimestamp');
+      if (el) {
+        const d = new Date(LAST_SYNC);
+        const dd = String(d.getDate()).padStart(2,'0');
+        const mm = String(d.getMonth()+1).padStart(2,'0');
+        const hh = String(d.getHours()).padStart(2,'0');
+        const mi = String(d.getMinutes()).padStart(2,'0');
+        el.textContent = `🔄 Last sync: ${dd}.${mm}. ${hh}:${mi} (${timeAgo(LAST_SYNC)})`;
+        el.title = `Last data sync: ${d.toLocaleString('de-DE')}`;
+      }
+    }
+
+    async function triggerSync(silent = false) {
       if (syncInProgress) return;
       syncInProgress = true;
 
@@ -592,7 +620,7 @@
         if (txt) txt.textContent = 'Syncing...';
       }
 
-      showSyncOverlay('Loading latest data from database...', 'loading', 20);
+      if (!silent) showSyncOverlay('Loading latest data from Supabase...', 'loading', 20);
 
       try {
         // Fetch all metrics from Supabase dashboard_sync table
@@ -606,12 +634,12 @@
 
         const rows = await resp.json();
         if (!rows || rows.length === 0) {
-          showSyncOverlay('No synced data found in database yet. Data is synced by the backend — ask Claude to "sync the outbound dashboard" to populate it.', 'error');
+          if (!silent) showSyncOverlay('No synced data found yet. Auto-sync runs 3× daily (8:00, 12:30, 15:30).', 'error');
           resetSyncBtn();
           return;
         }
 
-        showSyncOverlay('Processing ' + rows.length + ' metrics...', 'loading', 60);
+        if (!silent) showSyncOverlay('Processing ' + rows.length + ' metrics...', 'loading', 60);
 
         // Group rows by period and person
         const grouped = {}; // { period: { person: { metric: value } } }
@@ -624,7 +652,7 @@
           if (!latestSync || synced_at > latestSync) latestSync = synced_at;
         }
 
-        showSyncOverlay('Updating dashboard...', 'loading', 85);
+        if (!silent) showSyncOverlay('Updating dashboard...', 'loading', 85);
 
         // Apply synced data to PERIODS
         const metrics = ['emails', 'replies', 'calls', 'callsConnected', 'callsMissed', 'coldCalls', 'followUpCalls',
@@ -645,7 +673,6 @@
         }
 
         // Update pipeline funnel from _pipeline_ rows
-        const pipelineData = grouped['_pipeline_'] || {};
         const stageMap = {
           'Outbound Prospect':'Outbound Prospect', 'Outbound Lead':'Outbound Lead',
           'Inbound Lead':'Inbound Lead', 'SAL':'SAL (Book 1st Demo)', 'SQL':'SQL (Demo Done)',
@@ -670,17 +697,20 @@
         // Reset active funnel to match current filter
         FUNNEL = FUNNEL_PERIODS[activeFunnelPeriod] || FUNNEL_PERIODS.all;
 
-        // Update sync timestamp
+        // Update sync timestamp from actual Supabase data
         if (latestSync) LAST_SYNC = latestSync;
 
         render();
+        updateSyncDisplay();
 
-        const syncTime = latestSync ? new Date(latestSync).toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : 'unknown';
-        showSyncOverlay(`Updated ${updatedCount} metrics.<br><span style="font-size:10px;color:#64748b;">Data from: ${syncTime}</span>`, 'done');
+        if (!silent) {
+          const syncTime = latestSync ? new Date(latestSync).toLocaleString('de-DE', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : 'unknown';
+          showSyncOverlay(`Updated ${updatedCount} metrics.<br><span style="font-size:10px;color:#64748b;">Data synced at: ${syncTime} (${timeAgo(latestSync)})</span>`, 'done');
+        }
 
       } catch (e) {
         console.error('Sync error:', e);
-        showSyncOverlay('Could not load data: ' + e.message + '<br><span style="font-size:10px;color:#64748b;">Ask Claude to "sync the outbound dashboard" to refresh data.</span>', 'error');
+        if (!silent) showSyncOverlay('Could not load data: ' + e.message, 'error');
       } finally {
         resetSyncBtn();
       }
@@ -1244,8 +1274,8 @@
                 <h1 class="text-xl font-bold text-white tracking-tight">Lio Outbound Dashboard</h1>
                 <p class="text-xs text-slate-400">${isCustomActive ? customRange.label + ' <span class="text-slate-600">(→ ' + period.label + ')</span>' : period.sublabel}</p>
                 <div class="flex items-center gap-2 mt-0.5">
-                  <p class="text-[10px] text-slate-500" title="Last data sync">🔄 Sync: ${formatSyncTime(LAST_SYNC)}</p>
-                  <button id="syncBtn" onclick="triggerSync()" class="text-[10px] px-2 py-0.5 rounded-md bg-brand-500/20 text-brand-300 border border-brand-500/30 hover:bg-brand-500/40 hover:text-white transition-all cursor-pointer flex items-center gap-1" title="Sync data now">
+                  <p id="syncTimestamp" class="text-[10px] text-slate-500" title="Last data sync">🔄 Loading sync status...</p>
+                  <button id="syncBtn" onclick="triggerSync(false)" class="text-[10px] px-2 py-0.5 rounded-md bg-brand-500/20 text-brand-300 border border-brand-500/30 hover:bg-brand-500/40 hover:text-white transition-all cursor-pointer flex items-center gap-1" title="Refresh data from database (auto-synced 3× daily from Attio)">
                     <span id="syncIcon" class="inline-block">\u27F3</span> <span id="syncText">Sync Now</span>
                   </button>
                   <span class="text-[9px] ${_manualLoaded ? 'text-emerald-500' : 'text-amber-500'}" title="${_manualLoaded ? 'Supabase connected \u2014 manual data loaded' : 'Supabase not connected \u2014 localStorage fallback'}">${_manualLoaded ? '\u25CF DB' : '\u25CB local'}</span>
@@ -1415,7 +1445,7 @@
               <div class="flex items-center justify-between mb-4">
                 <div>
                   <h3 class="text-lg font-semibold text-white">Deal Pipeline</h3>
-                  <span id="pipelineSublabel" class="text-[10px] text-slate-500">All Deals \u00B7 All Time \u00B7 As of ${formatSyncTime(LAST_SYNC).split(' at')[0]}</span>
+                  <span id="pipelineSublabel" class="text-[10px] text-slate-500">All Deals \u00B7 All Time</span>
                 </div>
                 <div class="flex gap-1.5">
                   <button onclick="filterFunnel('all')" id="fAll" class="pill text-[10px] px-2.5 py-1 rounded-full border border-slate-700 text-slate-400 hover:text-white pill-active">All Deals</button>
@@ -1560,7 +1590,7 @@
           })()}
 
           <div class="text-center text-xs text-slate-600 pt-4">
-            Lio Outbound Dashboard \u2014 Auto-generated \u2014 Data from Attio (Deals + Aircall + Emails) + Manual Entries \u2014 Sync: ${formatSyncTime(LAST_SYNC)}
+            Lio Outbound Dashboard \u2014 Auto-generated \u2014 Data from Attio (Deals + Aircall + Emails) + Manual Entries \u2014 Auto-sync 3\u00D7 daily
           </div>
         </main>
 
@@ -2674,11 +2704,10 @@
       activeFunnelPeriod = funnelPeriod;
 
       // Update sublabels
-      const syncDate = formatSyncTime(LAST_SYNC).split(' at')[0];
       const totalDeals = FUNNEL.reduce((s,f) => s + f.count, 0);
       const pSub = document.getElementById('pipelineSublabel');
       const cSub = document.getElementById('conversionSublabel');
-      if (pSub) pSub.textContent = `${totalDeals} Deals · ${label} · As of ${syncDate}`;
+      if (pSub) pSub.textContent = `${totalDeals} Deals · ${label}`;
       if (cSub) cSub.textContent = `How Deals flow through the pipeline · ${label}`;
 
       // Update Win Rate sublabel
@@ -2931,59 +2960,9 @@
       render();
       await loadManualActs();
       render();
-      // Auto-sync from Supabase to get freshest data (silent, no overlay for initial load)
-      try {
-        const resp = await fetch(SUPABASE_URL + '/rest/v1/dashboard_sync?select=*', {
-          headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
-        });
-        if (resp.ok) {
-          const rows = await resp.json();
-          if (rows && rows.length > 0) {
-            const grouped = {};
-            let latestSync = null;
-            for (const row of rows) {
-              const { period, person_short, metric, value, synced_at } = row;
-              if (!grouped[period]) grouped[period] = {};
-              if (!grouped[period][person_short]) grouped[period][person_short] = {};
-              grouped[period][person_short][metric] = Number(value);
-              if (!latestSync || synced_at > latestSync) latestSync = synced_at;
-            }
-            // Apply person metrics
-            const metrics = ['emails','replies','calls','callsConnected','callsMissed','coldCalls','followUpCalls',
-                             'linkedin','linkedinDemos','demos','deals','pipeline','sals','sqls','opps'];
-            for (const pk of ['today','week','month','q1']) {
-              if (!PERIODS[pk]?.team || !grouped[pk]) continue;
-              for (const person of PERIODS[pk].team) {
-                const sd = grouped[pk][person.short];
-                if (!sd) continue;
-                for (const m of metrics) { if (sd[m] !== undefined) person[m] = sd[m]; }
-              }
-            }
-            // Apply pipeline data
-            const stageMap = {
-              'Outbound Prospect':'Outbound Prospect','Outbound Lead':'Outbound Lead',
-              'Inbound Lead':'Inbound Lead','SAL':'SAL (Book 1st Demo)','SQL':'SQL (Demo Done)',
-              'RFX':'RFX','Opportunity':'Opportunity','Vendor of Choice':'Vendor of Choice',
-              'Order Review':'Order Review','Verbal Commit':'Verbal Commit.','Contract Neg':'Contract Neg.',
-              'Signing':'Signing','Pilot ARR':'Pilot ARR','Closed Won':'Closed Won',
-              'Lost':'Lost','No Fit':'No Fit','Bad Timing':'Bad Timing'
-            };
-            for (const periodKey of Object.keys(grouped)) {
-              const pData = grouped[periodKey]?.['_pipeline_'];
-              if (!pData) continue;
-              const counts = {};
-              for (const [k, v] of Object.entries(pData)) { counts[stageMap[k]||k] = v; }
-              if (FUNNEL_PERIODS[periodKey]) {
-                FUNNEL_PERIODS[periodKey] = makeFunnel(counts, periodKey==='all' ? FUNNEL_PERIODS.all.find(f=>f.split)?.split : undefined);
-              }
-            }
-            FUNNEL = FUNNEL_PERIODS[activeFunnelPeriod] || FUNNEL_PERIODS.all;
-            if (latestSync) LAST_SYNC = latestSync;
-            render();
-            console.log('Auto-sync: loaded ' + rows.length + ' metrics from Supabase');
-          }
-        }
-      } catch (e) { console.warn('Auto-sync skipped:', e.message); }
+      // Auto-sync from Supabase to get freshest data (silent, no overlay)
+      await triggerSync(true);
+      updateSyncDisplay();
     }
 
     if (sessionStorage.getItem(AUTH_KEY) === 'true') {
@@ -2999,6 +2978,9 @@
       document.getElementById('app').style.display = 'block';
       initDashboard();
     };
+
+    // Refresh sync display every 60s (relative time "5m ago" stays fresh)
+    setInterval(updateSyncDisplay, 60000);
   </script>
 </body>
 </html>
