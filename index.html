@@ -137,7 +137,8 @@
     // Call rule: "Call with [AE]" under 60s = not reached. 1m+ = connected.
     // "Missed call from [AE]" = not reached.
 
-    let LAST_SYNC = '2026-03-23T16:00:00Z'; // Updated from Attio on 2026-03-23
+    const _HARDCODED_SYNC = '2026-03-23T16:00:00Z'; // Last manual Attio data refresh
+    let LAST_SYNC = _HARDCODED_SYNC;
 
     // Dynamic date label computation
     function computePeriodLabels() {
@@ -753,8 +754,8 @@
         // Reset active funnel to match current filter
         FUNNEL = FUNNEL_PERIODS[activeFunnelPeriod] || FUNNEL_PERIODS.all;
 
-        // Update sync timestamp from actual Supabase data
-        if (latestSync) LAST_SYNC = latestSync;
+        // Update sync timestamp — only if Supabase data is newer than hardcoded refresh
+        if (latestSync && latestSync > _HARDCODED_SYNC) LAST_SYNC = latestSync;
 
         render();
         updateSyncDisplay();
