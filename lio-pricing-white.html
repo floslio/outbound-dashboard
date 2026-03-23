@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lio – AI Procurement Agents | Pricing</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { sans: ['Inter', 'sans-serif'] },
+      colors: {
+        lio: { 50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc', 400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 800: '#3730a3', 900: '#312e81' }
+      }
+    }
+  }
+}
+</script>
+<style>
+body { font-family: 'Inter', sans-serif; }
+html { scroll-behavior: smooth; }
+.accent-gradient { background: linear-gradient(135deg, #4f46e5, #06b6d4); }
+.accent-text { background: linear-gradient(135deg, #4f46e5, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; transition: all 0.3s; }
+.card:hover { border-color: #c7d2fe; box-shadow: 0 8px 30px rgba(99, 102, 241, 0.08); transform: translateY(-2px); }
+.card-featured { border: 2px solid #4f46e5; }
+.tab-active { background: #4f46e5; color: white; }
+.check::before { content: '✓'; color: #4f46e5; font-weight: 700; margin-right: 8px; }
+.fade-in { animation: fadeIn 0.4s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+input[type="checkbox"] { accent-color: #4f46e5; }
+select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; -webkit-appearance: none; appearance: none; }
+@media print { .no-print { display: none !important; } }
+.currency-btn { color: #64748b; transition: all 0.2s; }
+.currency-btn:hover { color: #1e293b; }
+.currency-btn.active { background: #4f46e5; color: white; }
+/* 21st.dev inspired animations */
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes float { 0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); } 50% { transform: translateY(-20px) rotate(var(--r, 0deg)); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulseRing { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
+@keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+.shimmer-btn { position: relative; overflow: hidden; }
+.shimmer-btn::after { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); animation: shimmer 3s infinite; }
+.float-shape { animation: float 8s ease-in-out infinite; pointer-events: none; }
+.slide-up { animation: slideUp 0.5s ease-out forwards; }
+.pulse-ring { position: relative; }
+.pulse-ring::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid rgba(16, 185, 129, 0.4); animation: pulseRing 2s ease-out infinite; }
+.card-glass-header { position: relative; overflow: hidden; }
+.card-glass-header::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(79, 70, 229, 0.04) 0%, transparent 60%); border-radius: inherit; pointer-events: none; }
+.arrow-slide { transition: transform 0.3s; }
+.arrow-slide:hover .arrow-icon { transform: translateX(4px); }
+.arrow-icon { transition: transform 0.3s; display: inline-block; }
+.scroll-reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
+.scroll-reveal.visible { opacity: 1; transform: translateY(0); }
+.hover-lift { transition: all 0.3s; }
+.hover-lift:hover { box-shadow: 0 12px 40px rgba(79, 70, 229, 0.12); transform: translateY(-4px); }
+.spotlight-card { position: relative; }
+.spotlight-card::before { content: ''; position: absolute; inset: -2px; border-radius: 18px; background: linear-gradient(135deg, #4f46e5, #06b6d4, #4f46e5); background-size: 200% 200%; animation: gradientShift 4s ease infinite; opacity: 0; transition: opacity 0.3s; z-index: -1; }
+.spotlight-card:hover::before { opacity: 1; }
+.badge-shine { position: relative; overflow: hidden; }
+.badge-shine::after { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: shimmer 3s infinite; }
+.sticky-summary { position: sticky; top: 100px; }
+.dots-bg { background-image: radial-gradient(rgba(79, 70, 229, 0.08) 1px, transparent 1px); background-size: 20px 20px; }
+</style>
+</head>
+<body class="bg-white text-slate-800 min-h-screen">
+
+<!-- Navigation -->
+<nav class="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-xl border-b border-slate-100 shadow-sm">
+  <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <svg class="h-7" viewBox="0 0 2000 1000" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M944.33 624.3H944.38C935.73 609.32 920 599.11 897.68 593.99C891.95 592.68 885.92 591.88 879.88 591.57C847.5 590.06 785.22 580.71 732.23 535.57C707.49 514.5 674.56 476.65 657.73 415.47C654.11 402.4 648.23 353.04 649.14 169.24C649.19 148.88 645.22 129.93 637.32 112.94C630.74 98.86 622.09 86.59 611.53 76.39C527.38-4.85 342.57 58.19 244.14 126.31C71.56 245.9 52.3 449.51 51.55 458.15C43.46 552.61 67.24 651.24 118.41 735.8C169.33 820.01 245.6 887.32 333.12 925.27C345.19 930.5 421.7 961.91 522.4 961.91C573.43 961.91 630.68 953.82 688.95 930.19C814.73 879.21 917.84 768.97 944.83 691.8C949.55 678.22 951.91 665.86 951.91 654.7C951.91 643.54 949.45 633.09 944.32 624.29ZM674.07 894.56L674.12 894.61C515.91 958.7 365.44 897.28 348.86 890.04C268.67 855.25 198.8 793.52 151.94 716.1C104.89 638.37 83.07 547.89 90.46 461.37C90.96 455.59 100.52 354.29 167.43 257.51C162.05 293.51 160.44 330.1 162.71 367.05C178.94 619.97 384.21 827.34 640.3 849.47C655.89 850.83 671.42 851.48 686.85 851.48C712.29 851.48 737.57 849.72 762.56 846.05C735.16 865.15 705.3 881.94 674.08 894.57ZM827.46 792.57C767.89 810.27 706.1 816.5 643.66 811.12C406.68 790.66 216.7 598.72 201.67 364.76C198.15 306.55 204.84 249.23 221.68 194.23C235.26 181.46 250.18 169.2 266.62 157.84C270.69 155.03 274.86 152.21 279.14 149.5C275.82 172.62 274.01 196.55 273.82 220.94C273.32 357.93 327.41 487.79 426.15 586.42C524.99 685.1 655.94 740.06 794.99 741.11C822.74 741.11 850.29 739.1 877.44 735.03C863.86 753.93 846.97 773.54 827.47 792.59ZM907.94 679.2V679.25C906.53 683.12 904.98 687.2 903.12 691.32C867.98 698.76 831.68 702.58 795.13 702.58C666.64 701.63 545.48 650.75 453.99 559.35C362.54 468 312.42 347.85 312.88 221.17C313.19 187.69 316.65 155.26 323.23 124.54C361.09 105.64 402.16 91.01 440.52 83.16C461.74 78.84 481.39 76.68 499.24 76.68C536.29 76.68 565.6 85.88 584.25 103.92C591.39 110.75 597.32 119.2 601.85 128.95C607.38 140.87 610.15 154.33 610.09 168.97C609.39 314.61 612.6 398.56 620.05 425.57C639.45 496.05 677.91 540.14 706.72 564.67C768.55 617.41 840.59 628.22 878 629.98C881.77 630.18 885.39 630.68 888.81 631.43C896.6 633.19 906.66 636.75 910.48 643.29C914.45 650.23 913.55 663.3 907.97 679.18Z" fill="#1e293b"/><path d="M1098.04 792.7V257.92H1163.74V735.26H1415.93V792.71H1098.04Z" fill="#1e293b"/><path d="M1496.17 324.75C1483.98 324.75 1473.53 320.67 1464.78 312.47C1456.03 304.29 1451.66 294.45 1451.66 282.95C1451.66 271.45 1456.03 261.62 1464.78 253.43C1473.53 245.25 1484.01 241.15 1496.17 241.15C1508.33 241.15 1518.81 245.25 1527.56 253.43C1536.31 261.61 1540.68 271.45 1540.68 282.95C1540.68 294.45 1536.31 304.29 1527.56 312.47C1518.81 320.65 1508.39 324.75 1496.17 324.75Z" fill="#1e293b"/><path d="M1526.91 391.61H1464.39V792.68H1526.91V391.61Z" fill="#1e293b"/><path d="M1926.82 484.84C1911.34 453.67 1889.82 429.49 1862.17 412.25C1834.52 395.01 1802.35 386.36 1765.65 386.36C1728.95 386.36 1696.72 395.01 1669.08 412.25C1641.43 429.49 1619.86 453.67 1604.43 484.84C1588.95 516.01 1581.25 552.8 1581.25 594.24C1581.25 635.68 1588.95 671.91 1604.43 702.88C1619.87 733.85 1641.43 757.98 1669.08 775.22C1696.73 792.42 1728.9 801.06 1765.65 801.06C1802.4 801.06 1834.52 792.41 1862.17 775.22C1889.82 757.98 1911.39 733.84 1926.82 702.88C1942.26 671.87 1950 636.02 1950 594.24C1950 552.46 1942.26 516.01 1926.82 484.84ZM1874.49 668.95C1865.84 691.93 1852.52 710.47 1834.47 724.55C1816.48 738.67 1793.55 745.71 1765.64 745.71C1737.73 745.71 1714.76 738.67 1696.71 724.55C1678.72 710.47 1665.39 691.92 1656.74 668.95C1648.04 645.97 1643.72 621.09 1643.72 594.24C1643.72 567.39 1648.05 542.46 1656.74 519.33C1665.39 496.15 1678.71 477.45 1696.71 463.17C1714.76 448.89 1737.68 441.75 1765.64 441.75C1793.6 441.75 1816.46 448.89 1834.47 463.17C1852.52 477.45 1865.84 496.15 1874.49 519.33C1883.19 542.45 1887.51 567.44 1887.51 594.24C1887.51 621.04 1883.19 645.97 1874.49 668.95Z" fill="#1e293b"/></svg>
+    </div>
+    <div class="hidden md:flex items-center gap-6 text-sm no-print">
+      <a href="#overview" class="text-slate-500 hover:text-slate-800 transition font-medium">Overview</a>
+      <a href="#modules" class="text-slate-500 hover:text-slate-800 transition font-medium">Modules</a>
+      <a href="#bundles" class="text-slate-500 hover:text-slate-800 transition font-medium">Bundles</a>
+      <a href="#calculator" class="text-slate-500 hover:text-slate-800 transition font-medium">Calculator</a>
+      <a href="#roi" class="text-slate-500 hover:text-slate-800 transition font-medium">ROI</a>
+      <div class="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5" id="currency-switcher">
+        <button onclick="setCurrency('usd')" class="currency-btn active px-2 py-1 rounded text-xs font-medium" data-cur="usd">🇺🇸 $</button>
+        <button onclick="setCurrency('eur')" class="currency-btn px-2 py-1 rounded text-xs font-medium" data-cur="eur">🇩🇪 €</button>
+        <button onclick="setCurrency('gbp')" class="currency-btn px-2 py-1 rounded text-xs font-medium" data-cur="gbp">🇬🇧 £</button>
+      </div>
+      <button onclick="document.getElementById('calculator').scrollIntoView({behavior:'smooth'})" class="px-5 py-2 accent-gradient text-white rounded-lg text-sm font-semibold transition hover:opacity-90">Get Quote</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="pt-32 pb-20 px-6 relative overflow-hidden">
+  <div class="absolute inset-0 dots-bg opacity-40" style="mask-image: radial-gradient(ellipse at center top, black 30%, transparent 70%);-webkit-mask-image: radial-gradient(ellipse at center top, black 30%, transparent 70%);"></div>
+  <!-- Floating geometric shapes -->
+  <div class="float-shape absolute top-24 left-[8%] w-72 h-16 rounded-full bg-gradient-to-r from-indigo-200/30 to-transparent rotate-12" style="--r:12deg; animation-delay: 0s;"></div>
+  <div class="float-shape absolute top-48 right-[6%] w-48 h-48 rounded-full bg-gradient-to-r from-cyan-200/20 to-transparent" style="--r:-8deg; animation-delay: -3s;"></div>
+  <div class="float-shape absolute bottom-10 left-[15%] w-32 h-32 rounded-full bg-gradient-to-r from-violet-200/20 to-transparent" style="--r:-12deg; animation-delay: -5s;"></div>
+  <div class="max-w-4xl mx-auto text-center relative z-10">
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-lio-50 text-lio-600 text-xs font-medium mb-8">
+      <span class="pulse-ring w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+      Offer valid until <span id="offer-date-hero">...</span>
+    </div>
+    <h1 class="text-5xl md:text-6xl font-extrabold leading-tight mb-6 text-slate-900">
+      AI Agents for<br><span class="accent-text">Procurement at Scale</span>
+    </h1>
+    <p class="text-lg text-slate-500 max-w-2xl mx-auto mb-10 leading-relaxed">
+      Volume-based pricing that grows with you. Combine modules, unlock bundle savings, and let AI agents handle your procurement.
+    </p>
+    <div class="flex flex-wrap justify-center gap-4 mb-14 no-print">
+      <button onclick="document.getElementById('overview').scrollIntoView({behavior:'smooth'})" class="px-7 py-3 accent-gradient text-white rounded-xl font-semibold transition hover:opacity-90 shadow-lg shadow-lio-500/20 shimmer-btn">Explore Pricing</button>
+      <button onclick="document.getElementById('calculator').scrollIntoView({behavior:'smooth'})" class="px-7 py-3 border-2 border-slate-200 hover:border-lio-300 rounded-xl font-semibold transition text-slate-700">Build Your Stack</button>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-5 max-w-3xl mx-auto">
+      <div class="bg-slate-50 rounded-2xl p-5 text-center">
+        <div class="text-3xl font-extrabold accent-text" data-count="14">0</div>
+        <div class="text-xs text-slate-500 mt-1 font-medium">Agent Modules</div>
+      </div>
+      <div class="bg-slate-50 rounded-2xl p-5 text-center">
+        <div class="text-3xl font-extrabold text-emerald-600" data-count="40" data-suffix="%">0</div>
+        <div class="text-xs text-slate-500 mt-1 font-medium">Avg. Cost Savings</div>
+      </div>
+      <div class="bg-slate-50 rounded-2xl p-5 text-center">
+        <div class="text-3xl font-extrabold text-amber-600" data-count="6" data-suffix=" mo">0</div>
+        <div class="text-xs text-slate-500 mt-1 font-medium">Avg. Payback</div>
+      </div>
+      <div class="bg-slate-50 rounded-2xl p-5 text-center">
+        <div class="text-3xl font-extrabold text-lio-600" data-count="3" data-suffix="x">0</div>
+        <div class="text-xs text-slate-500 mt-1 font-medium">ROI in Year 1</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OVERVIEW: MODULE CARDS -->
+<section id="overview" class="px-6 pb-20">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex items-center justify-between mb-10">
+      <div>
+        <h2 class="text-3xl font-bold text-slate-900">Agent Modules</h2>
+        <p class="text-slate-500 mt-1">Click any module for details</p>
+      </div>
+      <div class="flex gap-1 bg-slate-100 rounded-lg p-1 no-print">
+        <button onclick="switchView('cards')" id="btn-cards" class="tab-active px-4 py-1.5 rounded-md text-sm font-medium transition">Cards</button>
+        <button onclick="switchView('table')" id="btn-table" class="px-4 py-1.5 rounded-md text-sm font-medium text-slate-500 transition hover:text-slate-700">Table</button>
+      </div>
+    </div>
+
+    <!-- CARDS VIEW -->
+    <div id="view-cards" class="fade-in">
+      <!-- P2P — Procure to Pay -->
+      <h3 class="text-base font-bold text-slate-700 mb-4 mt-8 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> P2P — Procure to Pay</h3>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="card p-6 cursor-pointer hover-lift card-glass-header" onclick="showModule('gb2po')">
+          <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-xl mb-4">🛒</div>
+          <h3 class="font-bold text-slate-900 text-lg">Guided Buying</h3>
+          <p class="text-xs text-lio-600 font-medium mb-2">GB2PO</p>
+          <p class="text-sm text-slate-500 mb-4 leading-relaxed">Free-text automation, intelligent guided buying, and cross-platform catalog search.</p>
+          <div class="flex items-end justify-between pt-4 border-t border-slate-100">
+            <div>
+              <span class="text-xs text-slate-400">From</span>
+              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="50000">$50,000</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
+            </div>
+            <span class="text-xs text-lio-600 font-medium arrow-slide">8 tiers <span class="arrow-icon">→</span></span>
+          </div>
+        </div>
+
+        <div class="card p-6 cursor-pointer hover-lift card-glass-header" onclick="showModule('ntpo')">
+          <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-xl mb-4">✅</div>
+          <h3 class="font-bold text-slate-900 text-lg">PR Review Agent</h3>
+          <p class="text-xs text-emerald-600 font-medium mb-2">PR Review</p>
+          <p class="text-sm text-slate-500 mb-4 leading-relaxed">Automates PR review — sanity checks, triage, auto-corrections, and remote approver follow-up.</p>
+          <div class="flex items-end justify-between pt-4 border-t border-slate-100">
+            <div>
+              <span class="text-xs text-slate-400">From</span>
+              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="16000">$16,000</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
+            </div>
+            <span class="text-xs text-emerald-600 font-medium arrow-slide">5 tiers <span class="arrow-icon">→</span></span>
+          </div>
+        </div>
+
+        <div class="card p-6 cursor-pointer hover-lift card-glass-header" onclick="showModule('aa')">
+          <div class="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-xl mb-4">🔐</div>
+          <h3 class="font-bold text-slate-900 text-lg">Approval Agent</h3>
+          <p class="text-xs text-teal-600 font-medium mb-2">AA</p>
+          <p class="text-sm text-slate-500 mb-4 leading-relaxed">Manages PR approval workflows — proactive outreach, OOO handling, and bottleneck prevention.</p>
+          <div class="flex items-end justify-between pt-4 border-t border-slate-100">
+            <div>
+              <span class="text-xs text-slate-400">From</span>
+              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="12500">$12,500</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
+            </div>
+            <span class="text-xs text-teal-600 font-medium arrow-slide">1 tier <span class="arrow-icon">→</span></span>
+          </div>
+        </div>
+
+        <div class="card p-6 cursor-pointer hover-lift card-glass-header" onclick="showModule('oc')">
+          <div class="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center text-xl mb-4">📋</div>
+          <h3 class="font-bold text-slate-900 text-lg">Order Confirmations</h3>
+          <p class="text-xs text-violet-600 font-medium mb-2">OC</p>
+          <p class="text-sm text-slate-500 mb-4 leading-relaxed">Automatically reviews delivery date, price, quantity, and address on every OC.</p>
+          <div class="flex items-end justify-between pt-4 border-t border-slate-100">
+            <div>
+              <span class="text-xs text-slate-400">From</span>
+              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="15000">$15,000</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
+            </div>
+            <span class="text-xs text-violet-600 font-medium arrow-slide">5 tiers <span class="arrow-icon">→</span></span>
+          </div>
+        </div>
+
+        <div class="card p-6 cursor-pointer hover-lift card-glass-header" onclick="showModule('gr')">
+          <div class="w-10 h-10 rounded-xl bg-lime-50 flex items-center justify-center text-xl mb-4">📦</div>
+          <h3 class="font-bold text-slate-900 text-lg">Goods Receipt Agent</h3>
+          <p class="text-xs text-lime-600 font-medium mb-2">GR</p>
+          <p class="text-sm text-slate-500 mb-4 leading-relaxed">Automates goods receipt processing — document-based receipt creation, partial delivery tracking, and proactive follow-ups.</p>
+          <div class="flex items-end justify-between pt-4 border-t border-slate-100">
+            <div>
+              <span class="text-xs text-slate-400">From</span>
+              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="7000">$7,000</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
+            </div>
+            <span class="text-xs text-lime-600 font-medium arrow-slide">5 tiers <span class="arrow-icon">→</span></span>
+          </div>
+        </div>
+
+        <div class="card p-6 cursor-pointer hover-lift card-glass-header" onclick="showModule('inv')">
+          <div class="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-xl mb-4">🧾</div>
+          <h3 class="font-bold text-slate-900 text-lg">Invoice Agent</h3>
+          <p class="text-xs text-orange-600 font-medium mb-2">INV</p>
+          <p class="text-sm text-slate-500 mb-4 leading-relaxed">Automated three-way match (PO, GR, Invoice), dispute detection, categorization, and resolution orchestration.</p>
+          <div class="flex items-end justify-between pt-4 border-t border-slate-100">
+            <div>
+              <span class="text-xs text-slate-400">From</span>
+              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="8000">$8,000</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
+            </div>
+            <span class="text-xs text-orange-600 font-medium arrow-slide">5 tiers <span class="arrow-icon">→</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- S2P — Source to Pay -->
+      <h3 class="text-base font-bold text-slate-700 mb-4 mt-8 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> S2P — Source to Pay</h3>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="card p-6 cursor-pointer hover-lift card-glass-header" onclick="showModule('sm')">
+          <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-xl mb-4">🏢</div>
+          <h3 class="font-bold text-slate-900 text-lg">SRM</h3>
+          <p class="text-xs text-slate-600 font-medium mb-2">SRM</p>
+          <p class="text-sm text-slate-500 mb-4 leading-relaxed">Automated supplier onboarding and relationship management. No registration required for suppliers.</p>
+          <div class="flex items-end justify-between pt-4 border-t border-slate-100">
+            <div>
+              <span class="text-xs text-slate-400">From</span>
+              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="2500">$2,500</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
+            </div>
+            <span class="text-xs text-slate-600 font-medium arrow-slide">5 tiers <span class="arrow-icon">→</span></span>
+          </div>
+        </div>
+
+        <div class="card p-6 cursor-pointer hover-lift card-glass-header" onclick="showModule('sa')">
+          <div class="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-xl mb-4">🔍</div>
+          <h3 class="font-bold text-slate-900 text-lg">Sourcing Agent</h3>
+          <p class="text-xs text-rose-600 font-medium mb-2">SA</p>
+          <p class="text-sm text-slate-500 mb-4 leading-relaxed">AI sources bids, compares them, and selects the best outcome automatically.</p>
+          <div class="flex items-end justify-between pt-4 border-t border-slate-100">
+            <div>
+              <span class="text-xs text-slate-400">From</span>
+              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="25000">$25,000</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
+            </div>
+            <span class="text-xs text-rose-600 font-medium arrow-slide">6 tiers <span class="arrow-icon">→</span></span>
+          </div>
+        </div>
+
+        <div class="card p-6 cursor-pointer hover-lift card-glass-header" onclick="showModule('na')">
+          <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-xl mb-4">🤝</div>
+          <h3 class="font-bold text-slate-900 text-lg">Negotiation Agent</h3>
+          <p class="text-xs text-amber-600 font-medium mb-2">NA</p>
+          <p class="text-sm text-slate-500 mb-4 leading-relaxed">AI agents autonomously negotiate supplier bids for better outcomes.</p>
+          <div class="flex items-end justify-between pt-4 border-t border-slate-100">
+            <div>
+              <span class="text-xs text-slate-400">From</span>
+              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="68750">$68,750</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
+            </div>
+            <span class="text-xs text-amber-600 font-medium arrow-slide">6 tiers <span class="arrow-icon">→</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Intelligence & Assistants -->
+      <h3 class="text-base font-bold text-slate-700 mb-4 mt-8 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> Intelligence & Assistants</h3>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="card p-6 cursor-pointer hover-lift card-glass-header" onclick="showModule('liox')">
+          <div class="w-10 h-10 rounded-xl bg-lio-50 flex items-center justify-center text-xl mb-4">🧠</div>
+          <h3 class="font-bold text-slate-900 text-lg">Lio X – AI Assistant</h3>
+          <p class="text-xs text-lio-600 font-medium mb-2">LIOX</p>
+          <p class="text-sm text-slate-500 mb-4 leading-relaxed">AI procurement assistant with templates, custom creation, and Lio Academy access.</p>
+          <div class="flex items-end justify-between pt-4 border-t border-slate-100">
+            <div>
+              <span class="text-xs text-slate-400">From</span>
+              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="4400">$4,400</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
+            </div>
+            <span class="text-xs text-lio-600 font-medium arrow-slide">7 tiers <span class="arrow-icon">→</span></span>
+          </div>
+        </div>
+
+        <div class="card p-6 cursor-pointer hover-lift card-glass-header" onclick="showModule('pia')">
+          <div class="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-xl mb-4">📊</div>
+          <h3 class="font-bold text-slate-900 text-lg">Procurement Intelligence</h3>
+          <p class="text-xs text-sky-600 font-medium mb-2">PIA</p>
+          <p class="text-sm text-slate-500 mb-4 leading-relaxed">AI-powered spend analytics and dynamic reporting — query procurement data in natural language.</p>
+          <div class="flex items-end justify-between pt-4 border-t border-slate-100">
+            <div>
+              <span class="text-xs text-slate-400">From</span>
+              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="6000">$6,000</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
+            </div>
+            <span class="text-xs text-sky-600 font-medium arrow-slide">5 tiers <span class="arrow-icon">→</span></span>
+          </div>
+        </div>
+
+        <div class="card p-6 cursor-pointer hover-lift card-glass-header" onclick="showModule('npa')">
+          <div class="w-10 h-10 rounded-xl bg-fuchsia-50 flex items-center justify-center text-xl mb-4">🎯</div>
+          <h3 class="font-bold text-slate-900 text-lg">Negotiation Preparation</h3>
+          <p class="text-xs text-fuchsia-600 font-medium mb-2">NPA</p>
+          <p class="text-sm text-slate-500 mb-4 leading-relaxed">Prepares procurement teams for strategic negotiations with supplier analysis and market intelligence.</p>
+          <div class="flex items-end justify-between pt-4 border-t border-slate-100">
+            <div>
+              <span class="text-xs text-slate-400">From</span>
+              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="12000">$12,000</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
+            </div>
+            <span class="text-xs text-fuchsia-600 font-medium arrow-slide">5 tiers <span class="arrow-icon">→</span></span>
+          </div>
+        </div>
+
+        <div class="card p-6 cursor-pointer hover-lift card-glass-header" onclick="showModule('cna')">
+          <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-xl mb-4">📄</div>
+          <h3 class="font-bold text-slate-900 text-lg">Contract Negotiation</h3>
+          <p class="text-xs text-red-600 font-medium mb-2">CNA</p>
+          <p class="text-sm text-slate-500 mb-4 leading-relaxed">Analyzes contracts at scale, identifies key terms, risks, and renegotiation opportunities.</p>
+          <div class="flex items-end justify-between pt-4 border-t border-slate-100">
+            <div>
+              <span class="text-xs text-slate-400">From</span>
+              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="15000">$15,000</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
+            </div>
+            <span class="text-xs text-red-600 font-medium arrow-slide">5 tiers <span class="arrow-icon">→</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Platform -->
+      <h3 class="text-base font-bold text-slate-700 mb-4 mt-8 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> Platform</h3>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="card p-6 cursor-pointer hover-lift card-glass-header" onclick="showModule('aop')">
+          <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-xl mb-4">🔧</div>
+          <h3 class="font-bold text-slate-900 text-lg">Agent Builder</h3>
+          <p class="text-xs text-blue-600 font-medium mb-2">AOP</p>
+          <p class="text-sm text-slate-500 mb-4 leading-relaxed">No-code platform for building and managing AI agent workflows (AOPs).</p>
+          <div class="flex items-end justify-between pt-4 border-t border-slate-100">
+            <div>
+              <span class="text-xs text-slate-400">From</span>
+              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="27000">$27,000</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
+            </div>
+            <span class="text-xs text-blue-600 font-medium arrow-slide">6 tiers <span class="arrow-icon">→</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLE VIEW -->
+    <div id="view-table" class="hidden fade-in">
+      <div class="card overflow-hidden">
+        <table class="w-full text-sm">
+          <thead><tr class="bg-slate-50 border-b border-slate-200">
+            <th class="text-left p-4 font-semibold text-slate-600 text-xs uppercase tracking-wider">Module</th>
+            <th class="text-left p-4 font-semibold text-slate-600 text-xs uppercase tracking-wider">Use Case</th>
+            <th class="text-right p-4 font-semibold text-slate-600 text-xs uppercase tracking-wider">Starting At</th>
+            <th class="text-right p-4 font-semibold text-slate-600 text-xs uppercase tracking-wider">Volume Unit</th>
+            <th class="text-center p-4 font-semibold text-slate-600 text-xs uppercase tracking-wider">Unit Cost at Scale</th>
+          </tr></thead>
+          <tbody>
+            <tr class="bg-slate-50"><td colspan="5" class="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider">P2P — Procure to Pay</td></tr>
+            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('gb2po')"><td class="p-4 font-semibold">Guided Buying</td><td class="p-4 text-slate-500">Free-text to PO</td><td class="p-4 text-right font-semibold mp" data-usd="50000">$50,000</td><td class="p-4 text-right text-slate-500">Indirect Spend</td><td class="p-4 text-center"><span class="px-2 py-1 bg-lio-50 text-lio-700 rounded text-xs font-medium">$0.075/k$</span></td></tr>
+            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('ntpo')"><td class="p-4 font-semibold">PR Review Agent</td><td class="p-4 text-slate-500">PR review & triage</td><td class="p-4 text-right font-semibold mp" data-usd="16000">$16,000</td><td class="p-4 text-right text-slate-500">Verified PRs</td><td class="p-4 text-center"><span class="px-2 py-1 bg-emerald-50 text-emerald-700 rounded text-xs font-medium">$1.19/PR</span></td></tr>
+            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('aa')"><td class="p-4 font-semibold">Approval Agent</td><td class="p-4 text-slate-500">Approval workflows</td><td class="p-4 text-right font-semibold mp" data-usd="12500">$12,500</td><td class="p-4 text-right text-slate-500">Flat Rate</td><td class="p-4 text-center"><span class="px-2 py-1 bg-teal-50 text-teal-700 rounded text-xs font-medium">Flat</span></td></tr>
+            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('oc')"><td class="p-4 font-semibold">Order Confirmations</td><td class="p-4 text-slate-500">OC review</td><td class="p-4 text-right font-semibold mp" data-usd="15000">$15,000</td><td class="p-4 text-right text-slate-500">OC Checks</td><td class="p-4 text-center"><span class="px-2 py-1 bg-violet-50 text-violet-700 rounded text-xs font-medium">$1.19/check</span></td></tr>
+            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('gr')"><td class="p-4 font-semibold">Goods Receipt Agent</td><td class="p-4 text-slate-500">GR processing</td><td class="p-4 text-right font-semibold mp" data-usd="7000">$7,000</td><td class="p-4 text-right text-slate-500">GR Checks</td><td class="p-4 text-center"><span class="px-2 py-1 bg-lime-50 text-lime-700 rounded text-xs font-medium">$1.14/check</span></td></tr>
+            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('inv')"><td class="p-4 font-semibold">Invoice Agent</td><td class="p-4 text-slate-500">3-way match</td><td class="p-4 text-right font-semibold mp" data-usd="8000">$8,000</td><td class="p-4 text-right text-slate-500">Invoice Checks</td><td class="p-4 text-center"><span class="px-2 py-1 bg-orange-50 text-orange-700 rounded text-xs font-medium">$1.19/check</span></td></tr>
+            <tr class="bg-slate-50"><td colspan="5" class="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider">S2P — Source to Pay</td></tr>
+            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('sm')"><td class="p-4 font-semibold">SRM</td><td class="p-4 text-slate-500">Supplier onboarding</td><td class="p-4 text-right font-semibold mp" data-usd="122500">$122,500</td><td class="p-4 text-right text-slate-500">Onboardings</td><td class="p-4 text-center"><span class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-medium">$50/onboard</span></td></tr>
+            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('sa')"><td class="p-4 font-semibold">Sourcing Agent</td><td class="p-4 text-slate-500">Bid sourcing</td><td class="p-4 text-right font-semibold mp" data-usd="25000">$25,000</td><td class="p-4 text-right text-slate-500">Events</td><td class="p-4 text-center"><span class="px-2 py-1 bg-rose-50 text-rose-700 rounded text-xs font-medium">$12.50/event</span></td></tr>
+            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('na')"><td class="p-4 font-semibold">Negotiation Agent</td><td class="p-4 text-slate-500">Bid negotiation</td><td class="p-4 text-right font-semibold mp" data-usd="68750">$68,750</td><td class="p-4 text-right text-slate-500">Events</td><td class="p-4 text-center"><span class="px-2 py-1 bg-amber-50 text-amber-700 rounded text-xs font-medium">$34.38/event</span></td></tr>
+            <tr class="bg-slate-50"><td colspan="5" class="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Intelligence & Assistants</td></tr>
+            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('liox')"><td class="p-4 font-semibold">Lio X</td><td class="p-4 text-slate-500">AI assistant</td><td class="p-4 text-right font-semibold mp" data-usd="4400">$4,400</td><td class="p-4 text-right text-slate-500">Users</td><td class="p-4 text-center"><span class="px-2 py-1 bg-lio-50 text-lio-700 rounded text-xs font-medium">$350/user</span></td></tr>
+            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('pia')"><td class="p-4 font-semibold">Procurement Intelligence</td><td class="p-4 text-slate-500">Spend analytics</td><td class="p-4 text-right font-semibold mp" data-usd="6000">$6,000</td><td class="p-4 text-right text-slate-500">Users</td><td class="p-4 text-center"><span class="px-2 py-1 bg-sky-50 text-sky-700 rounded text-xs font-medium">$688/user</span></td></tr>
+            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('npa')"><td class="p-4 font-semibold">Negotiation Preparation</td><td class="p-4 text-slate-500">Negotiation prep</td><td class="p-4 text-right font-semibold mp" data-usd="12000">$12,000</td><td class="p-4 text-right text-slate-500">Prep Events</td><td class="p-4 text-center"><span class="px-2 py-1 bg-fuchsia-50 text-fuchsia-700 rounded text-xs font-medium">$12.50/event</span></td></tr>
+            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('cna')"><td class="p-4 font-semibold">Contract Negotiation</td><td class="p-4 text-slate-500">Contract analysis</td><td class="p-4 text-right font-semibold mp" data-usd="15000">$15,000</td><td class="p-4 text-right text-slate-500">Negotiations</td><td class="p-4 text-center"><span class="px-2 py-1 bg-red-50 text-red-700 rounded text-xs font-medium">$13.50/neg</span></td></tr>
+            <tr class="bg-slate-50"><td colspan="5" class="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Platform</td></tr>
+            <tr class="hover:bg-slate-50 cursor-pointer" onclick="showModule('aop')"><td class="p-4 font-semibold">Agent Builder</td><td class="p-4 text-slate-500">Custom agent workflows</td><td class="p-4 text-right font-semibold mp" data-usd="27000">$27,000</td><td class="p-4 text-right text-slate-500">Agent Runs</td><td class="p-4 text-center"><span class="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium">$13.50/run</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MODULE DETAIL OVERLAY -->
+<div id="module-overlay" class="hidden fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-6 no-print" onclick="if(event.target===this)closeModule()">
+  <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[85vh] overflow-y-auto shadow-2xl p-8" id="module-detail"></div>
+</div>
+
+<!-- BUNDLES -->
+<section id="bundles" class="px-6 py-20 bg-slate-50">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold text-slate-900 mb-2">Recommended Bundles</h2>
+      <p class="text-slate-500">Pre-configured combinations for common procurement needs.</p>
+    </div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
+
+      <!-- P2P Starter -->
+      <div class="card p-6 bg-white">
+        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Starter</div>
+        <h3 class="text-xl font-bold text-slate-900 mb-1">P2P Starter</h3>
+        <p class="text-sm text-slate-500 mb-5">Core purchase-to-pay automation with guided buying and approvals.</p>
+        <div class="text-3xl font-extrabold accent-text mb-1">from <span class="mp" data-usd="57000">$57,000</span></div>
+        <div class="text-xs text-slate-400 mb-5">/year · 5% bundle discount</div>
+        <div class="space-y-2 mb-5">
+          <div class="check text-sm text-slate-700">Guided Buying (GB2PO)</div>
+          <div class="check text-sm text-slate-700">PR Review Agent</div>
+          <div class="check text-sm text-slate-700">Approval Agent</div>
+        </div>
+        <div class="bg-emerald-50 rounded-lg p-3 text-center">
+          <div class="text-xs text-slate-500">5% bundle discount</div>
+          <div class="text-sm font-semibold text-emerald-700">Save 5% on list price</div>
+        </div>
+      </div>
+
+      <!-- Intelligence Suite -->
+      <div class="card p-6 bg-white">
+        <div class="text-xs font-bold text-cyan-600 uppercase tracking-wider mb-3">Intelligence</div>
+        <h3 class="text-xl font-bold text-slate-900 mb-1">Intelligence Suite</h3>
+        <p class="text-sm text-slate-500 mb-5">AI-powered market intelligence and negotiation prep.</p>
+        <div class="text-3xl font-extrabold text-cyan-600 mb-1">from <span class="mp" data-usd="68000">$68,000</span></div>
+        <div class="text-xs text-slate-400 mb-5">/year · 6% bundle discount</div>
+        <div class="space-y-2 mb-5">
+          <div class="check text-sm text-slate-700">Lio X</div>
+          <div class="check text-sm text-slate-700">Procurement Intelligence</div>
+          <div class="check text-sm text-slate-700">Negotiation Preparation</div>
+        </div>
+        <div class="bg-emerald-50 rounded-lg p-3 text-center">
+          <div class="text-xs text-slate-500">6% bundle discount</div>
+          <div class="text-sm font-semibold text-emerald-700">Save 6% on list price</div>
+        </div>
+      </div>
+
+      <!-- Source to Pay -->
+      <div class="card p-6 bg-white relative">
+        <div class="absolute -top-3 right-4 bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full">Popular</div>
+        <div class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-3">Source to Pay</div>
+        <h3 class="text-xl font-bold text-slate-900 mb-1">Source to Pay</h3>
+        <p class="text-sm text-slate-500 mb-5">Complete sourcing-to-contract pipeline with AI negotiation.</p>
+        <div class="text-3xl font-extrabold text-amber-600 mb-1">from <span class="mp" data-usd="105000">$105,000</span></div>
+        <div class="text-xs text-slate-400 mb-5">/year · 8% bundle discount</div>
+        <div class="space-y-2 mb-5">
+          <div class="check text-sm text-slate-700">Sourcing Agent</div>
+          <div class="check text-sm text-slate-700">Negotiation Agent</div>
+          <div class="check text-sm text-slate-700">Negotiation Preparation</div>
+          <div class="check text-sm text-slate-700">Contract Negotiation</div>
+        </div>
+        <div class="bg-emerald-50 rounded-lg p-3 text-center">
+          <div class="text-xs text-slate-500">8% bundle discount</div>
+          <div class="text-sm font-semibold text-emerald-700">Save 8% on list price</div>
+        </div>
+      </div>
+
+      <!-- P2P Complete -->
+      <div class="card p-6 bg-white relative">
+        <div class="absolute -top-3 right-4 bg-violet-500 text-white text-xs font-bold px-3 py-1 rounded-full">Best Value</div>
+        <div class="text-xs font-bold text-violet-600 uppercase tracking-wider mb-3">P2P Complete</div>
+        <h3 class="text-xl font-bold text-slate-900 mb-1">P2P Complete</h3>
+        <p class="text-sm text-slate-500 mb-5">End-to-end purchase-to-pay from requisition to invoice.</p>
+        <div class="text-3xl font-extrabold text-violet-600 mb-1">from <span class="mp" data-usd="135000">$135,000</span></div>
+        <div class="text-xs text-slate-400 mb-5">/year · 10% bundle discount</div>
+        <div class="space-y-2 mb-5">
+          <div class="check text-sm text-slate-700">Guided Buying (GB2PO)</div>
+          <div class="check text-sm text-slate-700">PR Review Agent</div>
+          <div class="check text-sm text-slate-700">Approval Agent</div>
+          <div class="check text-sm text-slate-700">Order Confirmations</div>
+          <div class="check text-sm text-slate-700">Goods Receipt</div>
+          <div class="check text-sm text-slate-700">Invoice Agent</div>
+        </div>
+        <div class="bg-emerald-50 rounded-lg p-3 text-center">
+          <div class="text-xs text-slate-500">10% bundle discount</div>
+          <div class="text-sm font-semibold text-emerald-700">Save 10% on list price</div>
+        </div>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="card-featured card p-6 bg-white relative spotlight-card">
+        <div class="absolute -top-3 right-4 bg-rose-500 text-white text-xs font-bold px-3 py-1 rounded-full">Featured</div>
+        <div class="text-xs font-bold text-rose-600 uppercase tracking-wider mb-3">Enterprise</div>
+        <h3 class="text-xl font-bold text-slate-900 mb-1">Enterprise</h3>
+        <p class="text-sm text-slate-500 mb-5">Every Lio agent working together — full AI procurement suite.</p>
+        <div class="text-3xl font-extrabold text-slate-900 mb-1">Custom</div>
+        <div class="text-xs text-slate-400 mb-5">/year · 15% bundle discount</div>
+        <div class="space-y-2 mb-5">
+          <div class="check text-sm text-slate-700">All 14 modules included</div>
+          <div class="check text-sm text-slate-700">Priority implementation</div>
+          <div class="check text-sm text-slate-700">Dedicated success manager</div>
+        </div>
+        <div class="bg-emerald-50 rounded-lg p-3 text-center">
+          <div class="text-xs text-slate-500">15% bundle discount</div>
+          <div class="text-sm font-semibold text-emerald-700">Save 15% on list price</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CALCULATOR -->
+<section id="calculator" class="px-6 py-20">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold text-slate-900 mb-2">Build Your Agent Stack</h2>
+      <p class="text-slate-500">Select modules, configure volumes, and get your pricing breakdown.</p>
+    </div>
+    <div class="grid lg:grid-cols-3 gap-8">
+      <div class="lg:col-span-2 space-y-3" id="calc-modules"></div>
+      <div class="lg:col-span-1">
+        <div class="card p-6 sticky top-24 shadow-lg shadow-slate-200/50 sticky-summary">
+          <h3 class="font-bold text-lg text-slate-900 mb-4">Your Quote</h3>
+          <div id="calc-empty" class="text-center py-10 text-slate-400 text-sm">Select modules to see pricing</div>
+          <div id="calc-summary" class="hidden space-y-3">
+            <div id="calc-lines"></div>
+            <div class="border-t border-slate-200 pt-3 space-y-1">
+              <div class="flex justify-between text-sm"><span class="text-slate-500">SaaS Fee</span><span class="font-semibold" id="c-saas">$0</span></div>
+              <div class="flex justify-between text-sm"><span class="text-slate-500">Implementation (15%)</span><span id="c-impl">$0</span></div>
+              <div class="flex justify-between text-sm"><span class="text-slate-500">Customer Success (10%)</span><span id="c-cs">$0</span></div>
+              <div id="c-setup-row" class="hidden flex justify-between text-sm"><span class="text-slate-500">SRM Setup</span><span class="mp" data-usd="120000">$120,000</span></div>
+            </div>
+            <div class="border-t-2 border-lio-200 pt-3">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-slate-900">Total Annual</span>
+                <span class="text-2xl font-extrabold accent-text" id="c-total">$0</span>
+              </div>
+              <div class="flex justify-between text-sm mt-1"><span class="text-slate-400">Monthly</span><span class="text-slate-600" id="c-monthly">$0</span></div>
+            </div>
+            <button onclick="openQuoteModal()" class="mt-4 w-full py-3 accent-gradient text-white rounded-xl font-semibold transition hover:opacity-90 flex items-center justify-center gap-2 no-print">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              Create Quote
+            </button>
+            <button onclick="openQuoteHistory()" class="mt-2 w-full py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-500 hover:text-slate-700 transition flex items-center justify-center gap-2 no-print">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Quote History
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Quote History Modal -->
+<div id="quote-history-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
+  <div class="bg-white border border-slate-200 rounded-2xl p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-xl font-bold text-slate-900">Quote History</h3>
+      <button onclick="closeQuoteHistory()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+    </div>
+    <div id="quote-history-list" class="space-y-3"></div>
+    <div id="quote-history-empty" class="hidden text-center py-12 text-slate-400 text-sm">No quotes created yet.</div>
+    <button onclick="clearQuoteHistory()" id="quote-history-clear" class="hidden mt-6 w-full py-2 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl text-xs text-red-500 transition">Clear All History</button>
+  </div>
+</div>
+
+<!-- Quote Modal -->
+<div id="quote-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
+  <div class="bg-white border border-slate-200 rounded-2xl p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-xl font-bold text-slate-900">Create Quote</h3>
+      <button onclick="closeQuoteModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+    </div>
+    <div class="space-y-4">
+      <div>
+        <label class="text-xs text-slate-500 block mb-1">Recipient Company</label>
+        <input type="text" id="quote-company" placeholder="e.g. Siemens AG" class="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none">
+      </div>
+      <div>
+        <label class="text-xs text-slate-500 block mb-1">Contact Person</label>
+        <input type="text" id="quote-contact" placeholder="e.g. Dr. Max Müller" class="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none">
+      </div>
+      <div>
+        <label class="text-xs text-slate-500 block mb-1">Company Address</label>
+        <textarea id="quote-address" rows="2" placeholder="e.g. Werner-von-Siemens-Str. 1, 80333 München" class="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none resize-none"></textarea>
+      </div>
+      <div>
+        <label class="text-xs text-slate-500 block mb-2">Include in Quote</label>
+        <div class="space-y-2">
+          <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"><input type="checkbox" id="quote-inc-details" checked class="accent-lio-500"> Module Details</label>
+          <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"><input type="checkbox" id="quote-inc-roi" class="accent-lio-500"> Impact Summary (ROI)</label>
+          <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"><input type="checkbox" id="quote-inc-service" checked class="accent-lio-500"> Service & Support</label>
+          <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer"><input type="checkbox" id="quote-inc-terms" checked class="accent-lio-500"> Terms & Conditions</label>
+        </div>
+      </div>
+      <div>
+        <label class="text-xs text-slate-500 block mb-1">Custom Notes</label>
+        <textarea id="quote-notes" rows="3" placeholder="Add personalized notes to the quote..." class="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none resize-none"></textarea>
+      </div>
+    </div>
+      <!-- Pricing Adjustments -->
+      <div class="mt-2 pt-4 border-t border-slate-200">
+        <label class="text-xs text-slate-500 block mb-3">Pricing Adjustments</label>
+
+        <!-- Bundle Detection -->
+        <div id="quote-bundle-row" class="hidden mb-3 p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+          <label class="flex items-center gap-2 text-sm text-emerald-700 cursor-pointer">
+            <input type="checkbox" id="quote-bundle-apply" checked class="accent-lio-500" onchange="updateQuotePricing()">
+            <span id="quote-bundle-label">Bundle discount detected</span>
+          </label>
+        </div>
+
+        <!-- Line-by-line pricing table -->
+        <div class="rounded-lg border border-slate-200 overflow-hidden">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-slate-50 text-slate-500 text-xs uppercase">
+                <th class="text-left p-2 pl-3">Module</th>
+                <th class="text-right p-2">List Price</th>
+                <th class="text-center p-2" style="width:120px;">Discount</th>
+                <th class="text-right p-2 pr-3">Final Price</th>
+              </tr>
+            </thead>
+            <tbody id="quote-pricing-lines"></tbody>
+            <tfoot>
+              <tr class="border-t border-slate-200 bg-slate-50">
+                <td class="p-2 pl-3 text-slate-500 text-xs" colspan="3">SaaS Subtotal</td>
+                <td class="p-2 pr-3 text-right font-semibold" id="quote-saas-subtotal">$0</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Exclusive Additional Discount -->
+        <div class="mt-3 p-3 rounded-lg bg-slate-50 border border-slate-200">
+          <label class="text-xs text-slate-500 block mb-2">Exclusive Discount (applied to SaaS subtotal)</label>
+          <div class="flex gap-2 items-center">
+            <select id="quote-exc-type" onchange="updateQuotePricing()" class="border border-slate-200 rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-lio-200">
+              <option value="none">None</option>
+              <option value="pct">Percentage (%)</option>
+              <option value="fixed">Fixed Amount ($)</option>
+            </select>
+            <input type="number" id="quote-exc-value" value="0" min="0" step="1" onchange="updateQuotePricing()" oninput="updateQuotePricing()" class="w-24 border border-slate-200 rounded-lg p-2 text-sm outline-none text-right focus:ring-2 focus:ring-lio-200">
+          </div>
+        </div>
+
+        <!-- Grand Total Preview -->
+        <div class="mt-3 p-3 rounded-lg bg-slate-50 border border-slate-200">
+          <div class="flex justify-between text-sm"><span class="text-slate-500">SaaS (after discounts)</span><span id="quote-final-saas">$0</span></div>
+          <div class="flex justify-between items-center text-sm mt-1">
+            <span class="text-slate-500">Implementation (15%)</span>
+            <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1">
+                <input type="number" id="quote-impl-disc" value="0" min="0" step="1" onchange="updateQuotePricing()" oninput="updateQuotePricing()" class="w-12 border border-slate-200 rounded p-1 text-xs text-right outline-none">
+                <select id="quote-impl-disc-type" onchange="updateQuotePricing()" class="border border-slate-200 rounded p-1 text-xs outline-none">
+                  <option value="pct">%</option>
+                  <option value="fixed">$</option>
+                </select>
+              </div>
+              <span id="quote-final-impl" class="w-20 text-right">$0</span>
+            </div>
+          </div>
+          <div class="flex justify-between items-center text-sm mt-1">
+            <span class="text-slate-500">Customer Success (10%)</span>
+            <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1">
+                <input type="number" id="quote-cs-disc" value="0" min="0" step="1" onchange="updateQuotePricing()" oninput="updateQuotePricing()" class="w-12 border border-slate-200 rounded p-1 text-xs text-right outline-none">
+                <select id="quote-cs-disc-type" onchange="updateQuotePricing()" class="border border-slate-200 rounded p-1 text-xs outline-none">
+                  <option value="pct">%</option>
+                  <option value="fixed">$</option>
+                </select>
+              </div>
+              <span id="quote-final-cs" class="w-20 text-right">$0</span>
+            </div>
+          </div>
+          <div class="flex justify-between text-sm mt-2 pt-2 border-t border-slate-200 font-bold"><span>Total Annual</span><span id="quote-final-total" class="text-lg accent-text">$0</span></div>
+        </div>
+      </div>
+    <button onclick="downloadPDF()" class="mt-6 w-full py-3 accent-gradient text-white rounded-xl font-semibold transition hover:opacity-90 flex items-center justify-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      Finalize &amp; Print Quote
+    </button>
+  </div>
+</div>
+
+<!-- ROI -->
+<section id="roi" class="px-6 py-20 bg-slate-50">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold text-slate-900 mb-2">ROI & Payback</h2>
+      <p class="text-slate-500">Investment is linked to your Agent Stack above.</p>
+    </div>
+    <div class="grid lg:grid-cols-2 gap-8">
+      <div class="card p-6 bg-white">
+        <h3 class="font-bold text-slate-900 mb-4">Your Current State</h3>
+        <div class="space-y-4">
+          <div><label class="text-sm text-slate-500 font-medium">Annual Indirect Spend ($M)</label><input type="number" id="r-spend" value="250" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
+          <div><label class="text-sm text-slate-500 font-medium">POs per Year</label><input type="number" id="r-pos" value="20000" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
+          <div><label class="text-sm text-slate-500 font-medium">Avg. Cost per Manual PO ($)</label><input type="number" id="r-pocost" value="15" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
+          <div><label class="text-sm text-slate-500 font-medium">Negotiation Events / Year</label><input type="number" id="r-neg" value="2000" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
+          <div><label class="text-sm text-slate-500 font-medium">Avg. Savings per Negotiation ($)</label><input type="number" id="r-negsave" value="500" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
+          <div><label class="text-sm text-slate-500 font-medium">FTE Cost ($K/year)</label><input type="number" id="r-fte" value="75" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
+          <div><label class="text-sm text-slate-500 font-medium">FTEs Freed</label><input type="number" id="r-freed" value="3" step="0.5" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
+        </div>
+      </div>
+      <div class="space-y-5">
+        <div class="card p-6 bg-white">
+          <h3 class="font-bold text-slate-900 mb-4">Impact Summary</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-lio-50 rounded-xl p-4 text-center"><div class="text-xs text-slate-500">Lio Investment</div><div class="text-2xl font-extrabold text-lio-700 mt-1" id="roi-inv">$0</div></div>
+            <div class="bg-emerald-50 rounded-xl p-4 text-center"><div class="text-xs text-slate-500">Annual Savings</div><div class="text-2xl font-extrabold text-emerald-700 mt-1" id="roi-sav">$0</div></div>
+            <div class="bg-cyan-50 rounded-xl p-4 text-center"><div class="text-xs text-slate-500">Net Benefit</div><div class="text-2xl font-extrabold text-cyan-700 mt-1" id="roi-net">$0</div></div>
+            <div class="bg-amber-50 rounded-xl p-4 text-center"><div class="text-xs text-slate-500">ROI</div><div class="text-2xl font-extrabold text-amber-700 mt-1" id="roi-pct">-</div></div>
+          </div>
+        </div>
+        <div class="card p-6 bg-white">
+          <h3 class="font-bold text-slate-900 mb-3">Payback</h3>
+          <div class="flex items-center gap-3 mb-3">
+            <div class="text-4xl font-extrabold accent-text" id="roi-months">-</div>
+            <div class="text-sm text-slate-500">months to<br>full payback</div>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-2.5"><div class="h-2.5 rounded-full accent-gradient transition-all" id="roi-bar" style="width:0%"></div></div>
+          <div class="flex justify-between text-xs text-slate-400 mt-1"><span>0</span><span>6</span><span>12 months</span></div>
+        </div>
+        <div class="card p-6 bg-white">
+          <h3 class="font-bold text-slate-900 mb-3">3-Year Projection</h3>
+          <div class="grid grid-cols-3 gap-4 text-center">
+            <div><div class="text-xs text-slate-400">Year 1</div><div class="text-lg font-bold text-emerald-700" id="roi-y1">-</div></div>
+            <div><div class="text-xs text-slate-400">Year 2</div><div class="text-lg font-bold text-emerald-700" id="roi-y2">-</div></div>
+            <div><div class="text-xs text-slate-400">Year 3</div><div class="text-lg font-bold text-emerald-700" id="roi-y3">-</div></div>
+          </div>
+          <div class="mt-3 pt-3 border-t border-slate-100 text-center">
+            <div class="text-xs text-slate-400">3-Year Cumulative</div>
+            <div class="text-xl font-extrabold accent-text" id="roi-3yr">-</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT'S INCLUDED -->
+<section class="px-6 py-20">
+  <div class="max-w-5xl mx-auto">
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="card p-8 bg-white">
+        <div class="text-xs font-bold text-lio-600 uppercase tracking-wider mb-2">Implementation · 15%</div>
+        <h3 class="text-xl font-bold text-slate-900 mb-4">Everything to Get You Live</h3>
+        <div class="space-y-2 text-sm text-slate-600">
+          <div class="check">WebApp & Teams interface</div>
+          <div class="check">SAP & P2P integration</div>
+          <div class="check">Full system configuration</div>
+          <div class="check">Up to 50 punchout catalogs</div>
+          <div class="check">Buyer & requestor training</div>
+        </div>
+      </div>
+      <div class="card p-8 bg-white">
+        <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2">Customer Success · 10%</div>
+        <h3 class="text-xl font-bold text-slate-900 mb-4">Ongoing Partnership</h3>
+        <div class="space-y-2 text-sm text-slate-600">
+          <div class="check">Dedicated CSM</div>
+          <div class="check">SLA-backed response times</div>
+          <div class="check">Escalation management</div>
+          <div class="check">Monthly strategy sessions</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="px-6 py-20 bg-slate-50">
+  <div class="max-w-3xl mx-auto text-center">
+    <h2 class="text-3xl font-bold text-slate-900 mb-4">Ready to Transform Your Procurement?</h2>
+    <p class="text-slate-500 mb-8">Let's build a quote tailored to your volumes and goals.</p>
+    <button onclick="document.getElementById('calculator').scrollIntoView({behavior:'smooth'})" class="px-8 py-3 accent-gradient text-white rounded-xl font-semibold transition hover:opacity-90 shadow-lg shadow-lio-500/20 text-lg no-print">Build Your Quote</button>
+    <div class="mt-10 text-sm text-slate-400">
+      <p class="font-medium text-slate-600">Lio Technologies GmbH · Munich</p>
+      <p class="mt-1">Florian Wanzeck · florian.wanzeck@lio.ai · +49 15888 658437</p>
+      <p class="mt-1 text-xs">Offer valid until <span id="offer-date-footer">...</span></p>
+    </div>
+  </div>
+</section>
+
+<script>
+// Dynamic offer validity (90 days from today)
+const offerValidDate = new Date();
+offerValidDate.setDate(offerValidDate.getDate() + 90);
+const offerValidStr = offerValidDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[id^="offer-date"]').forEach(el => el.textContent = offerValidStr);
+});
+
+const modules = {
+  gb2po:{name:'Guided Buying',color:'indigo',icon:'🛒',desc:'Free-text automation, intelligent guided buying, and cross-platform catalog search with AI.',features:['AI-powered free-text to PO conversion','Cross-platform catalog search','Intelligent product matching','Automatic compliance checking','Multi-language support','SAP & P2P integration'],tiers:[{vol:'Up to $300M',price:50000},{vol:'Up to $600M',price:56250},{vol:'Up to $800M',price:68750},{vol:'Up to $1B',price:100000},{vol:'Up to $1.5B',price:150000},{vol:'Up to $2B',price:175000},{vol:'Up to $2.5B',price:200000},{vol:'Up to $3B',price:225000}],unit:'Relevant Indirect Spend'},
+  ntpo:{name:'PR Review Agent',color:'emerald',icon:'✅',desc:'Automates PR review — sanity checks, triage, auto-corrections, and remote approver follow-up. Proven 35-40% no-touch rate at enterprise scale.',features:['PR sanity check & triage','Auto-corrections with change history','Configurable submission checks (AOPs)','Remote Approver functionality','Bottleneck prevention','SAP & Coupa integration'],tiers:[{vol:'Up to 6,250',price:16000},{vol:'Up to 15,000',price:25000},{vol:'Up to 30,000',price:37500},{vol:'Up to 50,000',price:68750},{vol:'Up to 100,000',price:118750}],unit:'Verified PRs'},
+  na:{name:'Negotiation Agent',color:'amber',icon:'🤝',desc:'AI agents autonomously negotiate supplier bids using advanced strategies and market data.',features:['Autonomous multi-round negotiations','Market-aware pricing intelligence','Historical benchmark analysis','Multi-supplier bid management','Custom strategy rules','Real-time dashboards'],tiers:[{vol:'Up to 2,000',price:68750},{vol:'Up to 4,000',price:137500},{vol:'Up to 6,000',price:206250},{vol:'Up to 8,000',price:275000},{vol:'Up to 10,000',price:343750},{vol:'Up to 20,000',price:687500}],unit:'Negotiation Events'},
+  sa:{name:'Sourcing Agent',color:'rose',icon:'🔍',desc:'AI agents source bids, compare them, and select the best outcome automatically.',features:['Automated RFQ creation','AI-powered bid comparison','Supplier matching & discovery','Total cost analysis','Weighted scoring models','Collaborative workflows'],tiers:[{vol:'Up to 2,000',price:25000},{vol:'Up to 4,000',price:50000},{vol:'Up to 6,000',price:75000},{vol:'Up to 8,000',price:100000},{vol:'Up to 10,000',price:125000},{vol:'Up to 20,000',price:250000}],unit:'Sourcing Events'},
+  oc:{name:'Order Confirmations',color:'violet',icon:'📋',desc:'Automatically reviews delivery date, price, quantity, and address on every order confirmation.',features:['Automatic OC data extraction','Price & quantity deviation detection','Delivery date verification','Address validation','Auto-acceptance or flagging','ERP integration'],tiers:[{vol:'Up to 6,250',price:15000},{vol:'Up to 12,500',price:22500},{vol:'Up to 25,000',price:36250},{vol:'Up to 50,000',price:63750},{vol:'Up to 100,000',price:118750}],unit:'OC Checks'},
+  liox:{name:'Lio X',color:'lio',icon:'🧠',desc:'AI procurement assistant with template library, custom creation, and Lio Academy access.',features:['AI-powered quote analysis','T&C review','Negotiation strategy templates','Custom AI assistant builder','Lio Academy access','Team collaboration'],tiers:[{vol:'Up to 5',price:4400},{vol:'Up to 10',price:9400},{vol:'Up to 50',price:25000},{vol:'Up to 100',price:40000},{vol:'Up to 150',price:56250},{vol:'Up to 200',price:72500},{vol:'Up to 250',price:87500}],unit:'Users'},
+  sm:{name:'SRM',color:'slate',icon:'🏢',desc:'Automated supplier onboarding and relationship management. No registration required for suppliers.',features:['Auto data extraction','AI supplier outreach','No supplier registration','Compliance documents','Risk assessment','Continuous enrichment'],tiers:[{vol:'Up to 50',price:2500},{vol:'Up to 100',price:3125},{vol:'Up to 150',price:3750},{vol:'Up to 200',price:4375},{vol:'Up to 250',price:5000}],unit:'Onboardings/Year',setup:120000},
+  aa:{name:'Approval Agent',color:'teal',icon:'🔐',desc:'Manages PR approval workflows — proactive outreach, OOO handling, and bottleneck prevention.',features:['Remote Approver','Configurable approval chains','AOP-based workflows','OOO escalation','Contextual approval requests','Integration as first approver'],tiers:[{vol:'Flat Rate',price:12500}],unit:'Flat Rate'},
+  gr:{name:'Goods Receipt Agent',color:'lime',icon:'📦',desc:'Automates goods receipt processing — document-based receipt creation, partial delivery tracking, and proactive follow-ups.',features:['Document upload & OCR','Partial/full delivery handling','Pending receipt surfacing','Automated reminders','SAP integration','Proactive follow-ups'],tiers:[{vol:'Up to 5,000',price:7000},{vol:'Up to 10,000',price:13500},{vol:'Up to 25,000',price:32500},{vol:'Up to 50,000',price:62500},{vol:'Up to 100,000',price:113500}],unit:'GR Checks'},
+  inv:{name:'Invoice Agent',color:'orange',icon:'🧾',desc:'Automated three-way match (PO, GR, Invoice), dispute detection, categorization, and resolution orchestration.',features:['Automatic 3-way match','Dispute type categorization','Resolution workflows','Aging tracking','Consolidated invoice handling','ERP integration'],tiers:[{vol:'Up to 5,000',price:8000},{vol:'Up to 10,000',price:15000},{vol:'Up to 25,000',price:35000},{vol:'Up to 50,000',price:65000},{vol:'Up to 100,000',price:118750}],unit:'Invoice Checks'},
+  pia:{name:'Procurement Intelligence',color:'sky',icon:'📊',desc:'AI-powered spend analytics and dynamic reporting — query procurement data in natural language.',features:['Natural language queries','Dynamic chart creation','Spend analysis','Order analytics','Procurement insights dashboard','Data visualization'],tiers:[{vol:'Up to 5',price:6000},{vol:'Up to 10',price:12000},{vol:'Up to 25',price:25000},{vol:'Up to 50',price:40000},{vol:'Up to 100',price:68750}],unit:'Users'},
+  npa:{name:'Negotiation Preparation',color:'fuchsia',icon:'🎯',desc:'Prepares procurement teams for strategic negotiations with supplier analysis, market intelligence, and negotiation strategies.',features:['Supplier data analysis','Contract history review','Strategy recommendations','Live coaching assistant','Market data integration','Best practice templates'],tiers:[{vol:'Up to 500',price:12000},{vol:'Up to 1,000',price:22000},{vol:'Up to 2,500',price:45000},{vol:'Up to 5,000',price:78000},{vol:'Up to 10,000',price:125000}],unit:'Prep Events'},
+  cna:{name:'Contract Negotiation',color:'red',icon:'📄',desc:'Analyzes contracts at scale, identifies key terms, risks, and renegotiation opportunities with automated follow-ups.',features:['Bulk contract analysis (1000+)','Risk identification','Actionable follow-ups','Email handling','Coupa integration','Content-group based intake'],tiers:[{vol:'Up to 250',price:15000},{vol:'Up to 500',price:26000},{vol:'Up to 1,000',price:45500},{vol:'Up to 5,000',price:80000},{vol:'Up to 10,000',price:135000}],unit:'Contract Negotiations'},
+  aop:{name:'Agent Builder',color:'blue',icon:'🔧',desc:'No-code platform for building and managing AI agent workflows (AOPs). Create, configure, and deploy custom procurement agents.',features:['Visual workflow builder','Import/export AOPs','Switch/case logic nodes','Email triggers & webhooks','AOP versioning','Chat configuration'],tiers:[{vol:'Up to 2,000',price:27000},{vol:'Up to 4,000',price:52000},{vol:'Up to 6,000',price:97500},{vol:'Up to 8,000',price:178500},{vol:'Up to 10,000',price:335000},{vol:'Up to 20,000',price:632500}],unit:'Agent Runs'}
+};
+
+let currentCurrency = 'usd';
+const currencyRates = { usd: 1, eur: 1/1.08, gbp: 1/1.18 };
+const currencySymbols = { usd: '$', eur: '€', gbp: '£' };
+
+function fmt(n) {
+  let converted = n * currencyRates[currentCurrency];
+  if (currentCurrency !== 'usd') converted = Math.round(converted / 500) * 500;
+  else converted = Math.round(converted);
+  if (currentCurrency === 'eur') return converted.toLocaleString('de-DE') + ' €';
+  return currencySymbols[currentCurrency] + converted.toLocaleString('en-US');
+}
+
+function fmtZero() {
+  return currencySymbols[currentCurrency] + '0';
+}
+
+function setCurrency(cur) {
+  currentCurrency = cur;
+  document.querySelectorAll('.currency-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.cur === cur);
+  });
+  // Update static prices
+  document.querySelectorAll('.mp').forEach(el => {
+    const usd = parseInt(el.dataset.usd);
+    el.textContent = fmt(usd);
+  });
+  // Save calculator state before rebuild
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const savedState = {};
+  mods.forEach(k => {
+    const chk = document.getElementById('chk-' + k);
+    const sel = document.getElementById('ct-' + k);
+    if (chk) savedState[k] = { checked: chk.checked, selectedIndex: sel ? sel.selectedIndex : 0 };
+  });
+  // Rebuild calculator (white version builds options dynamically with fmt)
+  buildCalc();
+  // Restore calculator state
+  mods.forEach(k => {
+    if (!savedState[k]) return;
+    const chk = document.getElementById('chk-' + k);
+    const sel = document.getElementById('ct-' + k);
+    if (chk) chk.checked = savedState[k].checked;
+    if (sel) sel.selectedIndex = savedState[k].selectedIndex;
+  });
+  // Recalculate
+  calcUpdate();
+  calcROI();
+}
+
+// View switcher
+function switchView(v) {
+  document.getElementById('view-cards').classList.toggle('hidden', v !== 'cards');
+  document.getElementById('view-table').classList.toggle('hidden', v !== 'table');
+  document.getElementById('btn-cards').classList.toggle('tab-active', v === 'cards');
+  document.getElementById('btn-table').classList.toggle('tab-active', v === 'table');
+  if (v !== 'cards') document.getElementById('btn-cards').classList.add('text-slate-500');
+  else document.getElementById('btn-cards').classList.remove('text-slate-500');
+  if (v !== 'table') document.getElementById('btn-table').classList.add('text-slate-500');
+  else document.getElementById('btn-table').classList.remove('text-slate-500');
+}
+
+// Module detail overlay
+function showModule(key) {
+  const m = modules[key];
+  const tiersHtml = m.tiers.map((t,i) => `<tr class="${i===0?'bg-lio-50/50':''}"><td class="p-2.5 text-sm">${t.vol}</td><td class="p-2.5 text-sm text-right font-semibold">${fmt(t.price)}/yr</td></tr>`).join('');
+  const featsHtml = m.features.map(f => `<div class="check text-sm text-slate-600">${f}</div>`).join('');
+  document.getElementById('module-detail').innerHTML = `
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-${m.color}-50 flex items-center justify-center text-2xl">${m.icon}</div>
+        <div><h2 class="text-2xl font-bold text-slate-900">${m.name}</h2><span class="text-sm text-${m.color}-600 font-medium">${key.toUpperCase()}</span></div>
+      </div>
+      <button onclick="closeModule()" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
+    </div>
+    <p class="text-slate-500 mb-6 leading-relaxed">${m.desc}</p>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div><h3 class="font-bold text-slate-900 mb-3">Features</h3><div class="space-y-2">${featsHtml}</div></div>
+      <div><h3 class="font-bold text-slate-900 mb-3">Pricing Tiers</h3>
+        <table class="w-full"><thead><tr class="border-b border-slate-200"><th class="text-left p-2.5 text-xs text-slate-500 font-medium">${m.unit}</th><th class="text-right p-2.5 text-xs text-slate-500 font-medium">Annual Fee</th></tr></thead><tbody>${tiersHtml}</tbody></table>
+        ${m.setup ? `<div class="mt-3 p-2.5 bg-amber-50 rounded-lg text-sm text-amber-700">+ Setup: ${fmt(m.setup)}</div>` : ''}
+        <div class="mt-3 p-2.5 bg-slate-50 rounded-lg text-xs text-slate-500">+ 15% Implementation + 10% Customer Success</div>
+      </div>
+    </div>`;
+  document.getElementById('module-overlay').classList.remove('hidden');
+}
+function closeModule() { document.getElementById('module-overlay').classList.add('hidden'); }
+
+// Calculator
+function buildCalc() {
+  const container = document.getElementById('calc-modules');
+  const categories = [
+    { label: 'P2P — Procure to Pay', keys: ['gb2po','ntpo','aa','oc','gr','inv'] },
+    { label: 'S2P — Source to Pay', keys: ['sm','sa','na'] },
+    { label: 'Intelligence & Assistants', keys: ['liox','pia','npa','cna'] },
+    { label: 'Platform', keys: ['aop'] }
+  ];
+  let html = '';
+  categories.forEach(cat => {
+    html += `<div class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-6 mb-2 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> ${cat.label}</div>`;
+    cat.keys.forEach(key => {
+      const m = modules[key];
+      const opts = m.tiers.map(t => `<option value="${t.price}">${t.vol} — ${fmt(t.price)}/yr${m.setup?' (+ '+fmt(120000)+' setup)':''}</option>`).join('');
+      const label = key === 'sm' ? 'Supplier Relationship Management (SRM)' : m.name + (key === 'liox' ? ' – AI Assistant' : '') + ' (' + key.toUpperCase() + ')';
+      html += `<div class="card p-4 bg-white" id="calc-${key}">
+        <div class="flex items-center justify-between">
+          <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="chk-${key}" class="w-4 h-4 rounded" onchange="calcUpdate()"><span class="font-semibold text-slate-800">${label}</span></label>
+          <span class="text-sm font-semibold text-lio-600" id="cp-${key}">${fmtZero()}</span>
+        </div>
+        <div class="ml-7 mt-2 hidden" id="co-${key}">
+          <select id="ct-${key}" class="w-full border border-slate-200 rounded-lg p-2 text-sm pr-8 focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" onchange="calcUpdate()">${opts}</select>
+        </div>
+      </div>`;
+    });
+  });
+  container.innerHTML = html;
+}
+
+let calcGrandTotal = 0;
+function calcUpdate() {
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  let total = 0, count = 0, lines = '', hasSM = false;
+  mods.forEach(k => {
+    const on = document.getElementById('chk-' + k).checked;
+    document.getElementById('co-' + k).classList.toggle('hidden', !on);
+    if (on) {
+      const p = parseInt(document.getElementById('ct-' + k).value);
+      total += p; count++;
+      document.getElementById('cp-' + k).textContent = fmt(p);
+      lines += `<div class="flex justify-between text-sm"><span class="text-slate-500">${k === 'sm' ? 'SRM' : modules[k].name}</span><span class="font-medium">${fmt(p)}</span></div>`;
+      if (k === 'sm') hasSM = true;
+    } else { document.getElementById('cp-' + k).textContent = fmtZero(); }
+  });
+  const impl = Math.round(total * 0.15), cs = Math.round(total * 0.10);
+  calcGrandTotal = total + impl + cs;
+  if (!count) { document.getElementById('calc-summary').classList.add('hidden'); document.getElementById('calc-empty').classList.remove('hidden'); calcGrandTotal = 0; calcROI(); return; }
+  document.getElementById('calc-summary').classList.remove('hidden');
+  document.getElementById('calc-empty').classList.add('hidden');
+  document.getElementById('calc-lines').innerHTML = lines;
+  document.getElementById('c-saas').textContent = fmt(total);
+  document.getElementById('c-impl').textContent = fmt(impl);
+  document.getElementById('c-cs').textContent = fmt(cs);
+  document.getElementById('c-total').textContent = fmt(calcGrandTotal);
+  document.getElementById('c-monthly').textContent = fmt(Math.round(calcGrandTotal / 12)) + '/mo';
+  document.getElementById('c-setup-row').classList.toggle('hidden', !hasSM);
+  calcROI();
+}
+
+// ROI
+function calcROI() {
+  const inv = calcGrandTotal;
+  if (!inv) { ['roi-inv','roi-sav','roi-net','roi-pct','roi-months','roi-y1','roi-y2','roi-y3','roi-3yr'].forEach(id => document.getElementById(id).textContent = '-'); document.getElementById('roi-bar').style.width = '0%'; return; }
+  const pos = +document.getElementById('r-pos').value||0, pocost = +document.getElementById('r-pocost').value||0;
+  const neg = +document.getElementById('r-neg').value||0, negsave = +document.getElementById('r-negsave').value||0;
+  const fte = +document.getElementById('r-fte').value||0, freed = +document.getElementById('r-freed').value||0;
+  const spend = +document.getElementById('r-spend').value||0;
+  const savings = Math.round(pos*pocost*0.7) + Math.round(neg*negsave) + Math.round(freed*fte*1000) + Math.round(spend*1000000*0.001);
+  const net = savings - inv, roi = Math.round((net/inv)*100);
+  const months = savings > 0 ? Math.max(1, Math.round((inv/savings)*12)) : 99;
+  document.getElementById('roi-inv').textContent = fmt(inv);
+  document.getElementById('roi-sav').textContent = fmt(savings);
+  document.getElementById('roi-net').textContent = fmt(net);
+  document.getElementById('roi-pct').textContent = roi + '%';
+  document.getElementById('roi-months').textContent = months;
+  document.getElementById('roi-bar').style.width = Math.min(100, Math.max(5, (12-months)/12*100+50)) + '%';
+  const y1 = net, y2 = Math.round(savings*1.1)-inv, y3 = Math.round(savings*1.21)-inv;
+  document.getElementById('roi-y1').textContent = fmt(y1);
+  document.getElementById('roi-y2').textContent = fmt(y2);
+  document.getElementById('roi-y3').textContent = fmt(y3);
+  document.getElementById('roi-3yr').textContent = fmt(y1+y2+y3);
+}
+
+// PDF Download
+function openQuoteModal() {
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const anyChecked = mods.some(m => document.getElementById('chk-' + m).checked);
+  if (!anyChecked) { alert('Please select at least one module first.'); return; }
+  const modal = document.getElementById('quote-modal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  populateQuotePricing();
+}
+function closeQuoteModal() {
+  const modal = document.getElementById('quote-modal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+
+const bundleDefs = [
+  { name: 'P2P Starter', discount: 5, modules: ['gb2po','ntpo','aa'] },
+  { name: 'Intelligence Suite', discount: 6, modules: ['liox','pia','npa'] },
+  { name: 'Source to Pay', discount: 8, modules: ['sa','na','npa','cna'] },
+  { name: 'P2P Complete', discount: 10, modules: ['gb2po','ntpo','aa','oc','gr','inv'] },
+  { name: 'Enterprise \u2013 Total Procurement AI', discount: 15, modules: ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'] }
+];
+
+function detectBundle(selectedKeys) {
+  let best = null;
+  bundleDefs.forEach(b => {
+    if (b.modules.every(m => selectedKeys.includes(m))) {
+      if (!best || b.discount > best.discount) best = b;
+    }
+  });
+  return best;
+}
+
+function populateQuotePricing() {
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const tbody = document.getElementById('quote-pricing-lines');
+  const selectedKeys = [];
+  tbody.innerHTML = '';
+  mods.forEach(mod => {
+    if (!document.getElementById('chk-' + mod).checked) return;
+    selectedKeys.push(mod);
+    const price = parseInt(document.getElementById('ct-' + mod).value);
+    const modName = mod === 'sm' ? 'SRM' : modules[mod].name;
+    tbody.innerHTML += `<tr class="border-t border-slate-100" data-mod="${mod}">
+      <td class="p-2 pl-3 text-slate-700">${modName}</td>
+      <td class="p-2 text-right text-slate-500" data-list-price="${price}">${fmt(price)}</td>
+      <td class="p-2 text-center">
+        <div class="flex items-center gap-1 justify-center">
+          <input type="number" id="qd-${mod}" value="0" min="0" step="1" onchange="updateQuotePricing()" oninput="updateQuotePricing()" class="w-14 border border-slate-200 rounded p-1 text-xs text-right outline-none">
+          <select id="qdt-${mod}" onchange="updateQuotePricing()" class="border border-slate-200 rounded p-1 text-xs outline-none">
+            <option value="pct">%</option>
+            <option value="fixed">$</option>
+          </select>
+        </div>
+      </td>
+      <td class="p-2 pr-3 text-right font-semibold text-slate-900" id="qf-${mod}">${fmt(price)}</td>
+    </tr>`;
+  });
+  const bundle = detectBundle(selectedKeys);
+  const bundleRow = document.getElementById('quote-bundle-row');
+  if (bundle) {
+    bundleRow.classList.remove('hidden');
+    document.getElementById('quote-bundle-label').textContent = bundle.name + ' (' + bundle.discount + '% discount)';
+    document.getElementById('quote-bundle-apply').checked = true;
+  } else {
+    bundleRow.classList.add('hidden');
+    document.getElementById('quote-bundle-apply').checked = false;
+  }
+  updateQuotePricing();
+}
+
+function updateQuotePricing() {
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const selectedKeys = mods.filter(m => document.getElementById('chk-' + m).checked);
+  const bundle = detectBundle(selectedKeys);
+  const bundleApply = document.getElementById('quote-bundle-apply').checked && bundle;
+  const bundlePct = bundleApply ? bundle.discount : 0;
+  let saasTotal = 0;
+  selectedKeys.forEach(mod => {
+    const cell = document.querySelector(`tr[data-mod="${mod}"] td[data-list-price]`);
+    if (!cell) return;
+    const listPrice = parseInt(cell.getAttribute('data-list-price'));
+    const discVal = parseFloat(document.getElementById('qd-' + mod)?.value) || 0;
+    const discType = document.getElementById('qdt-' + mod)?.value || 'pct';
+    let lineDiscount = discType === 'pct' ? Math.round(listPrice * discVal / 100) : discVal;
+    let afterLine = listPrice - lineDiscount;
+    if (bundlePct > 0) afterLine = Math.round(afterLine * (1 - bundlePct / 100));
+    const finalEl = document.getElementById('qf-' + mod);
+    if (finalEl) finalEl.textContent = fmt(Math.max(0, afterLine));
+    saasTotal += Math.max(0, afterLine);
+  });
+  const excType = document.getElementById('quote-exc-type').value;
+  const excVal = parseFloat(document.getElementById('quote-exc-value').value) || 0;
+  let excDiscount = excType === 'pct' ? Math.round(saasTotal * excVal / 100) : (excType === 'fixed' ? excVal : 0);
+  const finalSaas = Math.max(0, saasTotal - excDiscount);
+  let implBase = Math.round(finalSaas * 0.15);
+  const implDiscVal = parseFloat(document.getElementById('quote-impl-disc')?.value) || 0;
+  const implDiscType = document.getElementById('quote-impl-disc-type')?.value || 'pct';
+  let implDisc = implDiscType === 'pct' ? Math.round(implBase * implDiscVal / 100) : implDiscVal;
+  const impl = Math.max(0, implBase - implDisc);
+  let csBase = Math.round(finalSaas * 0.10);
+  const csDiscVal = parseFloat(document.getElementById('quote-cs-disc')?.value) || 0;
+  const csDiscType = document.getElementById('quote-cs-disc-type')?.value || 'pct';
+  let csDisc = csDiscType === 'pct' ? Math.round(csBase * csDiscVal / 100) : csDiscVal;
+  const cs = Math.max(0, csBase - csDisc);
+  document.getElementById('quote-saas-subtotal').textContent = fmt(saasTotal);
+  document.getElementById('quote-final-saas').textContent = fmt(finalSaas);
+  document.getElementById('quote-final-impl').textContent = fmt(impl);
+  document.getElementById('quote-final-cs').textContent = fmt(cs);
+  document.getElementById('quote-final-total').textContent = fmt(finalSaas + impl + cs);
+}
+
+function downloadPDF() {
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const sel = [];
+  let totalSaas = 0, hasSM = false;
+  mods.forEach(k => {
+    if (!document.getElementById('chk-' + k).checked) return;
+    const tierText = document.getElementById('ct-' + k).selectedOptions[0].text.split(' \u2014 ')[0];
+    const finalEl = document.getElementById('qf-' + k);
+    const p = finalEl ? parseInt(finalEl.textContent.replace(/[^0-9]/g, '')) : parseInt(document.getElementById('ct-' + k).value);
+    totalSaas += p;
+    if (k === 'sm') hasSM = true;
+    sel.push({ key: k, name: k === 'sm' ? 'Supplier Relationship Management (SRM)' : modules[k].name, price: p, tier: tierText, desc: modules[k].desc, features: modules[k].features });
+  });
+  if (!sel.length) { alert('Please select at least one module.'); return; }
+
+  // Exclusive discount
+  const excType = document.getElementById('quote-exc-type').value;
+  const excVal = parseFloat(document.getElementById('quote-exc-value').value) || 0;
+  let excDiscount = excType === 'pct' ? Math.round(totalSaas * excVal / 100) : (excType === 'fixed' ? excVal : 0);
+  const finalSaas = Math.max(0, totalSaas - excDiscount);
+
+  // Bundle info
+  const selectedKeys = mods.filter(m => document.getElementById('chk-' + m).checked);
+  const bundle = detectBundle(selectedKeys);
+  const bundleApply = document.getElementById('quote-bundle-apply').checked && bundle;
+
+  let implBase = Math.round(finalSaas*0.15);
+  const implDiscVal = parseFloat(document.getElementById('quote-impl-disc')?.value) || 0;
+  const implDiscType = document.getElementById('quote-impl-disc-type')?.value || 'pct';
+  let implDisc = implDiscType === 'pct' ? Math.round(implBase * implDiscVal / 100) : implDiscVal;
+  const impl = Math.max(0, implBase - implDisc);
+  let csBase = Math.round(finalSaas*0.10);
+  const csDiscVal = parseFloat(document.getElementById('quote-cs-disc')?.value) || 0;
+  const csDiscType = document.getElementById('quote-cs-disc-type')?.value || 'pct';
+  let csDisc = csDiscType === 'pct' ? Math.round(csBase * csDiscVal / 100) : csDiscVal;
+  const cs = Math.max(0, csBase - csDisc);
+  const grand = finalSaas+impl+cs;
+  const today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  const validUntil = offerValidStr;
+  const quoteRef = 'LIO-' + Date.now().toString(36).toUpperCase();
+
+  // Quote customization fields
+  const recipientCompany = document.getElementById('quote-company')?.value || '';
+  const recipientContact = document.getElementById('quote-contact')?.value || '';
+  const recipientAddress = document.getElementById('quote-address')?.value || '';
+  const includeDetails = document.getElementById('quote-inc-details')?.checked ?? true;
+  const includeROI = document.getElementById('quote-inc-roi')?.checked ?? false;
+  const includeService = document.getElementById('quote-inc-service')?.checked ?? true;
+  const includeTerms = document.getElementById('quote-inc-terms')?.checked ?? true;
+  const customNotes = document.getElementById('quote-notes')?.value || '';
+
+  // Calculate savings for display
+  let totalListPrice = 0, totalWithLineDiscOnly = 0;
+  sel.forEach(m => {
+    const listCell = document.querySelector('tr[data-mod="' + m.key + '"] td[data-list-price]');
+    const listPrice = listCell ? parseInt(listCell.getAttribute('data-list-price')) : m.price;
+    totalListPrice += listPrice;
+    const discVal = parseFloat(document.getElementById('qd-' + m.key)?.value) || 0;
+    const discType = document.getElementById('qdt-' + m.key)?.value || 'pct';
+    let lineDisc = discType === 'pct' ? Math.round(listPrice * discVal / 100) : discVal;
+    totalWithLineDiscOnly += (listPrice - lineDisc);
+  });
+  const bundleSavings = bundleApply ? (totalWithLineDiscOnly - totalSaas) : 0;
+  const totalSavingsAll = totalListPrice - finalSaas;
+
+  const rows = sel.map(m => {
+    const listCell = document.querySelector('tr[data-mod="' + m.key + '"] td[data-list-price]');
+    const listPrice = listCell ? parseInt(listCell.getAttribute('data-list-price')) : m.price;
+    const priceHtml = listPrice !== m.price ? '<span style="text-decoration:line-through;color:#999;font-weight:400;margin-right:6px;">' + fmt(listPrice) + '</span>' + fmt(m.price) : fmt(m.price);
+    return '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:12px 16px;font-weight:600;">' + m.name + '</td><td style="padding:12px 16px;color:#1e293b;font-size:13px;">' + m.tier + '</td><td style="padding:12px 16px;text-align:right;font-weight:600;">' + priceHtml + '</td></tr>';
+  }).join('');
+  const details = sel.map(m => `<div style="margin-bottom:20px;page-break-inside:avoid;"><h3 style="font-size:15px;font-weight:700;margin:0 0 4px;">${m.name}</h3><p style="font-size:12px;color:#1e293b;margin:0 0 8px;line-height:1.5;">${m.desc}</p><div>${m.features.slice(0,4).map(f=>`<span style="display:inline-block;background:#f1f5f9;padding:3px 8px;border-radius:4px;font-size:11px;margin:2px 2px 2px 0;">&#10003; ${f}</span>`).join('')}</div></div>`).join('');
+
+  // ROI section (conditional)
+  let roiSection = '';
+  if (includeROI) {
+    const roiInv = document.getElementById('roi-inv')?.textContent || '$0';
+    const roiSav = document.getElementById('roi-sav')?.textContent || '$0';
+    const roiNet = document.getElementById('roi-net')?.textContent || '$0';
+    const roiPct = document.getElementById('roi-pct')?.textContent || '-';
+    const roiMonths = document.getElementById('roi-months')?.textContent || '-';
+    roiSection = `<div style="margin-top:28px;page-break-inside:avoid;"><h2 style="font-size:16px;font-weight:700;margin-bottom:12px;">Expected Impact Summary</h2><div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:10px;"><div style="background:#f8f8f8;border-radius:8px;padding:14px;text-align:center;"><div style="font-size:10px;color:#1e293b;">Lio Investment</div><div style="font-size:18px;font-weight:800;color:#1e293b;margin-top:3px;">${roiInv}</div></div><div style="background:#f8f8f8;border-radius:8px;padding:14px;text-align:center;"><div style="font-size:10px;color:#1e293b;">Annual Savings</div><div style="font-size:18px;font-weight:800;color:#1e293b;margin-top:3px;">${roiSav}</div></div><div style="background:#f8f8f8;border-radius:8px;padding:14px;text-align:center;"><div style="font-size:10px;color:#1e293b;">Net Benefit</div><div style="font-size:18px;font-weight:800;color:#1e293b;margin-top:3px;">${roiNet}</div></div><div style="background:#f8f8f8;border-radius:8px;padding:14px;text-align:center;"><div style="font-size:10px;color:#1e293b;">ROI</div><div style="font-size:18px;font-weight:800;color:#1e293b;margin-top:3px;">${roiPct}</div></div></div><div style="font-size:11px;color:#1e293b;text-align:center;">Estimated payback: <strong>${roiMonths} months</strong></div><div style="font-size:9px;color:#1e293b;text-align:center;margin-top:8px;font-style:italic;">Projections are estimates based on typical industry benchmarks and may vary depending on actual usage and conditions.</div></div>`;
+  }
+
+  const lioSvg = `<svg style="width:90px;height:auto;margin-bottom:8px;" viewBox="0 0 2000 1000" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M944.33 624.3H944.38C935.73 609.32 920 599.11 897.68 593.99C891.95 592.68 885.92 591.88 879.88 591.57C847.5 590.06 785.22 580.71 732.23 535.57C707.49 514.5 674.56 476.65 657.73 415.47C654.11 402.4 648.23 353.04 649.14 169.24C649.19 148.88 645.22 129.93 637.32 112.94C630.74 98.86 622.09 86.59 611.53 76.39C527.38 -4.85001 342.57 58.19 244.14 126.31C71.56 245.9 52.3 449.51 51.55 458.15C43.46 552.61 67.24 651.24 118.41 735.8C169.33 820.01 245.6 887.32 333.12 925.27C345.19 930.5 421.7 961.91 522.4 961.91C573.43 961.91 630.68 953.82 688.95 930.19C814.73 879.21 917.84 768.97 944.83 691.8C949.55 678.22 951.91 665.86 951.91 654.7C951.91 643.54 949.45 633.09 944.32 624.29V624.31L944.33 624.3ZM674.07 894.56L674.12 894.61C515.91 958.7 365.44 897.28 348.86 890.04C268.67 855.25 198.8 793.52 151.94 716.1C104.89 638.37 83.07 547.89 90.46 461.37C90.96 455.59 100.52 354.29 167.43 257.51C162.05 293.51 160.44 330.1 162.71 367.05C178.94 619.97 384.21 827.34 640.3 849.47C655.89 850.83 671.42 851.48 686.85 851.48C712.29 851.48 737.57 849.72 762.56 846.05C735.16 865.15 705.3 881.94 674.08 894.57H674.07V894.56ZM827.46 792.57C767.89 810.27 706.1 816.5 643.66 811.12C406.68 790.66 216.7 598.72 201.67 364.76C198.15 306.55 204.84 249.23 221.68 194.23C235.26 181.46 250.18 169.2 266.62 157.84C270.69 155.03 274.86 152.21 279.14 149.5C275.82 172.62 274.01 196.55 273.82 220.94C273.32 357.93 327.41 487.79 426.15 586.42C524.99 685.1 655.94 740.06 794.99 741.11C822.74 741.11 850.29 739.1 877.44 735.03C863.86 753.93 846.97 773.54 827.47 792.59L827.46 792.57ZM907.94 679.2V679.25C906.53 683.12 904.98 687.2 903.12 691.32C867.98 698.76 831.68 702.58 795.13 702.58C666.64 701.63 545.48 650.75 453.99 559.35C362.54 468 312.42 347.85 312.88 221.17C313.19 187.69 316.65 155.26 323.23 124.54C361.09 105.64 402.16 91.01 440.52 83.16C461.74 78.84 481.39 76.68 499.24 76.68C536.29 76.68 565.6 85.88 584.25 103.92C591.39 110.75 597.32 119.2 601.85 128.95C607.38 140.87 610.15 154.33 610.09 168.97C609.39 314.61 612.6 398.56 620.05 425.57C639.45 496.05 677.91 540.14 706.72 564.67C768.55 617.41 840.59 628.22 878 629.98C881.77 630.18 885.39 630.68 888.81 631.43C896.6 633.19 906.66 636.75 910.48 643.29C914.45 650.23 913.55 663.3 907.97 679.18H907.95L907.94 679.2Z" fill="#1e293b"/><path d="M1098.04 792.7V257.92H1163.74V735.26H1415.93V792.71H1098.04V792.7Z" fill="#1e293b"/><path d="M1496.17 324.75C1483.98 324.75 1473.53 320.67 1464.78 312.47C1456.03 304.29 1451.66 294.45 1451.66 282.95C1451.66 271.45 1456.03 261.62 1464.78 253.43C1473.53 245.25 1484.01 241.15 1496.17 241.15C1508.33 241.15 1518.81 245.25 1527.56 253.43C1536.31 261.61 1540.68 271.45 1540.68 282.95C1540.68 294.45 1536.31 304.29 1527.56 312.47C1518.81 320.65 1508.39 324.75 1496.17 324.75Z" fill="#1e293b"/><path d="M1526.91 391.61H1464.39V792.68H1526.91V391.61Z" fill="#1e293b"/><path d="M1926.82 484.84C1911.34 453.67 1889.82 429.49 1862.17 412.25C1834.52 395.01 1802.35 386.36 1765.65 386.36C1728.95 386.36 1696.72 395.01 1669.08 412.25C1641.43 429.49 1619.86 453.67 1604.43 484.84C1588.95 516.01 1581.25 552.8 1581.25 594.24C1581.25 635.68 1588.95 671.91 1604.43 702.88C1619.87 733.85 1641.43 757.98 1669.08 775.22C1696.73 792.42 1728.9 801.06 1765.65 801.06C1802.4 801.06 1834.52 792.41 1862.17 775.22C1889.82 757.98 1911.39 733.84 1926.82 702.88C1942.26 671.87 1950 636.02 1950 594.24C1950 552.46 1942.26 516.01 1926.82 484.84ZM1874.49 668.95C1865.84 691.93 1852.52 710.47 1834.47 724.55C1816.48 738.67 1793.55 745.71 1765.64 745.71C1737.73 745.71 1714.76 738.67 1696.71 724.55C1678.72 710.47 1665.39 691.92 1656.74 668.95C1648.04 645.97 1643.72 621.09 1643.72 594.24C1643.72 567.39 1648.05 542.46 1656.74 519.33C1665.39 496.15 1678.71 477.45 1696.71 463.17C1714.76 448.89 1737.68 441.75 1765.64 441.75C1793.6 441.75 1816.46 448.89 1834.47 463.17C1852.52 477.45 1865.84 496.15 1874.49 519.33C1883.19 542.45 1887.51 567.44 1887.51 594.24C1887.51 621.04 1883.19 645.97 1874.49 668.95Z" fill="#1e293b"/></svg>`;
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Inter',sans-serif;color:#1e293b;}@page{margin:40px 40px 60px 40px; @bottom-right { content: "Page " counter(page) " of " counter(pages); font-size:10px; color:#9ca3af; font-family:'Inter',sans-serif; }}</style></head><body><div style="max-width:800px;margin:0 auto;padding:40px;position:relative;">
+  <div style="position:absolute;top:20px;right:40px;font-size:9px;color:#d1d5db;text-transform:uppercase;letter-spacing:2px;font-weight:600;">Confidential</div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:24px;border-bottom:2px solid #1e293b;">
+    <div>${lioSvg}<div style="font-size:13px;font-weight:700;">Lio Technologies GmbH</div><div style="font-size:11px;color:#1e293b;line-height:1.6;">Winthirstr. 10A<br>80639 M&uuml;nchen, Germany<br>lio.ai</div></div>
+    <div style="text-align:right;"><div style="font-size:20px;font-weight:800;color:#1e293b;margin-bottom:4px;">QUOTE</div><div style="font-size:11px;color:#1e293b;line-height:1.6;">Ref: ${quoteRef}<br>${today}<br>Valid until ${validUntil}</div></div>
+  </div>
+  ${recipientCompany ? `<div style="margin-bottom:28px;padding:0;"><div style="font-size:11px;color:#1e293b;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Prepared for</div><div style="font-size:16px;font-weight:700;">${recipientCompany}</div>${recipientContact ? `<div style="font-size:13px;color:#1e293b;margin-top:2px;">Attn: ${recipientContact}</div>` : ''}${recipientAddress ? `<div style="font-size:12px;color:#1e293b;margin-top:4px;white-space:pre-line;">${recipientAddress}</div>` : ''}</div>` : ''}
+  <div style="border:2px solid #1e293b;background:white;border-radius:14px;padding:24px;color:#1e293b;margin-bottom:28px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:12px;opacity:0.8;">Total Annual Investment</div><div style="font-size:32px;font-weight:800;">${fmt(grand)}<span style="font-size:14px;opacity:0.7;">/year</span></div></div><div style="text-align:right;"><div style="font-size:12px;opacity:0.8;">${sel.length} Module${sel.length>1?'s':''}</div><div style="font-size:12px;opacity:0.8;">${fmt(Math.round(grand/12))}/month</div></div></div>
+  <h2 style="font-size:16px;font-weight:700;margin-bottom:12px;">Pricing Breakdown</h2>
+  <table style="width:100%;border-collapse:collapse;margin-bottom:6px;"><thead><tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;"><th style="padding:10px 16px;text-align:left;font-size:11px;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;">Module</th><th style="padding:10px 16px;text-align:left;font-size:11px;color:#1e293b;text-transform:uppercase;">Tier</th><th style="padding:10px 16px;text-align:right;font-size:11px;color:#1e293b;text-transform:uppercase;">Annual Fee</th></tr></thead><tbody>${rows}</tbody></table>
+  <table style="width:100%;border-collapse:collapse;margin-bottom:28px;"><tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">SaaS Subtotal</td><td style="padding:8px 16px;text-align:right;font-weight:600;">${fmt(totalSaas)}</td></tr>${bundleApply ? `<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Bundle Discount (${bundle.discount}% \u2013 ${bundle.name})</td><td style="padding:8px 16px;text-align:right;font-weight:600;">-${fmt(bundleSavings)}</td></tr>` : ''}${excDiscount > 0 ? `<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Exclusive Discount${excType === 'pct' ? ' (' + excVal + '%)' : ''}</td><td style="padding:8px 16px;text-align:right;color:#dc2626;">\u2013${fmt(excDiscount)}</td></tr>` : ''}${(bundleApply || excDiscount > 0) ? `<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Net SaaS Fee</td><td style="padding:8px 16px;text-align:right;font-weight:600;">${fmt(finalSaas)}</td></tr>` : ''}<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Implementation (15%)${implDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (implDiscType === 'pct' ? implDiscVal + '%' : fmt(implDisc)) + ' discount</span>' : ''}</td><td style="padding:8px 16px;text-align:right;">${fmt(impl)}</td></tr><tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Customer Success (10%)${csDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (csDiscType === 'pct' ? csDiscVal + '%' : fmt(csDisc)) + ' discount</span>' : ''}</td><td style="padding:8px 16px;text-align:right;">${fmt(cs)}</td></tr><tr style="background:#f8fafc;"><td style="padding:12px 16px;font-weight:700;" colspan="2">Total Annual</td><td style="padding:12px 16px;text-align:right;font-weight:800;font-size:16px;color:#1e293b;">${fmt(grand)}</td></tr>${totalSavingsAll > 0 ? `<tr><td style="padding:8px 16px;font-size:12px;font-weight:600;" colspan="2">Total Savings</td><td style="padding:8px 16px;text-align:right;font-weight:700;">-${fmt(totalSavingsAll)}</td></tr>` : ''}</table>
+  ${hasSM ? `<table style="width:100%;border-collapse:collapse;margin-bottom:28px;"><tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;"><th style="padding:12px 16px;text-align:left;font-size:12px;color:#1e293b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">One-Time Fees</th><th style="padding:12px 16px;text-align:right;font-size:12px;color:#1e293b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Amount</th></tr><tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:12px 16px;color:#1e293b;font-size:13px;">SRM Platform Setup &amp; Configuration</td><td style="padding:12px 16px;text-align:right;font-weight:600;">${fmt(120000)}</td></tr><tr style="background:#f8fafc;"><td style="padding:14px 16px;font-weight:700;font-size:15px;">Total One-Time</td><td style="padding:14px 16px;text-align:right;font-weight:800;font-size:18px;color:#1e293b;">${fmt(120000)}</td></tr></table>` : ''}
+  ${includeDetails ? `<div style="page-break-before:always;"></div><h2 style="font-size:16px;font-weight:700;margin-bottom:12px;">Selected Modules</h2>${details}` : ''}
+  ${roiSection}
+  ${customNotes ? `<div style="margin-top:28px;page-break-inside:avoid;"><h2 style="font-size:16px;font-weight:700;margin-bottom:10px;">Notes</h2><div style="background:#f8f8f8;border-radius:8px;padding:16px;font-size:12px;line-height:1.7;white-space:pre-wrap;">${customNotes}</div></div>` : ''}
+  ${includeService ? `<div style="background:#f8fafc;border-radius:10px;padding:20px;margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;page-break-inside:avoid;"><div><div style="font-size:11px;font-weight:600;color:#1e293b;text-transform:uppercase;margin-bottom:6px;">Implementation (15%)</div><div style="font-size:11px;color:#1e293b;line-height:1.8;">&#10003; WebApp & Teams<br>&#10003; SAP & P2P integration<br>&#10003; System configuration<br>&#10003; Up to 50 punchout catalogs<br>&#10003; Training</div></div><div><div style="font-size:11px;font-weight:600;color:#1e293b;text-transform:uppercase;margin-bottom:6px;">Customer Success (10%)</div><div style="font-size:11px;color:#1e293b;line-height:1.8;">&#10003; Dedicated CSM<br>&#10003; SLA-backed response<br>&#10003; Escalation management<br>&#10003; Monthly strategy sessions</div></div></div>` : ''}
+  ${includeTerms ? `<div style="margin-top:28px;padding:16px;border:1px solid #e2e8f0;border-radius:10px;font-size:11px;color:#1e293b;line-height:1.7;page-break-inside:avoid;"><div style="font-weight:600;color:#1e293b;margin-bottom:6px;">Terms & Conditions</div><div>&bull; All prices are annual SaaS fees in USD unless otherwise stated.</div><div>&bull; This quote is valid for 90 days from the date of issue.</div><div>&bull; Implementation and Customer Success fees are calculated as a percentage of the combined annual SaaS fee.</div><div>&bull; Minimum contract term: 24 months.</div><div>&bull; Prices scale with usage volume. Contact your Account Manager for higher volume tiers.</div></div>` : ''}
+  <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;"><div><div style="font-size:12px;font-weight:600;">Lio Technologies GmbH</div><div style="font-size:11px;color:#1e293b;">Munich, Germany</div></div><div style="text-align:right;"><div style="font-size:12px;font-weight:600;">Florian Wanzeck</div><div style="font-size:11px;color:#1e293b;">florian.wanzeck@lio.ai | +49 15888 658437</div></div></div>
+  </div></body></html>`;
+  // Save to history
+  const historyEntry = {
+    id: Date.now(),
+    ref: quoteRef,
+    date: today,
+    company: recipientCompany || 'No company',
+    contact: recipientContact || '',
+    total: fmt(grand),
+    modules: sel.map(s => s.name).join(', '),
+    html: html
+  };
+  const history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
+  history.unshift(historyEntry);
+  if (history.length > 50) history.pop();
+  localStorage.setItem('lio-quote-history', JSON.stringify(history));
+
+  const w = window.open('','_blank'); w.document.write(html); w.document.close(); setTimeout(() => w.print(), 500);
+}
+
+function openQuoteHistory() {
+  const modal = document.getElementById('quote-history-modal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  renderQuoteHistory();
+}
+function closeQuoteHistory() {
+  const modal = document.getElementById('quote-history-modal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+function renderQuoteHistory() {
+  const history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
+  const list = document.getElementById('quote-history-list');
+  const empty = document.getElementById('quote-history-empty');
+  const clearBtn = document.getElementById('quote-history-clear');
+  if (history.length === 0) {
+    list.innerHTML = '';
+    empty.classList.remove('hidden');
+    clearBtn.classList.add('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+  clearBtn.classList.remove('hidden');
+  list.innerHTML = history.map(q => `
+    <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+      <div class="flex-1 min-w-0">
+        <div class="text-sm font-semibold text-slate-900 truncate">${q.company}</div>
+        <div class="text-xs text-slate-500 mt-0.5">${q.ref} · ${q.date} · ${q.total}/yr</div>
+        <div class="text-xs text-slate-400 mt-0.5 truncate">${q.modules}</div>
+      </div>
+      <div class="flex items-center gap-2 ml-4 shrink-0">
+        <button onclick="redownloadQuote(${q.id})" class="px-3 py-1.5 accent-gradient text-white rounded-lg text-xs font-medium transition hover:opacity-90" title="Open PDF">
+          <svg class="w-3.5 h-3.5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        </button>
+        <button onclick="deleteQuote(${q.id})" class="px-2 py-1.5 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg text-xs text-red-500 transition" title="Delete">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+function redownloadQuote(id) {
+  const history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
+  const q = history.find(h => h.id === id);
+  if (!q) return;
+  const w = window.open('', '_blank');
+  w.document.write(q.html);
+  w.document.close();
+  setTimeout(() => w.print(), 500);
+}
+function deleteQuote(id) {
+  let history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
+  history = history.filter(h => h.id !== id);
+  localStorage.setItem('lio-quote-history', JSON.stringify(history));
+  renderQuoteHistory();
+}
+function clearQuoteHistory() {
+  if (!confirm('Delete all quote history?')) return;
+  localStorage.removeItem('lio-quote-history');
+  renderQuoteHistory();
+}
+
+// Animated counters
+function animateCounters() {
+  document.querySelectorAll('[data-count]').forEach(function(el) {
+    const target = el.getAttribute('data-count');
+    const suffix = el.getAttribute('data-suffix') || '';
+    const isNum = !isNaN(parseFloat(target));
+    if (!isNum) { el.textContent = target; return; }
+    const num = parseFloat(target);
+    const duration = 1500;
+    const start = performance.now();
+    function tick(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(num * eased) + suffix;
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+}
+
+// Init
+buildCalc();
+calcROI();
+window.addEventListener('load', animateCounters);
+</script>
+<script>
+// Scroll reveal animations
+document.addEventListener('DOMContentLoaded', function() {
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+  document.querySelectorAll('.scroll-reveal').forEach(function(el) {
+    observer.observe(el);
+  });
+});
+</script>
+</body>
+</html>
