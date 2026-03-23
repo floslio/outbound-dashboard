@@ -141,8 +141,8 @@
 
     const PERIODS = {
       today: {
-        label: 'Today (03/23)',
-        sublabel: 'Monday, March 23, 2026',
+        label: 'Today',
+        sublabel: 'Loading...',
         team: [
           { name:'Florian Wanzeck', short:'Florian', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, coldCallDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
           { name:'Tobias Rohringer', short:'Tobias', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, coldCallDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
@@ -157,8 +157,8 @@
         ]
       },
       week: {
-        label: 'CW13',
-        sublabel: 'Mar 23 \u2013 29, 2026',
+        label: 'Week',
+        sublabel: 'Loading...',
         team: [
           { name:'Florian Wanzeck', short:'Florian', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, coldCallDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
           { name:'Tobias Rohringer', short:'Tobias', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, coldCallDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
@@ -1312,33 +1312,39 @@
     function render() {
       const data = getTeamData();
       const period = PERIODS[selectedPeriod];
-      // Dynamic week/today labels based on current date
-      if (selectedPeriod === 'week' && period) {
-        const [ws, we] = getPeriodRange('week');
-        const wsD = new Date(ws + 'T00:00:00');
-        const weD = new Date(we + 'T00:00:00');
-        const d = new Date(Date.UTC(wsD.getFullYear(), wsD.getMonth(), wsD.getDate()));
-        const dn = d.getUTCDay() || 7;
-        d.setUTCDate(d.getUTCDate() + 4 - dn);
-        const yr = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-        const wn = Math.ceil((((d - yr) / 86400000) + 1) / 7);
-        period.label = 'CW' + wn;
-        period.sublabel = wsD.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' \u2013 ' + weD.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-      }
-      if (selectedPeriod === 'today' && period) {
+      // Dynamic labels for ALL periods based on real-time calendar (always computed, never stale)
+      (function updateAllPeriodLabels() {
         const now = new Date();
-        const dd = String(now.getDate()).padStart(2,'0');
-        const mm = String(now.getMonth()+1).padStart(2,'0');
-        period.label = 'Today (' + mm + '/' + dd + ')';
-        period.sublabel = now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-      }
-      if (selectedPeriod === 'month' && period) {
-        const now = new Date();
-        period.label = now.toLocaleDateString('en-US',{month:'long',year:'numeric'});
-        const lastDay = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
-        const m = now.toLocaleDateString('en-US',{month:'short'});
-        period.sublabel = m + ' 1 \u2013 ' + lastDay + ', ' + now.getFullYear();
-      }
+        const pad = d => String(d).padStart(2,'0');
+
+        // Today
+        if (PERIODS.today) {
+          PERIODS.today.label = 'Today (' + pad(now.getMonth()+1) + '/' + pad(now.getDate()) + ')';
+          PERIODS.today.sublabel = now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+        }
+
+        // Week (current calendar week)
+        if (PERIODS.week) {
+          const [ws, we] = getPeriodRange('week');
+          const wsD = new Date(ws + 'T00:00:00');
+          const weD = new Date(we + 'T00:00:00');
+          const d = new Date(Date.UTC(wsD.getFullYear(), wsD.getMonth(), wsD.getDate()));
+          const dn = d.getUTCDay() || 7;
+          d.setUTCDate(d.getUTCDate() + 4 - dn);
+          const yr = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+          const wn = Math.ceil((((d - yr) / 86400000) + 1) / 7);
+          PERIODS.week.label = 'CW' + wn;
+          PERIODS.week.sublabel = wsD.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' \u2013 ' + weD.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+        }
+
+        // Month
+        if (PERIODS.month) {
+          PERIODS.month.label = now.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+          const lastDay = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+          const m = now.toLocaleDateString('en-US',{month:'short'});
+          PERIODS.month.sublabel = m + ' 1 \u2013 ' + lastDay + ', ' + now.getFullYear();
+        }
+      })();
       const hasData = data.length > 0;
 
       const totals = hasData ? {
@@ -1383,8 +1389,11 @@
       ).join('');
 
       // Custom range pill + popover
-      const drFrom = customRange ? customRange.from : '2026-03-10';
-      const drTo = customRange ? customRange.to : '2026-03-13';
+      const _dpNow = new Date();
+      const _dpToday = _dpNow.toISOString().slice(0,10);
+      const _dpWeekAgo = new Date(_dpNow.getTime() - 7*86400000).toISOString().slice(0,10);
+      const drFrom = customRange ? customRange.from : _dpWeekAgo;
+      const drTo = customRange ? customRange.to : _dpToday;
       const customPillClass = isCustomActive
         ? 'pill-active'
         : 'border-slate-700/50 text-slate-400 hover:text-slate-300 hover:border-slate-600';
