@@ -338,16 +338,319 @@
     // ─── SAL DEALS (Demo Details per AE) ─────────────
     // Company names of deals in SAL (Book 1st Demo) stage, grouped by AE short name
     const SAL_DEALS = {
-      'Florian': ['Goldbeck', 'Abdulaziz Alrayes (Inbound)', 'Mitsubishi', 'Weishaupt', 'Driventic', 'Dolores Salgueiro (Inbound)', 'Balluff', 'Relloe'],
-      'Tobias': ['Hochtief', 'dp.now: PwC', 'Kubota', 'GN', 'ÖBB', 'Sky', 'IKB Upsell', 'Mer', 'Pia Group', 'Evotec', 'Evonik', 'Telefonica', 'Würth Group', 'Schulz Systemtechnik', 'Saudi Landscape', 'Asahi International', 'convergint technologies', 'CBRE', 'Hamburger Energienetze', 'Strabag PFS', 'OGE - Value Expansion', 'Wacker Neuson', 'ADAC SE'],
-      'Julius': ['Revolut', 'EQT', 'Ally (World50)', 'Primark', 'Little John LLC', 'Capgemini (World50)', 'Capgemini — World50 Indy Spring 2026', 'Aurubis', 'MS Schramberg', 'HAYS PLC', 'Cielo', 'KPS Capital', 'Infosys', 'India Times', 'SIEGENIA GROUP', 'Prym', 'Sain Consulting', 'Veka AG', 'ISS World', 'Egger (McKinsey)'],
-      'Edmond': ['Playlist', 'Alliance Healthcare', 'Bunge', 'Hansgrohe', 'Handtmann', 'Emirates Flight Catering'],
-      'Romeo': ['Clutch Technologies', 'InPost España', 's.Oliver Group', 'BURGER Group', 'Familienheim Rhein-Neckar', 'MOSOLF Group', 'PM-International'],
-      'Linh': ['LEDVANCE', 'MTU Aero Engines', 'Mass Mutual', 'Kevin Tinnes (Inbound)', 'Ravensburger', 'Starbucks (USA)'],
-      'Temoc': ['Glencore', 'Amphenol'],
-      'Michael': ['UBP - Union Bancaire Privée', 'Henry Chang (Inbound)', 'Adil TLESHOV (Inbound)', 'Korian Deutschland', 'Bart Reynolds (Inbound)', 'BOSCH Real Estate', 'Microsoft', 'dp.now Partnership', 'swisslog', 'Munich Airport', 'LATAM Airlines', 'MSC Cruises', 'Temenos', 'KUKA'],
-      'Vincent': ['Telekom'],
-      'Patricia': ['Axpo Power', 'Atruvia', 'Leadec', 'Vogelsang'],
+      'Florian': [
+        { name:'Goldbeck', origin:'Outbound Campaign', isOutbound:true, stage:'SAL' },
+        { name:'Abdulaziz Alrayes', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'Schulz Systemtechnik', origin:'Customer Referal', isOutbound:false, stage:'SAL' },
+        { name:'Weishaupt', origin:'Outbound Campaign', isOutbound:true, stage:'SAL' },
+        { name:'Continental', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Driventic', origin:'Inbound Website', isOutbound:false, stage:'SQL' },
+        { name:'Relloe', origin:'Inbound Website', isOutbound:false, stage:'SQL' },
+        { name:'SUEZ UK', origin:null, isOutbound:false, stage:'Opportunity' },
+      ],
+      'Tobias': [
+        { name:'Hochtief', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'dp.now: PwC', origin:'Co-Selling Partner', isOutbound:false, stage:'SAL' },
+        { name:'Kubota', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Telefonica', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'W\u00fcrth Group', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Sky', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'IKB Upsell', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Mer', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Pia Group', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'\u00d6BB', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Evotec', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'GN', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Saudi Landscape', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'Stihl', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'Asahi International', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'convergint technologies', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Hamburger Energienetze', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Strabag PFS', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Swissgrid (RFX)', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'CRH (DP-Now)', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'VERBUND AG', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Mitsubishi', origin:'Inbound Website', isOutbound:false, stage:'SQL' },
+        { name:'Coca-Cola Europacific', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Champignon', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'SSI-Schaeffer', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Evonik', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'NIO', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Voith Group', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Prysmian', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Zentis', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'The Coca-Cola Company', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Hamburger Energiewerke', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Veltins', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Humbaur', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Huber+Suhner', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Autoliv', origin:'Co-Selling Partner', isOutbound:false, stage:'SQL' },
+        { name:'Herma', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Sopra Steria', origin:'Outbound Campaign', isOutbound:true, stage:'SQL' },
+        { name:'Rosen Group', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Steute', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'ABB', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Veolia', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Kirchhoff Automotive', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'cellcentric', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Rohde & Schwarz', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Villeroy & Boch', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Bauerfeind', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'P\u00f6ppelmann Upselling', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Koelnmesse', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'elringklinger', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'KION Group', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Miba Group', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Georg Fischer', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'autoscout24', origin:null, isOutbound:false, stage:'VoC' },
+        { name:'Siemens AG', origin:null, isOutbound:false, stage:'VoC' },
+        { name:'Scout24 Renewal', origin:null, isOutbound:false, stage:'VoC' },
+        { name:'Siemens Real Estate', origin:null, isOutbound:false, stage:'RFX' },
+        { name:'Siemens AG (GLOBAL)', origin:'Customer Referal', isOutbound:false, stage:'RFX' },
+        { name:'Yunextraffic', origin:null, isOutbound:false, stage:'Order Review' },
+        { name:'Dormakaba Upsell', origin:null, isOutbound:false, stage:'Order Review' },
+        { name:'BOSCH BT', origin:null, isOutbound:false, stage:'Order Review' },
+        { name:'SWK Stadtwerke Krefeld', origin:null, isOutbound:false, stage:'Signing' },
+        { name:'Q.Beyond Upselling', origin:null, isOutbound:false, stage:'Closed Won' },
+      ],
+      'Julius': [
+        { name:'Revolut', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'EQT', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Ally (World50)', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Capgemini \u2014 World50', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Veka AG', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Capgemini (World50)', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Primark', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Aurubis', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Little John LLC', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'ISS World', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Egger (McKinsey)', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'MS Schramberg', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'HAYS PLC', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Cielo', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'India Times', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Infosys', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'KPS Capital', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Sain Consulting', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'SIEGENIA GROUP', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'IU Group', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Die Schweizerische Post', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Stiebel Eltron', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'SBB', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Mr. Cooper', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'BIC', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Synchrony Finance', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'KERN LIEBERS', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Arcadis', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'SRG SSR', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'KWS', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Kimberly-Clark', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Deutsche Glasfaser', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'McKinsey Spendscape', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Wacker Chemie', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'DMG Mori', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'DPD', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Weidm\u00fcller', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Cloudflare', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Daimler Truck', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Schneider Electric', origin:null, isOutbound:false, stage:'VoC' },
+        { name:'BioNTech', origin:null, isOutbound:false, stage:'VoC' },
+        { name:'CeramTech', origin:null, isOutbound:false, stage:'VoC' },
+        { name:'HSE', origin:null, isOutbound:false, stage:'RFX' },
+        { name:'T\u00dcV S\u00fcd Upsell', origin:null, isOutbound:false, stage:'Contract Neg.' },
+      ],
+      'Edmond': [
+        { name:'Alliance Healthcare', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'BURGER Group', origin:'Customer Referal', isOutbound:false, stage:'SAL' },
+        { name:'Constellium', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'Bunge', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Hansgrohe', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'ORNUA', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Diehl Defence', origin:'Customer Referal', isOutbound:false, stage:'SAL' },
+        { name:'Kl\u00f6ckner', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'Emirates Flight Catering', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'Playlist', origin:'Inbound Website', isOutbound:false, stage:'SQL' },
+        { name:'Eurofins', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Shell', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Fritz Winter', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Nexperia', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Sandvik (Walter AG)', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'HELM AG', origin:'Inbound Website', isOutbound:false, stage:'SQL' },
+        { name:'Dr\u00e4xlmeier', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Jaeger Medical', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'ZF Friedrichshafen', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Fielmann', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Merck', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Stadtwerke Kiel', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Boehringer Ingelheim', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Tetra Pak', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Bekaert', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Beckhoff', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Handtmann', origin:'Inbound Website', isOutbound:false, stage:'SQL' },
+        { name:'CEVA', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'ACPS Automotive', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'DVV', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'AL-KO', origin:'Customer Referal', isOutbound:false, stage:'Opportunity' },
+        { name:'TOITOI Upsell', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'ERGO Upsell', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Givaudan', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'ThyssenKrupp Material', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Rexel', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'ENGEL AUSTRIA', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Doka', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Infineon', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'B&R Automation (ABB)', origin:'Customer Referal', isOutbound:false, stage:'Opportunity' },
+        { name:'SBS Ecoclean', origin:null, isOutbound:false, stage:'VoC' },
+        { name:'PORR', origin:'Inbound Website', isOutbound:false, stage:'VoC' },
+        { name:'Nolte K\u00fcchen', origin:null, isOutbound:false, stage:'VoC' },
+        { name:'Norma Group', origin:null, isOutbound:false, stage:'RFX' },
+        { name:'Crown Commercial (UK Gov)', origin:null, isOutbound:false, stage:'RFX' },
+      ],
+      'Romeo': [
+        { name:'Clutch Technologies', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'DEKRA SE', origin:'Outbound Campaign', isOutbound:true, stage:'SAL' },
+        { name:'InPost Espa\u00f1a', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'s.Oliver Group', origin:'Outbound Campaign', isOutbound:true, stage:'SAL' },
+        { name:'flatexDEGIRO SE', origin:'Outbound Campaign', isOutbound:true, stage:'SAL' },
+        { name:'Alexianer Gruppe', origin:'Outbound Campaign', isOutbound:true, stage:'SAL' },
+        { name:'Brasseler', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'MOSOLF Group', origin:'Outbound Campaign', isOutbound:true, stage:'SQL' },
+        { name:'Familienheim Rhein-Neckar', origin:'AE personal network', isOutbound:false, stage:'SQL' },
+        { name:'AVL List', origin:'Inbound Website', isOutbound:false, stage:'Opportunity' },
+      ],
+      'Linh': [
+        { name:'LEDVANCE', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'MTU Aero Engines', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Mass Mutual', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Ravensburger', origin:'Outbound Campaign', isOutbound:true, stage:'SAL' },
+        { name:'Kevin Tinnes', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'Starbucks (USA)', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Mercedes Benz: GB2PO', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'SCHOTT Upselling', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Mettler Toledo', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Max B\u00f6gl', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Lindt & Spr\u00fcngli', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Wernsing Feinkost', origin:null, isOutbound:false, stage:'VoC' },
+        { name:'PHOENIX Group', origin:null, isOutbound:false, stage:'Order Review' },
+      ],
+      'Temoc': [
+        { name:'Eppendorf', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'Client of Softwaregini', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'Glencore', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+      ],
+      'Michael': [
+        { name:'Henry Chang', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'Korian Deutschland', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Adil TLESHOV', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'Cleverton Apel', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'BOSCH Real Estate', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Bart Reynolds', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'Johannes Bock', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'Reyes Coca-Cola', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'UBP', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Microsoft', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Derrick Young', origin:'Inbound Website', isOutbound:false, stage:'SAL' },
+        { name:'Dexcom', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Solventum', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'MSC Cruises', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'swisslog', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Munich Airport', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'LATAM Airlines', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Prudential', origin:'Outbound Campaign', isOutbound:true, stage:'SAL' },
+        { name:'PwC', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Amazon', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Deutsche Bank USA', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Mercedes Benz Innovation', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'CIPS', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'TJX Companies', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'BASF Coatings ABs', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Carlyle Group', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Diehl Gruppe Upselling', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Hilti', origin:null, isOutbound:false, stage:'VoC' },
+        { name:'B. Braun SE', origin:null, isOutbound:false, stage:'VoC' },
+        { name:'BMW Group', origin:'Bots & Buyers 2025', isOutbound:false, stage:'VoC' },
+        { name:'GEA HQ', origin:null, isOutbound:false, stage:'VoC' },
+        { name:'Ahold Delhaize USA', origin:null, isOutbound:false, stage:'RFX' },
+        { name:'TK Steel Hohenlimburg', origin:null, isOutbound:false, stage:'Verbal Commit.' },
+        { name:'ams OSRAM', origin:null, isOutbound:false, stage:'Contract Neg.' },
+        { name:'BSH Home Appliances', origin:null, isOutbound:false, stage:'Contract Neg.' },
+        { name:'Rodenstock', origin:null, isOutbound:false, stage:'Contract Neg.' },
+        { name:'Brose SRM', origin:null, isOutbound:false, stage:'Contract Neg.' },
+        { name:'Leopold Kostal', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'T\u00dcV Rheinland', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'Giesecke+Devrient', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'Bilfinger Upselling', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'KPMG DE', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'Funke Mediengruppe', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'BASF Coatings', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'ATLAS ELEKTRONIK', origin:null, isOutbound:false, stage:'Closed Won' },
+      ],
+      'Vincent': [
+        { name:'Telekom', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'AG1', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Liebherr', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'DELL', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'AB InBev', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Mohawk Industries', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Walmart Pilot', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Siemens Energy', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Astra Zeneca', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Wabtec USA', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'FORVIA', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Diebold Nixdorf', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'MAHLE', origin:null, isOutbound:false, stage:'VoC' },
+        { name:'Ahold Delhaize EU', origin:null, isOutbound:false, stage:'RFX' },
+        { name:'UCB', origin:null, isOutbound:false, stage:'Order Review' },
+        { name:'Stadtwerke D\u00fcsseldorf', origin:null, isOutbound:false, stage:'Signing' },
+        { name:'Covestro Sourcing Hub', origin:null, isOutbound:false, stage:'Signing' },
+        { name:'ENGIE Deutschland', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'SWM', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'ZEISS', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'Webasto', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'tesa SE', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'Walmart', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'Messer US', origin:null, isOutbound:false, stage:'Closed Won' },
+      ],
+      'Patricia': [
+        { name:'Axpo Power AG', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Atruvia', origin:null, isOutbound:false, stage:'SAL' },
+        { name:'Vorwerk', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'NEW upselling', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'burgbad', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Schulte Duschkabinenbau', origin:null, isOutbound:false, stage:'SQL' },
+        { name:'Munich RE', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Wieland', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Schwarz Produktion', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'fischerwerke', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'BEW Berlin', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Paul Scherrer Institut', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'IMS Gear', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'EnBW Upsell', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Spie GSS', origin:null, isOutbound:false, stage:'Opportunity' },
+        { name:'Accenture', origin:null, isOutbound:false, stage:'RFX' },
+        { name:'Schwan Cosmetics', origin:null, isOutbound:false, stage:'RFX' },
+        { name:'Sixt', origin:null, isOutbound:false, stage:'RFX' },
+        { name:'Umicore', origin:null, isOutbound:false, stage:'RFX' },
+        { name:'DXC Technology', origin:null, isOutbound:false, stage:'RFX' },
+        { name:'N\u00fcrnberg Messe', origin:null, isOutbound:false, stage:'Contract Neg.' },
+        { name:'bellfood', origin:null, isOutbound:false, stage:'Contract Neg.' },
+        { name:'d\u00fcrr', origin:null, isOutbound:false, stage:'Contract Neg.' },
+        { name:'Klosterfrau', origin:null, isOutbound:false, stage:'Contract Neg.' },
+        { name:'HARTING', origin:null, isOutbound:false, stage:'Signing' },
+        { name:'DEUTZ AG', origin:null, isOutbound:false, stage:'Signing' },
+        { name:'B\u00fcrkert', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'Schaeffler', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'Bilfinger', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'Mainova AG', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'SV Gruppe', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'Burda', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'DEVK', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'Seidel', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'VDI e.V.', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'Deutsche Bahn', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'Scout24 Group', origin:null, isOutbound:false, stage:'Closed Won' },
+        { name:'Ferrero', origin:null, isOutbound:false, stage:'Closed Won' },
+      ],
     };
 
     function kpiClass(val, target) {
@@ -1251,7 +1554,7 @@
             <td class="py-3 px-3">${p.linkedinDemos > 0 ? `<span class="text-emerald-400">${p.linkedinDemos}</span> <span class="text-[9px] text-slate-500">${pct(p.linkedinDemos, p.linkedin)}</span>` : dash(0)}${mi('linkedinDemos')}</td>
             <td class="py-3 px-3">${(p.coldCallDemos||0) > 0 ? `<span class="text-orange-400">${p.coldCallDemos}</span> <span class="text-[9px] text-slate-500">${pct(p.coldCallDemos, p.coldCalls)}</span>` : dash(0)}${mi('coldCallDemos')}</td>
             <td class="py-3 px-3 font-semibold text-brand-300 ${rc('tp',p.short)}">${dash(tp)}</td>
-            <td class="py-3 px-3 ${rc('demos',p.short)} drillable" onclick="drillDemos('${p.short}')"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${p.demos > 0 ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-600'}">${p.demos}</span>${mi('demos')}</td>
+            <td class="py-3 px-3 ${rc('demos',p.short)} drillable" onclick="drillDemos('${p.short}')"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${p.demos > 0 ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-600'}">${p.demos}</span>${(() => { const sd = SAL_DEALS[p.short]||[]; const ob = sd.filter(d=>d.isOutbound).length; return ob > 0 ? ' <span class="text-[8px] text-brand-300/70">'+ob+'OB</span>' : ''; })()}${mi('demos')}</td>
             <td class="py-3 px-3 ${rc('deals',p.short)}">${p.deals}</td>
             <td class="py-3 px-3 font-medium text-emerald-400 ${rc('pipeline',p.short)}">${p.pipeline > 0 ? fmt(p.pipeline) : '<span class="text-slate-600">\u2014</span>'}</td>
             <td class="py-3 px-3 ${rc('sals',p.short)}">${p.sals}</td>
@@ -2861,31 +3164,40 @@
     function drillDemos(aeName) {
       const deals = SAL_DEALS[aeName] || [];
       if (!deals.length) {
-        showDrill(`Demos — ${aeName}`, 'No demos found in SAL Stage', `
+        showDrill(`Demos \u2014 ${aeName}`, 'No demos found', `
           <div class="text-center py-8 text-slate-500">
-            <div class="text-3xl mb-2">📭</div>
-            <div class="text-sm">No SAL deals found for ${aeName}</div>
+            <div class="text-3xl mb-2">\uD83D\uDCED</div>
+            <div class="text-sm">No deals found for ${aeName}</div>
           </div>
         `);
         return;
       }
 
-      const listHTML = deals.map((company, i) => {
-        const isInbound = company.includes('(Inbound)');
-        const badge = isInbound
-          ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 font-medium">Inbound</span>'
-          : '<span class="text-[9px] px-1.5 py-0.5 rounded bg-brand-500/15 text-brand-300 font-medium">Outbound</span>';
-        return `<div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-white/[0.03] transition-colors ${i > 0 ? 'border-t border-slate-800/30' : ''}">
-          <span class="text-[11px] text-slate-600 w-5 text-right">${i + 1}.</span>
-          <span class="text-[11px] font-medium text-white flex-1">${company.replace(' (Inbound)', '')}</span>
-          ${badge}
+      const obCount = deals.filter(d => d.isOutbound).length;
+      const ibCount = deals.length - obCount;
+      const stageColors = { 'SAL':'#6366f1','SQL':'#7c3aed','Opportunity':'#8b5cf6','VoC':'#7e22ce','RFX':'#5b21b6','Order Review':'#c084fc','Verbal Commit.':'#d8b4fe','Contract Neg.':'#9333ea','Signing':'#a855f7','Closed Won':'#34d399' };
+
+      const listHTML = deals.map((d, i) => {
+        const originBadge = d.isOutbound
+          ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-brand-500/15 text-brand-300 font-medium">Outbound</span>'
+          : `<span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700/40 text-slate-400 font-medium">${d.origin || 'Unknown'}</span>`;
+        const stageBadge = `<span class="text-[8px] px-1 py-0.5 rounded font-medium" style="background:${stageColors[d.stage]||'#475569'}20;color:${stageColors[d.stage]||'#94a3b8'}">${d.stage}</span>`;
+        return `<div class="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-white/[0.03] transition-colors ${i > 0 ? 'border-t border-slate-800/30' : ''}">
+          <span class="text-[10px] text-slate-600 w-4 text-right shrink-0">${i + 1}.</span>
+          <span class="text-[11px] font-medium text-white flex-1 truncate">${d.name}</span>
+          ${stageBadge}
+          ${originBadge}
         </div>`;
       }).join('');
 
-      showDrill(`Demos — ${aeName}`, `${deals.length} Deals in SAL Stage (Book 1st Demo)`, `
-        <div class="space-y-0">${listHTML}</div>
+      showDrill(`Demos \u2014 ${aeName}`, `${deals.length} Deals (${obCount} Outbound \u00b7 ${ibCount} Other)`, `
+        <div class="flex gap-2 mb-3">
+          <span class="text-[10px] px-2 py-1 rounded bg-brand-500/15 text-brand-300">${obCount} Outbound</span>
+          <span class="text-[10px] px-2 py-1 rounded bg-slate-700/40 text-slate-400">${ibCount} Other</span>
+        </div>
+        <div class="space-y-0 max-h-[400px] overflow-y-auto">${listHTML}</div>
         <div class="mt-3 pt-3 border-t border-slate-700/30 flex items-center justify-between">
-          <span class="text-[11px] text-slate-400">Total SAL Deals</span>
+          <span class="text-[11px] text-slate-400">Total Deals</span>
           <span class="text-sm font-bold text-emerald-400">${deals.length}</span>
         </div>
       `);
