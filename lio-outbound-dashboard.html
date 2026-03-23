@@ -137,7 +137,7 @@
     // Call rule: "Call with [AE]" under 60s = not reached. 1m+ = connected.
     // "Missed call from [AE]" = not reached.
 
-    let LAST_SYNC = new Date().toISOString(); // Will be updated from Supabase on load
+    let LAST_SYNC = '2026-03-23T12:00:00.000Z'; // Updated by sync tasks; overridden by Supabase dashboard_sync.synced_at on load
 
     const PERIODS = {
       today: {
@@ -1331,6 +1331,13 @@
         const mm = String(now.getMonth()+1).padStart(2,'0');
         period.label = 'Today (' + mm + '/' + dd + ')';
         period.sublabel = now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+      }
+      if (selectedPeriod === 'month' && period) {
+        const now = new Date();
+        period.label = now.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+        const lastDay = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+        const m = now.toLocaleDateString('en-US',{month:'short'});
+        period.sublabel = m + ' 1 \u2013 ' + lastDay + ', ' + now.getFullYear();
       }
       const hasData = data.length > 0;
 
