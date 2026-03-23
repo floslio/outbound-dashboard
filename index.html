@@ -139,10 +139,60 @@
 
     let LAST_SYNC = new Date().toISOString(); // Will be updated from Supabase on load
 
+    // Dynamic date label computation
+    function computePeriodLabels() {
+      const now = new Date();
+      const pad = d => String(d).padStart(2,'0');
+      const y = now.getFullYear();
+      const m = now.getMonth(); // 0-based
+      const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const monthShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+      // ISO week number
+      const tmp = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+      const dayNum = tmp.getUTCDay() || 7;
+      tmp.setUTCDate(tmp.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
+      const weekNum = Math.ceil((((tmp - yearStart) / 86400000) + 1) / 7);
+
+      // Week Monday–Sunday
+      const dow = now.getDay(); // 0=Sun
+      const diffToMon = dow === 0 ? -6 : 1 - dow;
+      const mon = new Date(y, m, now.getDate() + diffToMon);
+      const sun = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 6);
+
+      // Month last day
+      const lastDay = new Date(y, m + 1, 0).getDate();
+
+      // Current quarter
+      const q = Math.floor(m / 3) + 1;
+
+      return {
+        today: {
+          label: `Today (${pad(m+1)}/${pad(now.getDate())})`,
+          sublabel: `${dayNames[now.getDay()]}, ${monthNames[m]} ${now.getDate()}, ${y}`
+        },
+        week: {
+          label: `CW${pad(weekNum)}`,
+          sublabel: `${monthShort[mon.getMonth()]} ${mon.getDate()} \u2013 ${monthShort[sun.getMonth()]} ${sun.getDate()}, ${sun.getFullYear()}`
+        },
+        month: {
+          label: `${monthNames[m]} ${y}`,
+          sublabel: `${monthShort[m]} 1 \u2013 ${lastDay}, ${y}`
+        },
+        q1: { label: `Q1 ${y}`, sublabel: `January \u2013 March ${y}` },
+        q2: { label: `Q2 ${y}`, sublabel: `April \u2013 June ${y}` },
+        q3: { label: `Q3 ${y}`, sublabel: `July \u2013 September ${y}` },
+        q4: { label: `Q4 ${y}`, sublabel: `October \u2013 December ${y}` },
+      };
+    }
+    const _dynamicLabels = computePeriodLabels();
+
     const PERIODS = {
       today: {
-        label: 'Today (03/20)',
-        sublabel: 'Friday, March 20, 2026',
+        label: _dynamicLabels.today.label,
+        sublabel: _dynamicLabels.today.sublabel,
         team: [
           { name:'Florian Wanzeck', short:'Florian', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
           { name:'Tobias Rohringer', short:'Tobias', emails:0, replies:1, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
@@ -157,8 +207,8 @@
         ]
       },
       week: {
-        label: 'CW12',
-        sublabel: 'Mar 16 \u2013 22, 2026',
+        label: _dynamicLabels.week.label,
+        sublabel: _dynamicLabels.week.sublabel,
         team: [
           { name:'Florian Wanzeck', short:'Florian', emails:0, replies:2, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
           { name:'Tobias Rohringer', short:'Tobias', emails:2, replies:2, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:1, deals:0, pipeline:0, sals:1, sqls:0, opps:0 },
@@ -173,8 +223,8 @@
         ]
       },
       month: {
-        label: 'March 2026',
-        sublabel: 'Mar 1 \u2013 31, 2026',
+        label: _dynamicLabels.month.label,
+        sublabel: _dynamicLabels.month.sublabel,
         team: [
           { name:'Florian Wanzeck', short:'Florian', emails:6, replies:9, calls:36, callsConnected:13, callsMissed:23, coldCalls:36, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:6, deals:9, pipeline:160000, sals:6, sqls:0, opps:0 },
           { name:'Tobias Rohringer', short:'Tobias', emails:2, replies:3, calls:4, callsConnected:2, callsMissed:2, coldCalls:4, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:5, deals:8, pipeline:1060000, sals:5, sqls:0, opps:1 },
@@ -189,8 +239,8 @@
         ]
       },
       q1: {
-        label: 'Q1 2026',
-        sublabel: 'January \u2013 March 2026',
+        label: _dynamicLabels.q1.label,
+        sublabel: _dynamicLabels.q1.sublabel,
         team: [
           { name:'Florian Wanzeck', short:'Florian', emails:6, replies:9, calls:36, callsConnected:13, callsMissed:23, coldCalls:36, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:6, deals:9, pipeline:240000, sals:6, sqls:2, opps:0 },
           { name:'Tobias Rohringer', short:'Tobias', emails:2, replies:3, calls:90, callsConnected:27, callsMissed:63, coldCalls:90, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:13, deals:29, pipeline:2817000, sals:13, sqls:11, opps:2 },
@@ -204,9 +254,9 @@
           { name:'Patricia Hölscher', short:'Patricia', emails:0, replies:8, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:1, deals:4, pipeline:390000, sals:1, sqls:0, opps:0 },
         ]
       },
-      q2: { label: 'Q2 2026', sublabel: 'April \u2013 June 2026', team: [] },
-      q3: { label: 'Q3 2026', sublabel: 'July \u2013 September 2026', team: [] },
-      q4: { label: 'Q4 2026', sublabel: 'October \u2013 December 2026', team: [] },
+      q2: { label: _dynamicLabels.q2.label, sublabel: _dynamicLabels.q2.sublabel, team: [] },
+      q3: { label: _dynamicLabels.q3.label, sublabel: _dynamicLabels.q3.sublabel, team: [] },
+      q4: { label: _dynamicLabels.q4.label, sublabel: _dynamicLabels.q4.sublabel, team: [] },
     };
 
     // ─── FUNNEL DATA (per period) ─────────────────────
@@ -285,12 +335,7 @@
     const dash = (v) => v === 0 ? '<span class="text-slate-600">\u2014</span>' : v;
     function formatSyncTime(iso) {
       const d = new Date(iso);
-      const dd = String(d.getDate()).padStart(2,'0');
-      const mm = String(d.getMonth()+1).padStart(2,'0');
-      const yy = d.getFullYear();
-      const hh = String(d.getHours()).padStart(2,'0');
-      const mi = String(d.getMinutes()).padStart(2,'0');
-      return `${mm}/${dd}/${yy} at ${hh}:${mi}`;
+      return d.toLocaleString('de-DE', { timeZone:'Europe/Berlin', day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:false });
     }
     const pct = (a, b) => b > 0 ? Math.round((a / b) * 100) + '%' : '\u2014';
 
@@ -384,6 +429,13 @@
     ];
     const TEAM_NAMES = ['Florian','Tobias','Julius','Edmond','Romeo','Linh','Temoc','Michael','Vincent','Patricia'];
 
+    // Fetch with timeout helper (default 15s)
+    function fetchWithTimeout(url, opts = {}, timeoutMs = 15000) {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeoutMs);
+      return fetch(url, { ...opts, signal: controller.signal }).finally(() => clearTimeout(id));
+    }
+
     // In-memory cache of Supabase data (loaded on init + after mutations)
     let _manualCache = [];
     let _manualLoaded = false;
@@ -393,7 +445,7 @@
       if (_manualLoading) return;
       _manualLoading = true;
       try {
-        const resp = await fetch(SUPABASE_URL + '/rest/v1/manual_activities?select=*&order=created_at.desc', { headers: SB_HEADERS });
+        const resp = await fetchWithTimeout(SUPABASE_URL + '/rest/v1/manual_activities?select=*&order=created_at.desc', { headers: SB_HEADERS });
         if (resp.ok) {
           _manualCache = await resp.json();
           _manualLoaded = true;
@@ -414,20 +466,20 @@
     async function addManualActivity(person, type, count, date, note) {
       const entry = { person, activity_type: type, count: Number(count)||1, activity_date: date, note: note||'', created_by: 'dashboard' };
       try {
-        const resp = await fetch(SUPABASE_URL + '/rest/v1/manual_activities', {
+        const resp = await fetchWithTimeout(SUPABASE_URL + '/rest/v1/manual_activities', {
           method: 'POST', headers: SB_HEADERS, body: JSON.stringify(entry)
         });
         if (resp.ok) {
           const [created] = await resp.json();
           _manualCache.unshift(created);
           // Also save to localStorage as backup
-          localStorage.setItem('LIO_MANUAL_FALLBACK', JSON.stringify(_manualCache));
+          try { localStorage.setItem('LIO_MANUAL_FALLBACK', JSON.stringify(_manualCache)); } catch(e) { console.warn('localStorage write failed:', e); }
         } else {
           console.error('Supabase insert failed:', await resp.text());
           // Fallback: save locally
           const local = { ...entry, id: Date.now(), created_at: new Date().toISOString() };
           _manualCache.unshift(local);
-          localStorage.setItem('LIO_MANUAL_FALLBACK', JSON.stringify(_manualCache));
+          try { localStorage.setItem('LIO_MANUAL_FALLBACK', JSON.stringify(_manualCache)); } catch(e) { console.warn('localStorage write failed:', e); }
         }
       } catch (err) {
         console.error('Supabase unreachable:', err);
@@ -441,7 +493,7 @@
 
     async function deleteManualAct(id) {
       try {
-        await fetch(SUPABASE_URL + '/rest/v1/manual_activities?id=eq.' + id, {
+        await fetchWithTimeout(SUPABASE_URL + '/rest/v1/manual_activities?id=eq.' + id, {
           method: 'DELETE', headers: SB_HEADERS
         });
       } catch (err) { console.warn('Delete failed:', err); }
@@ -593,23 +645,24 @@
       return diffDays + 'd ago';
     }
 
-    // Update the sync status display in header
+    // Update the sync status display in header — always show Berlin time (CET/CEST)
     function updateSyncDisplay() {
       const el = document.getElementById('syncTimestamp');
       if (el) {
         const d = new Date(LAST_SYNC);
-        const dd = String(d.getDate()).padStart(2,'0');
-        const mm = String(d.getMonth()+1).padStart(2,'0');
-        const hh = String(d.getHours()).padStart(2,'0');
-        const mi = String(d.getMinutes()).padStart(2,'0');
-        el.textContent = `🔄 Last sync: ${dd}.${mm}. ${hh}:${mi} (${timeAgo(LAST_SYNC)})`;
-        el.title = `Last data sync: ${d.toLocaleString('de-DE')}`;
+        const opts = { timeZone: 'Europe/Berlin', day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:false };
+        const berlinTime = d.toLocaleString('de-DE', opts);
+        el.textContent = `🔄 Last sync: ${berlinTime} (${timeAgo(LAST_SYNC)})`;
+        el.title = `Letzte Synchronisierung: ${berlinTime} MEZ`;
       }
     }
 
+    let _syncTimeout = null;
     async function triggerSync(silent = false) {
       if (syncInProgress) return;
       syncInProgress = true;
+      // Safety: auto-recover if sync gets stuck for 30s
+      _syncTimeout = setTimeout(() => { syncInProgress = false; resetSyncBtn(); }, 30000);
 
       const btn = document.getElementById('syncBtn');
       const icon = document.getElementById('syncIcon');
@@ -624,7 +677,7 @@
 
       try {
         // Fetch all metrics from Supabase dashboard_sync table
-        const resp = await fetch(SUPABASE_URL + '/rest/v1/dashboard_sync?select=*', {
+        const resp = await fetchWithTimeout(SUPABASE_URL + '/rest/v1/dashboard_sync?select=*', {
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
         });
 
@@ -710,8 +763,10 @@
 
       } catch (e) {
         console.error('Sync error:', e);
-        if (!silent) showSyncOverlay('Could not load data: ' + e.message, 'error');
+        const safeMsg = (e.message || 'Unknown error').replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+        if (!silent) showSyncOverlay('Could not load data: ' + safeMsg, 'error');
       } finally {
+        clearTimeout(_syncTimeout);
         resetSyncBtn();
       }
     }
@@ -1031,8 +1086,9 @@
       ).join('');
 
       // Custom range pill + popover
-      const drFrom = customRange ? customRange.from : '2026-03-10';
-      const drTo = customRange ? customRange.to : '2026-03-13';
+      const _today = new Date().toISOString().slice(0,10);
+      const drFrom = customRange ? customRange.from : _today;
+      const drTo = customRange ? customRange.to : _today;
       const customPillClass = isCustomActive
         ? 'pill-active'
         : 'border-slate-700/50 text-slate-400 hover:text-slate-300 hover:border-slate-600';
@@ -1060,12 +1116,12 @@
               <div class="flex items-center gap-2 mb-3">
                 <div class="flex-1">
                   <label class="text-[10px] text-slate-500 block mb-1">From</label>
-                  <input type="date" id="drFrom" value="${drFrom}" max="2026-12-31" />
+                  <input type="date" id="drFrom" value="${drFrom}" max="${new Date().getFullYear()}-12-31" />
                 </div>
                 <div class="text-slate-600 pt-4">–</div>
                 <div class="flex-1">
                   <label class="text-[10px] text-slate-500 block mb-1">To</label>
-                  <input type="date" id="drTo" value="${drTo}" max="2026-12-31" />
+                  <input type="date" id="drTo" value="${drTo}" max="${new Date().getFullYear()}-12-31" />
                 </div>
               </div>
               <div class="flex gap-2">
@@ -1425,7 +1481,7 @@
               <span class="text-xs text-slate-500 font-medium">Pipeline & Funnel Date Range:</span>
               <div class="flex gap-1 flex-wrap" id="pipelineDateBtns">
                 <button onclick="setPipelineDateRange('all')" class="pill text-[10px] px-2.5 py-1 rounded-full border border-slate-700 text-slate-400 hover:text-white pill-active" data-range="all">All Time</button>
-                <button onclick="setPipelineDateRange('q1')" class="pill text-[10px] px-2.5 py-1 rounded-full border border-slate-700 text-slate-400 hover:text-white" data-range="q1">Q1 2026</button>
+                <button onclick="setPipelineDateRange('q1')" class="pill text-[10px] px-2.5 py-1 rounded-full border border-slate-700 text-slate-400 hover:text-white" data-range="q1">${_dynamicLabels.q1.label}</button>
                 <button onclick="setPipelineDateRange('jan')" class="pill text-[10px] px-2.5 py-1 rounded-full border border-slate-700 text-slate-400 hover:text-white" data-range="jan">Jan</button>
                 <button onclick="setPipelineDateRange('feb')" class="pill text-[10px] px-2.5 py-1 rounded-full border border-slate-700 text-slate-400 hover:text-white" data-range="feb">Feb</button>
                 <button onclick="setPipelineDateRange('mar')" class="pill text-[10px] px-2.5 py-1 rounded-full border border-slate-700 text-slate-400 hover:text-white" data-range="mar">Mar</button>
@@ -1433,9 +1489,9 @@
               </div>
             </div>
             <div class="flex items-center gap-1.5">
-              <input type="date" id="pipelineFrom" min="2026-01-01" max="2026-12-31" class="bg-surface-2 border border-slate-700/50 rounded-lg text-[11px] text-slate-300 px-2 py-1 outline-none focus:border-brand-500/50" onchange="applyPipelineCustomRange()">
+              <input type="date" id="pipelineFrom" min="${new Date().getFullYear()}-01-01" max="${new Date().getFullYear()}-12-31" class="bg-surface-2 border border-slate-700/50 rounded-lg text-[11px] text-slate-300 px-2 py-1 outline-none focus:border-brand-500/50" onchange="applyPipelineCustomRange()">
               <span class="text-[10px] text-slate-600">–</span>
-              <input type="date" id="pipelineTo" min="2026-01-01" max="2026-12-31" class="bg-surface-2 border border-slate-700/50 rounded-lg text-[11px] text-slate-300 px-2 py-1 outline-none focus:border-brand-500/50" onchange="applyPipelineCustomRange()">
+              <input type="date" id="pipelineTo" min="${new Date().getFullYear()}-01-01" max="${new Date().getFullYear()}-12-31" class="bg-surface-2 border border-slate-700/50 rounded-lg text-[11px] text-slate-300 px-2 py-1 outline-none focus:border-brand-500/50" onchange="applyPipelineCustomRange()">
             </div>
           </div>
 
@@ -1656,20 +1712,23 @@
         });
       });
 
-      // Close popups on outside click
-      document.addEventListener('click', function handler(e) {
-        if (datePickerOpen && !e.target.closest('.date-picker-anchor')) {
-          datePickerOpen = false;
-          const pop = document.getElementById('datePickerPop');
-          if (pop) pop.classList.remove('open');
-        }
-        if (exportMenuOpen && !e.target.closest('.export-anchor')) {
-          exportMenuOpen = false;
-          const drop = document.getElementById('exportDrop');
-          if (drop) drop.classList.remove('open');
-        }
-      });
+      // Update sync timestamp display after render (since innerHTML was replaced)
+      updateSyncDisplay();
     }
+
+    // Close popups on outside click — attached ONCE, outside render()
+    document.addEventListener('click', function(e) {
+      if (datePickerOpen && !e.target.closest('.date-picker-anchor')) {
+        datePickerOpen = false;
+        const pop = document.getElementById('datePickerPop');
+        if (pop) pop.classList.remove('open');
+      }
+      if (exportMenuOpen && !e.target.closest('.export-anchor')) {
+        exportMenuOpen = false;
+        const drop = document.getElementById('exportDrop');
+        if (drop) drop.classList.remove('open');
+      }
+    });
 
     function applyDateRange() {
       const from = document.getElementById('drFrom').value;
@@ -2641,12 +2700,13 @@
     let activePipelineDateRange = 'all';
 
     function getPipelineDateBounds(range) {
-      const y = 2026;
+      const y = new Date().getFullYear();
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
       switch(range) {
-        case 'q1':       return { from: `${y}-01-01`, to: `${y}-03-31`, label: 'Q1 2026' };
-        case 'jan':      return { from: `${y}-01-01`, to: `${y}-01-31`, label: 'January 2026' };
-        case 'feb':      return { from: `${y}-02-01`, to: `${y}-02-28`, label: 'February 2026' };
-        case 'mar':      return { from: `${y}-03-01`, to: `${y}-03-31`, label: 'March 2026' };
+        case 'q1':       return { from: `${y}-01-01`, to: `${y}-03-31`, label: `Q1 ${y}` };
+        case 'jan':      return { from: `${y}-01-01`, to: `${y}-01-31`, label: `${monthNames[0]} ${y}` };
+        case 'feb':      return { from: `${y}-02-01`, to: `${y}-02-28`, label: `${monthNames[1]} ${y}` };
+        case 'mar':      return { from: `${y}-03-01`, to: `${y}-03-31`, label: `${monthNames[2]} ${y}` };
         case 'thisWeek': {
           const now = new Date();
           const day = now.getDay(); // 0=Sun,1=Mon,...
@@ -2752,6 +2812,7 @@
     // Drill: Scorecard metric breakdown per person
     function drillScorecard(metric) {
       const period = PERIODS[selectedPeriod];
+      if (!period || !period.team) return;
       let data = period.team;
       if (selectedPerson !== 'All') data = data.filter(p => p.short === selectedPerson || p.name === selectedPerson);
       if (!data.length) return;
@@ -2841,7 +2902,7 @@
       const stage = FUNNEL.find(f => f.stage === stageName);
       if (!stage) return;
       const total = FUNNEL.reduce((s,f) => s + f.count, 0);
-      const pctOfTotal = ((stage.count / total) * 100).toFixed(1);
+      const pctOfTotal = total > 0 ? ((stage.count / total) * 100).toFixed(1) : '0.0';
 
       // Find previous and next stages for context
       const idx = FUNNEL.findIndex(f => f.stage === stageName);
@@ -2855,7 +2916,7 @@
         splitHTML = `<div class="mt-3">
           <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-2">Breakdown</div>
           ${stage.split.map(s => {
-            const w = Math.max((s.count / stage.count) * 100, 10);
+            const w = stage.count > 0 ? Math.max((s.count / stage.count) * 100, 10) : 0;
             return `<div class="flex items-center gap-2 mb-1">
               <span class="text-[10px] text-slate-400 w-16 text-right">${s.label}</span>
               <div class="flex-1 h-6 bg-surface-1 rounded overflow-hidden">
@@ -2902,6 +2963,7 @@
     // Drill: Person detail (from leaderboard)
     function drillPerson(personShort) {
       const period = PERIODS[selectedPeriod];
+      if (!period || !period.team) return;
       const p = period.team.find(t => t.short === personShort);
       if (!p) return;
       const tgt = KPI_TARGETS[selectedPeriod] || {};
