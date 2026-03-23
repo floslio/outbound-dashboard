@@ -137,7 +137,7 @@
     // Call rule: "Call with [AE]" under 60s = not reached. 1m+ = connected.
     // "Missed call from [AE]" = not reached.
 
-    let LAST_SYNC = new Date().toISOString(); // Will be updated from Supabase on load
+    let LAST_SYNC = '2026-03-23T14:30:00Z'; // Updated from Attio on 2026-03-23
 
     // Dynamic date label computation
     function computePeriodLabels() {
@@ -194,47 +194,47 @@
         label: _dynamicLabels.today.label,
         sublabel: _dynamicLabels.today.sublabel,
         team: [
-          { name:'Florian Wanzeck', short:'Florian', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Tobias Rohringer', short:'Tobias', emails:0, replies:1, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Florian Wanzeck', short:'Florian', emails:4, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Tobias Rohringer', short:'Tobias', emails:4, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
           { name:'Julius Kaiser', short:'Julius', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Edmond Clemens', short:'Edmond', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Romeo Vogt', short:'Romeo', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Edmond Clemens', short:'Edmond', emails:2, replies:0, calls:1, callsConnected:1, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Romeo Vogt', short:'Romeo', emails:4, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:1, pipeline:0, sals:0, sqls:0, opps:0 },
           { name:'Linh Cao', short:'Linh', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Temoc Chavero', short:'Temoc', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Michael Schmid', short:'Michael', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Vincent Nusmeier', short:'Vincent', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Patricia Hölscher', short:'Patricia', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Temoc Chavero', short:'Temoc', emails:0, replies:0, calls:1, callsConnected:1, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Michael Schmid', short:'Michael', emails:0, replies:0, calls:1, callsConnected:1, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:2, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Vincent Nusmeier', short:'Vincent', emails:1, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Patricia Hölscher', short:'Patricia', emails:3, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
         ]
       },
       week: {
         label: _dynamicLabels.week.label,
         sublabel: _dynamicLabels.week.sublabel,
         team: [
-          { name:'Florian Wanzeck', short:'Florian', emails:0, replies:2, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Tobias Rohringer', short:'Tobias', emails:2, replies:2, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:1, deals:0, pipeline:0, sals:1, sqls:0, opps:0 },
-          { name:'Julius Kaiser', short:'Julius', emails:0, replies:1, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Edmond Clemens', short:'Edmond', emails:2, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:5, deals:0, pipeline:0, sals:5, sqls:1, opps:0 },
-          { name:'Romeo Vogt', short:'Romeo', emails:4, replies:2, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:4, deals:0, pipeline:0, sals:4, sqls:0, opps:0 },
-          { name:'Linh Cao', short:'Linh', emails:0, replies:2, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
-          { name:'Temoc Chavero', short:'Temoc', emails:1, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:1, deals:0, pipeline:0, sals:1, sqls:0, opps:0 },
-          { name:'Michael Schmid', short:'Michael', emails:1, replies:3, calls:1, callsConnected:1, callsMissed:0, coldCalls:1, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:3, deals:0, pipeline:0, sals:3, sqls:0, opps:0 },
-          { name:'Vincent Nusmeier', short:'Vincent', emails:0, replies:6, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:1, deals:0, pipeline:0, sals:1, sqls:1, opps:0 },
-          { name:'Patricia Hölscher', short:'Patricia', emails:1, replies:4, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Florian Wanzeck', short:'Florian', emails:4, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Tobias Rohringer', short:'Tobias', emails:4, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Julius Kaiser', short:'Julius', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Edmond Clemens', short:'Edmond', emails:2, replies:0, calls:1, callsConnected:1, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Romeo Vogt', short:'Romeo', emails:4, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:1, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Linh Cao', short:'Linh', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Temoc Chavero', short:'Temoc', emails:0, replies:0, calls:1, callsConnected:1, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Michael Schmid', short:'Michael', emails:0, replies:0, calls:1, callsConnected:1, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:2, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Vincent Nusmeier', short:'Vincent', emails:1, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Patricia Hölscher', short:'Patricia', emails:3, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
         ]
       },
       month: {
         label: _dynamicLabels.month.label,
         sublabel: _dynamicLabels.month.sublabel,
         team: [
-          { name:'Florian Wanzeck', short:'Florian', emails:6, replies:9, calls:36, callsConnected:13, callsMissed:23, coldCalls:36, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:6, deals:9, pipeline:160000, sals:6, sqls:0, opps:0 },
-          { name:'Tobias Rohringer', short:'Tobias', emails:2, replies:3, calls:4, callsConnected:2, callsMissed:2, coldCalls:4, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:5, deals:8, pipeline:1060000, sals:5, sqls:0, opps:1 },
-          { name:'Julius Kaiser', short:'Julius', emails:0, replies:0, calls:1, callsConnected:0, callsMissed:1, coldCalls:1, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:5, deals:16, pipeline:40000, sals:5, sqls:0, opps:1 },
-          { name:'Edmond Clemens', short:'Edmond', emails:7, replies:4, calls:3, callsConnected:1, callsMissed:2, coldCalls:3, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:7, deals:11, pipeline:480000, sals:7, sqls:2, opps:1 },
-          { name:'Romeo Vogt', short:'Romeo', emails:11, replies:7, calls:14, callsConnected:4, callsMissed:10, coldCalls:14, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:9, deals:9, pipeline:360000, sals:9, sqls:0, opps:0 },
-          { name:'Linh Cao', short:'Linh', emails:4, replies:2, calls:17, callsConnected:7, callsMissed:10, coldCalls:17, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:1, deals:2, pipeline:0, sals:1, sqls:0, opps:0 },
-          { name:'Temoc Chavero', short:'Temoc', emails:4, replies:6, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:1, deals:3, pipeline:0, sals:1, sqls:0, opps:0 },
-          { name:'Michael Schmid', short:'Michael', emails:10, replies:9, calls:2, callsConnected:1, callsMissed:1, coldCalls:2, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:5, deals:5, pipeline:90000, sals:5, sqls:0, opps:1 },
-          { name:'Vincent Nusmeier', short:'Vincent', emails:2, replies:5, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
+          { name:'Florian Wanzeck', short:'Florian', emails:6, replies:9, calls:2, callsConnected:1, callsMissed:1, coldCalls:2, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:6, deals:9, pipeline:160000, sals:6, sqls:0, opps:0 },
+          { name:'Tobias Rohringer', short:'Tobias', emails:2, replies:3, calls:3, callsConnected:2, callsMissed:1, coldCalls:3, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:5, deals:9, pipeline:1060000, sals:5, sqls:0, opps:1 },
+          { name:'Julius Kaiser', short:'Julius', emails:0, replies:0, calls:2, callsConnected:1, callsMissed:1, coldCalls:2, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:5, deals:17, pipeline:40000, sals:5, sqls:0, opps:1 },
+          { name:'Edmond Clemens', short:'Edmond', emails:7, replies:4, calls:8, callsConnected:4, callsMissed:4, coldCalls:8, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:7, deals:14, pipeline:480000, sals:7, sqls:2, opps:1 },
+          { name:'Romeo Vogt', short:'Romeo', emails:11, replies:7, calls:5, callsConnected:2, callsMissed:3, coldCalls:5, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:9, deals:14, pipeline:360000, sals:9, sqls:0, opps:0 },
+          { name:'Linh Cao', short:'Linh', emails:0, replies:0, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:1, deals:2, pipeline:0, sals:1, sqls:0, opps:0 },
+          { name:'Temoc Chavero', short:'Temoc', emails:0, replies:0, calls:15, callsConnected:8, callsMissed:7, coldCalls:15, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:1, deals:5, pipeline:0, sals:1, sqls:0, opps:0 },
+          { name:'Michael Schmid', short:'Michael', emails:10, replies:9, calls:12, callsConnected:6, callsMissed:6, coldCalls:12, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:5, deals:5, pipeline:90000, sals:5, sqls:0, opps:1 },
+          { name:'Vincent Nusmeier', short:'Vincent', emails:2, replies:5, calls:6, callsConnected:3, callsMissed:3, coldCalls:6, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:3, pipeline:0, sals:0, sqls:0, opps:0 },
           { name:'Patricia Hölscher', short:'Patricia', emails:0, replies:8, calls:0, callsConnected:0, callsMissed:0, coldCalls:0, followUpCalls:0, linkedin:0, linkedinDemos:0, demos:0, deals:0, pipeline:0, sals:0, sqls:0, opps:0 },
         ]
       },
@@ -283,28 +283,30 @@
 
     const FUNNEL_PERIODS = {
       all: makeFunnel({
-        'Outbound Prospect':73, 'Outbound Lead':19, 'Inbound Lead':143,
-        'SAL (Book 1st Demo)':105, 'SQL (Demo Done)':71, 'RFX':13,
-        'Opportunity':71, 'Vendor of Choice':29, 'Order Review':4,
-        'Verbal Commit.':2, 'Contract Neg.':11, 'Signing':4,
-        'Pilot ARR':1, 'Closed Won':84, 'Lost':90, 'No Fit':365, 'Bad Timing':44
-      }, [{ label:'Company', count:212, color:'#64748b' }, { label:'Person', count:153, color:'#475569' }]),
+        'Outbound Prospect':73, 'Outbound Lead':45, 'Inbound Lead':147,
+        'SAL (Book 1st Demo)':120, 'SQL (Demo Done)':73, 'RFX':12,
+        'Opportunity':68, 'Vendor of Choice':17, 'Order Review':5,
+        'Verbal Commit.':2, 'Contract Neg.':11, 'Signing':5,
+        'Pilot ARR':1, 'Closed Won':84, 'Lost':92, 'No Fit':373, 'Bad Timing':45
+      }, [{ label:'Company', count:216, color:'#64748b' }, { label:'Person', count:157, color:'#475569' }]),
       q1: makeFunnel({
-        'Outbound Prospect':3, 'Outbound Lead':5, 'Inbound Lead':132,
-        'SAL (Book 1st Demo)':75, 'SQL (Demo Done)':28, 'RFX':4,
-        'Opportunity':15, 'Vendor of Choice':11, 'Contract Neg.':4,
-        'Pilot ARR':1, 'Closed Won':2, 'Lost':1, 'No Fit':180, 'Bad Timing':6
+        'Outbound Prospect':3, 'Outbound Lead':27, 'Inbound Lead':137,
+        'SAL (Book 1st Demo)':89, 'SQL (Demo Done)':31, 'RFX':3,
+        'Opportunity':14, 'Vendor of Choice':5, 'Contract Neg.':4,
+        'Pilot ARR':1, 'Closed Won':2, 'Signing':1, 'Lost':1, 'No Fit':188, 'Bad Timing':7
       }),
       month: makeFunnel({
-        'Outbound Prospect':1, 'Inbound Lead':77,
-        'SAL (Book 1st Demo)':44, 'SQL (Demo Done)':6, 'RFX':1,
-        'Opportunity':4, 'Vendor of Choice':12, 'No Fit':153, 'Bad Timing':2
+        'Outbound Prospect':1, 'Outbound Lead':27, 'Inbound Lead':81,
+        'SAL (Book 1st Demo)':57, 'SQL (Demo Done)':11, 'RFX':1,
+        'Opportunity':5, 'No Fit':169, 'Bad Timing':2
       }),
       week: makeFunnel({
-        'Inbound Lead':12, 'SAL (Book 1st Demo)':15, 'SQL (Demo Done)':2,
-        'Vendor of Choice':1, 'No Fit':18
+        'Outbound Lead':1, 'Inbound Lead':1,
+        'SAL (Book 1st Demo)':1, 'No Fit':1
       }),
       today: makeFunnel({
+        'Outbound Lead':1, 'Inbound Lead':1,
+        'SAL (Book 1st Demo)':1, 'No Fit':1
       }),
     };
 
@@ -324,6 +326,7 @@
       { week:'CW10', emails:105, calls:48, linkedin:0, linkedinDemos:0, demos:10, pipeline:520 },
       { week:'CW11', emails:16, calls:35, linkedin:0, linkedinDemos:0, demos:13, pipeline:1430 },
       { week:'CW12', emails:17, calls:7, linkedin:0, linkedinDemos:0, demos:9, pipeline:0 },
+      { week:'CW13', emails:18, calls:3, linkedin:0, linkedinDemos:0, demos:0, pipeline:0 },
     ];
 
     // ─── HELPERS ────────────────────────────────────────
