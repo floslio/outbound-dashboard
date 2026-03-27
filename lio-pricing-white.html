@@ -457,12 +457,12 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
         <div class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-3">Source to Pay</div>
         <h3 class="text-xl font-bold text-slate-900 mb-1">Source to Pay</h3>
         <p class="text-sm text-slate-500 mb-5">Complete sourcing-to-contract pipeline with AI negotiation.</p>
-        <div class="text-3xl font-extrabold text-amber-600 mb-1">from <span class="mp" data-usd="102350">$102,350</span></div>
+        <div class="text-3xl font-extrabold text-amber-600 mb-1">from <span class="mp" data-usd="50140">$50,140</span></div>
         <div class="text-xs text-slate-400 mb-5">/year · 8% bundle discount</div>
         <div class="space-y-2 mb-5">
           <div class="check text-sm text-slate-700">SRM Agent</div>
           <div class="check text-sm text-slate-700">Sourcing Agent</div>
-          <div class="check text-sm text-slate-700">Negotiation Agent</div>
+          <div class="check text-sm text-slate-700">Negotiation Preparation Agent</div>
           <div class="check text-sm text-slate-700">Contract Negotiation Agent</div>
         </div>
         <div class="bg-emerald-50 rounded-lg p-3 text-center">
@@ -1269,7 +1269,7 @@ function selectBundle(index) {
 const bundleDefs = [
   { name: 'P2P Starter', discount: 5, modules: ['gb2po','ntpo','aa'] },
   { name: 'Intelligence Suite', discount: 6, modules: ['liox','pia','npa'] },
-  { name: 'Source to Pay', discount: 8, modules: ['sm','sa','na','cna'] },
+  { name: 'Source to Pay', discount: 8, modules: ['sm','sa','npa','cna'] },
   { name: 'P2P Complete', discount: 10, modules: ['gb2po','ntpo','aa','oc','gr','inv'] },
   { name: 'Enterprise \u2013 Total Procurement AI', discount: 15, modules: ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'] }
 ];
