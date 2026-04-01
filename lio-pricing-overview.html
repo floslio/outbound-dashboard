@@ -1254,9 +1254,9 @@ input[type="checkbox"] { accent-color: #6366f1; }
 
 <!-- Quote History Modal -->
 <div id="quote-history-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
-  <div class="bg-[#12132a] border border-slate-700/50 rounded-2xl p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
+  <div class="bg-[#12132a] border border-slate-700/50 rounded-2xl p-8 w-full max-w-6xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
     <div class="flex justify-between items-center mb-6">
-      <h3 class="text-xl font-bold text-white">Quote History</h3>
+      <h3 class="text-xl font-bold text-white">Quote Management</h3>
       <button onclick="closeQuoteHistory()" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
     </div>
     <div id="quote-history-list" class="space-y-3"></div>
@@ -2962,6 +2962,20 @@ function downloadQuotePDF() {
 
 </div></body></html>`;
 
+  // Build tier values
+  const tierValues = {};
+  selectedMods.forEach(s => {
+    const sel = document.getElementById('calc-' + s.key + '-tier');
+    if (sel) tierValues[s.key] = sel.value;
+  });
+  // Build line discounts
+  const lineDiscounts = {};
+  selectedMods.forEach(s => {
+    const dv = parseFloat(document.getElementById('qd-' + s.key)?.value) || 0;
+    const dt = document.getElementById('qdt-' + s.key)?.value || 'pct';
+    if (dv > 0) lineDiscounts[s.key] = { value: dv, type: dt };
+  });
+
   // Save to history
   const historyEntry = {
     id: Date.now(),
@@ -2971,11 +2985,45 @@ function downloadQuotePDF() {
     contact: recipientContact || '',
     total: fmt(grandTotal),
     modules: selectedMods.map(s => s.name).join(', '),
-    html: html
+    html: html,
+    createdAt: new Date().toISOString(),
+    lastEditedAt: new Date().toISOString(),
+    currency: currentCurrency,
+    formState: {
+      company: recipientCompany,
+      contact: recipientContact,
+      address: recipientAddress,
+      validUntil: document.getElementById('quote-valid-until')?.value || '',
+      lioContact: document.getElementById('quote-lio-contact')?.value || 'florian',
+      notes: customNotes,
+      selectedModules: selectedMods.map(s => s.key),
+      tiers: tierValues,
+      lineDiscounts: lineDiscounts,
+      bundleApply: bundleApply,
+      exclusiveDiscount: { value: parseFloat(document.getElementById('quote-exc-value')?.value) || 0, type: document.getElementById('quote-exc-type')?.value || 'pct' },
+      implDisc: { value: parseFloat(document.getElementById('quote-impl-disc')?.value) || 0, type: document.getElementById('quote-impl-disc-type')?.value || 'pct' },
+      csDisc: { value: parseFloat(document.getElementById('quote-cs-disc')?.value) || 0, type: document.getElementById('quote-cs-disc-type')?.value || 'pct' },
+      includeDetails: includeDetails,
+      includeROI: includeROI,
+      includeService: includeService,
+      includeTerms: includeTerms
+    }
   };
   const history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
-  history.unshift(historyEntry);
-  if (history.length > 50) history.pop();
+  if (window._editingQuoteId) {
+    const idx = history.findIndex(h => h.id === window._editingQuoteId);
+    if (idx >= 0) {
+      historyEntry.id = history[idx].id;
+      historyEntry.ref = history[idx].ref;
+      historyEntry.createdAt = history[idx].createdAt;
+      historyEntry.lastEditedAt = new Date().toISOString();
+      history[idx] = historyEntry;
+    }
+    window._editingQuoteId = null;
+  } else {
+    history.unshift(historyEntry);
+    if (history.length > 50) history.pop();
+  }
   localStorage.setItem('lio-quote-history', JSON.stringify(history));
 
   const printWindow = window.open('', '_blank');
@@ -2995,6 +3043,12 @@ function closeQuoteHistory() {
   modal.classList.add('hidden');
   modal.classList.remove('flex');
 }
+function formatTimestamp(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+}
+
 function renderQuoteHistory() {
   const history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
   const list = document.getElementById('quote-history-list');
@@ -3008,23 +3062,114 @@ function renderQuoteHistory() {
   }
   empty.classList.add('hidden');
   clearBtn.classList.remove('hidden');
-  list.innerHTML = history.map(q => `
-    <div class="flex items-center justify-between bg-slate-800/40 border border-slate-700/30 rounded-xl px-4 py-3">
-      <div class="flex-1 min-w-0">
-        <div class="text-sm font-semibold text-white truncate">${q.company}</div>
-        <div class="text-xs text-slate-400 mt-0.5">${q.ref} · ${q.date} · ${q.total}/yr</div>
-        <div class="text-xs text-slate-500 mt-0.5 truncate">${q.modules}</div>
-      </div>
-      <div class="flex items-center gap-2 ml-4 shrink-0">
-        <button onclick="redownloadQuote(${q.id})" class="px-3 py-1.5 bg-lio-600 hover:bg-lio-500 rounded-lg text-xs font-medium transition" title="Open PDF">
-          <svg class="w-3.5 h-3.5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-        </button>
-        <button onclick="deleteQuote(${q.id})" class="px-2 py-1.5 bg-red-900/30 hover:bg-red-900/50 rounded-lg text-xs text-red-400 transition" title="Delete">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-        </button>
-      </div>
-    </div>
-  `).join('');
+  list.innerHTML = `<table class="w-full text-sm">
+    <thead>
+      <tr class="text-left text-xs text-slate-400 uppercase tracking-wider border-b border-slate-700">
+        <th class="py-3 px-3">Quote #</th>
+        <th class="py-3 px-3">Company</th>
+        <th class="py-3 px-3">Created</th>
+        <th class="py-3 px-3">Last Edited</th>
+        <th class="py-3 px-3">Total</th>
+        <th class="py-3 px-3">Modules</th>
+        <th class="py-3 px-3 text-right">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${history.map(q => `<tr class="border-b border-slate-700/50 hover:bg-slate-800/50">
+        <td class="py-3 px-3 font-mono text-xs text-lio-400">${q.ref}</td>
+        <td class="py-3 px-3 font-semibold">${q.company}</td>
+        <td class="py-3 px-3 text-xs text-slate-400">${formatTimestamp(q.createdAt || q.date)}</td>
+        <td class="py-3 px-3 text-xs text-slate-400">${q.lastEditedAt && q.lastEditedAt !== q.createdAt ? formatTimestamp(q.lastEditedAt) : '—'}</td>
+        <td class="py-3 px-3 font-semibold text-emerald-400">${q.total}</td>
+        <td class="py-3 px-3 text-xs text-slate-400 max-w-[200px] truncate" title="${q.modules}">${q.modules}</td>
+        <td class="py-3 px-3 text-right space-x-2 whitespace-nowrap">
+          <button onclick="loadQuote(${q.id})" class="text-lio-400 hover:text-lio-300 text-base" title="Edit">&#9998;</button>
+          <button onclick="redownloadQuote(${q.id})" class="text-slate-400 hover:text-white text-base" title="Print">&#128424;</button>
+          <button onclick="deleteQuote(${q.id})" class="text-red-400 hover:text-red-300 text-base" title="Delete">&#128465;</button>
+        </td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+function loadQuote(id) {
+  const history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
+  const entry = history.find(h => h.id === id);
+  if (!entry || !entry.formState) {
+    alert('This quote was created before the reload feature was added. Only reprint is available.');
+    redownloadQuote(id);
+    return;
+  }
+  const fs = entry.formState;
+
+  // Set currency
+  if (entry.currency && typeof setCurrency === 'function') setCurrency(entry.currency);
+
+  // Select modules in calculator
+  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  allMods.forEach(m => {
+    const cb = document.getElementById('check-' + m);
+    if (cb) cb.checked = fs.selectedModules.includes(m);
+  });
+
+  // Set tiers
+  Object.entries(fs.tiers || {}).forEach(([key, val]) => {
+    const sel = document.getElementById('calc-' + key + '-tier');
+    if (sel) sel.value = val;
+  });
+
+  // Update calculator
+  if (typeof calcUpdate === 'function') calcUpdate();
+
+  // Close history modal
+  closeQuoteHistory();
+
+  // Open quote modal
+  openQuoteModal();
+
+  // Fill form fields (with slight delay so modal is rendered)
+  setTimeout(() => {
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+    const setChk = (id, val) => { const el = document.getElementById(id); if (el) el.checked = val; };
+
+    setVal('quote-company', fs.company || '');
+    setVal('quote-contact', fs.contact || '');
+    setVal('quote-address', fs.address || '');
+    setVal('quote-valid-until', fs.validUntil || '');
+    setVal('quote-lio-contact', fs.lioContact || 'florian');
+    setVal('quote-notes', fs.notes || '');
+    setChk('quote-inc-details', fs.includeDetails !== false);
+    setChk('quote-inc-roi', fs.includeROI === true);
+    setChk('quote-inc-service', fs.includeService !== false);
+    setChk('quote-inc-terms', fs.includeTerms !== false);
+
+    // Exclusive discount
+    setVal('quote-exc-value', fs.exclusiveDiscount?.value || 0);
+    setVal('quote-exc-type', fs.exclusiveDiscount?.type || 'pct');
+
+    // Impl & CS discounts
+    setVal('quote-impl-disc', fs.implDisc?.value || 0);
+    setVal('quote-impl-disc-type', fs.implDisc?.type || 'pct');
+    setVal('quote-cs-disc', fs.csDisc?.value || 0);
+    setVal('quote-cs-disc-type', fs.csDisc?.type || 'pct');
+
+    // Line discounts
+    Object.entries(fs.lineDiscounts || {}).forEach(([key, disc]) => {
+      setVal('qd-' + key, disc.value || 0);
+      setVal('qdt-' + key, disc.type || 'pct');
+    });
+
+    // Bundle
+    if (fs.bundleApply) {
+      setChk('quote-bundle-apply', true);
+    }
+
+    // Recalculate
+    if (typeof updateQuotePricing === 'function') updateQuotePricing();
+
+    // Store editing state
+    window._editingQuoteId = entry.id;
+  }, 200);
 }
 function redownloadQuote(id) {
   const history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
