@@ -1315,6 +1315,11 @@ input[type="checkbox"] { accent-color: #6366f1; }
           <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="checkbox" id="quote-inc-terms" checked> Terms & Conditions</label>
         </div>
       </div>
+      <div class="mt-4">
+        <label class="text-xs text-slate-400 block mb-2">Additional Agents to Showcase (not included in pricing)</label>
+        <div class="grid grid-cols-2 gap-2" id="quote-additional-agents">
+        </div>
+      </div>
       <div>
         <label class="text-xs text-slate-400 block mb-1">Custom Notes</label>
         <textarea id="quote-notes" rows="3" placeholder="Add personalized notes to the quote..." class="w-full bg-slate-800/50 border border-slate-600 rounded-lg p-2.5 text-sm text-white placeholder-slate-500 focus:ring-2 focus:ring-lio-500 focus:border-lio-500 outline-none resize-none"></textarea>
@@ -2503,6 +2508,25 @@ function openQuoteModal() {
   const vd = new Date(); vd.setDate(vd.getDate() + 90);
   document.getElementById('quote-valid-until').value = vd.toISOString().split('T')[0];
   populateQuotePricing();
+
+  // Populate additional agents (modules not in the quote)
+  const additionalContainer = document.getElementById('quote-additional-agents');
+  if (additionalContainer) {
+    const allModKeys = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+    const selectedKeys = [];
+    allModKeys.forEach(m => {
+      const cb = document.getElementById('check-' + m);
+      if (cb && cb.checked) selectedKeys.push(m);
+    });
+    const unselected = allModKeys.filter(m => !selectedKeys.includes(m));
+    additionalContainer.innerHTML = unselected.map(m => {
+      const mod = modules[m];
+      return `<label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+        <input type="checkbox" class="additional-agent-cb" value="${m}" checked>
+        <span>${mod.name}</span>
+      </label>`;
+    }).join('');
+  }
 }
 function closeQuoteModal() {
   const modal = document.getElementById('quote-modal');
@@ -2809,6 +2833,53 @@ function downloadQuotePDF() {
     </div>`;
   }
 
+  // Collect additional agents to showcase
+  const additionalAgentCbs = document.querySelectorAll('.additional-agent-cb:checked');
+  const additionalAgents = [];
+  additionalAgentCbs.forEach(cb => {
+    const key = cb.value;
+    const mod = modules[key];
+    const details = moduleDetails[key] || {};
+    if (mod) {
+      additionalAgents.push({
+        key: key,
+        name: details.title || mod.name,
+        desc: details.desc || mod.desc || '',
+        features: details.features || mod.features || [],
+        tiers: mod.tiers || [],
+        unit: details.unit || mod.unit || 'Units',
+        icon: details.icon || ''
+      });
+    }
+  });
+
+  const additionalAgentsPdf = additionalAgents.length > 0 ? `
+  <div style="margin-top:32px;page-break-before:auto;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+      <div style="width:4px;height:24px;background:linear-gradient(180deg,#6366f1,#22d3ee);border-radius:2px;"></div>
+      <h2 style="font-size:20px;font-weight:700;color:#1e293b;margin:0;">More Ways Agents Can Automate Your Procurement</h2>
+    </div>
+    <p style="font-size:13px;color:#64748b;margin:0 0 20px 0;">The following agent modules are available to further automate and optimize your procurement operations.</p>
+    ${additionalAgents.map(a => {
+      const tierRows = a.tiers.map(t => {
+        return '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:4px 8px;font-size:11px;color:#1e293b;">' + t.vol + '</td><td style="padding:4px 8px;font-size:11px;text-align:right;color:#1e293b;">' + fmtTierPrice(t) + '/yr</td></tr>';
+      }).join('');
+      return '<div style="margin-bottom:24px;page-break-inside:avoid;padding:16px;border:1px solid #e2e8f0;border-radius:10px;">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
+        (a.icon ? '<span style="font-size:20px;">' + a.icon + '</span>' : '') +
+        '<h3 style="font-size:16px;font-weight:700;color:#1e293b;margin:0;">' + a.name + '</h3>' +
+        '</div>' +
+        '<p style="font-size:13px;color:#64748b;margin:0 0 10px 0;line-height:1.5;">' + a.desc + '</p>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">' +
+        a.features.slice(0, 4).map(f => '<span style="display:inline-block;background:#f0f0f0;color:#1e293b;padding:4px 10px;border-radius:6px;font-size:11px;">&#10003; ' + f + '</span>').join('') +
+        '</div>' +
+        (a.tiers.length > 0 ? '<div style="margin-top:8px;"><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers (' + a.unit + ')</div>' +
+        '<table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;"><thead><tr style="background:#f8fafc;"><th style="padding:4px 8px;text-align:left;font-size:10px;color:#64748b;text-transform:uppercase;">Volume</th><th style="padding:4px 8px;text-align:right;font-size:10px;color:#64748b;text-transform:uppercase;">Price</th></tr></thead><tbody>' + tierRows + '</tbody></table></div>' : '') +
+        '</div>';
+    }).join('')}
+  </div>
+  ` : '';
+
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
@@ -2902,6 +2973,9 @@ function downloadQuotePDF() {
 
   <!-- Module Details (conditional) -->
   ${includeDetails ? `<div style="page-break-before:always;"></div><h2 style="font-size:18px;font-weight:700;margin-bottom:16px;color:#1e293b;">Selected Modules</h2>${moduleDetails_pdf}` : ''}
+
+  <!-- Additional Agents (informational, not in pricing) -->
+  ${additionalAgentsPdf}
 
   <!-- ROI Impact Summary (conditional) -->
   ${roiSection}
@@ -3006,7 +3080,8 @@ function downloadQuotePDF() {
       includeDetails: includeDetails,
       includeROI: includeROI,
       includeService: includeService,
-      includeTerms: includeTerms
+      includeTerms: includeTerms,
+      additionalAgents: Array.from(document.querySelectorAll('.additional-agent-cb:checked')).map(cb => cb.value)
     }
   };
   const history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
@@ -3162,6 +3237,13 @@ function loadQuote(id) {
     // Bundle
     if (fs.bundleApply) {
       setChk('quote-bundle-apply', true);
+    }
+
+    // Restore additional agents
+    if (fs.additionalAgents) {
+      document.querySelectorAll('.additional-agent-cb').forEach(cb => {
+        cb.checked = fs.additionalAgents.includes(cb.value);
+      });
     }
 
     // Recalculate
