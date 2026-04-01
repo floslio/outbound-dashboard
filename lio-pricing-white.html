@@ -566,7 +566,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
 <div id="quote-history-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
   <div class="bg-white border border-slate-200 rounded-2xl p-8 w-full max-w-6xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
     <div class="flex justify-between items-center mb-6">
-      <h3 class="text-xl font-bold text-slate-900">Quote Management</h3>
+      <h3 class="text-xl font-bold text-slate-900">Quote Management<span id="sb-sync-status" class="text-xs text-slate-400 ml-2"></span></h3>
       <button onclick="closeQuoteHistory()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
     </div>
     <div id="quote-history-list" class="space-y-3"></div>
@@ -879,6 +879,114 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[id^="offer-date"]').forEach(el => el.textContent = offerValidStr);
   buildAdvancedROIModules();
 });
+
+// ============================
+// SUPABASE CONFIG
+// ============================
+const SB_URL = 'https://mqwabacdohrtkxqyxrkp.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xd2FiYWNkb2hydGt4cXl4cmtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNDc1NDUsImV4cCI6MjA5MDYyMzU0NX0.i2pjZI7GNzNyMJK6-ME9SLk0HzNrzNwE_Q4Y7qNfL14';
+const SB_HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+
+async function sbSaveQuote(entry) {
+  try {
+    const totalNum = parseFloat(String(entry.total).replace(/[^0-9.]/g, '')) || 0;
+    const payload = {
+      quote_ref: entry.ref,
+      company: entry.company || null,
+      contact_person: entry.contact || null,
+      address: entry.formState?.address || null,
+      total_amount: totalNum,
+      currency: entry.currency || 'usd',
+      modules: entry.modules || '',
+      form_state: entry.formState || {},
+      quote_html: entry.html || '',
+      lio_contact: entry.formState?.lioContact || 'florian',
+      valid_until: entry.formState?.validUntil || null,
+      created_at: entry.createdAt || new Date().toISOString(),
+      last_edited_at: entry.lastEditedAt || new Date().toISOString()
+    };
+    const resp = await fetch(SB_URL + '/rest/v1/quotes', {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'return=representation,resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+    if (!resp.ok) throw new Error('Save failed: ' + resp.status);
+    const data = await resp.json();
+    console.log('Quote saved to Supabase:', entry.ref);
+    return data[0];
+  } catch(e) {
+    console.warn('Supabase save failed, localStorage only:', e.message);
+    return null;
+  }
+}
+
+async function sbUpdateQuote(quoteRef, entry) {
+  try {
+    const totalNum = parseFloat(String(entry.total).replace(/[^0-9.]/g, '')) || 0;
+    const payload = {
+      company: entry.company || null,
+      contact_person: entry.contact || null,
+      address: entry.formState?.address || null,
+      total_amount: totalNum,
+      currency: entry.currency || 'usd',
+      modules: entry.modules || '',
+      form_state: entry.formState || {},
+      quote_html: entry.html || '',
+      lio_contact: entry.formState?.lioContact || 'florian',
+      valid_until: entry.formState?.validUntil || null,
+      last_edited_at: new Date().toISOString()
+    };
+    const resp = await fetch(SB_URL + '/rest/v1/quotes?quote_ref=eq.' + encodeURIComponent(quoteRef), {
+      method: 'PATCH',
+      headers: SB_HEADERS,
+      body: JSON.stringify(payload)
+    });
+    if (!resp.ok) throw new Error('Update failed: ' + resp.status);
+    console.log('Quote updated in Supabase:', quoteRef);
+  } catch(e) {
+    console.warn('Supabase update failed:', e.message);
+  }
+}
+
+async function sbLoadQuotes() {
+  try {
+    const resp = await fetch(SB_URL + '/rest/v1/quotes?select=*&order=created_at.desc&limit=100', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    if (!resp.ok) throw new Error('Load failed: ' + resp.status);
+    const data = await resp.json();
+    return data.map(q => ({
+      id: q.id,
+      ref: q.quote_ref,
+      date: new Date(q.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+      company: q.company || 'No company',
+      contact: q.contact_person || '',
+      total: q.currency === 'eur' ? q.total_amount?.toLocaleString('de-DE') + ' \u20ac' : (q.currency === 'gbp' ? '\u00a3' + q.total_amount?.toLocaleString('en-US') : '$' + q.total_amount?.toLocaleString('en-US')),
+      modules: q.modules || '',
+      html: q.quote_html || '',
+      createdAt: q.created_at,
+      lastEditedAt: q.last_edited_at,
+      currency: q.currency || 'usd',
+      formState: q.form_state || null,
+      _sbId: q.id
+    }));
+  } catch(e) {
+    console.warn('Supabase load failed, using localStorage:', e.message);
+    return null;
+  }
+}
+
+async function sbDeleteQuote(quoteRef) {
+  try {
+    await fetch(SB_URL + '/rest/v1/quotes?quote_ref=eq.' + encodeURIComponent(quoteRef), {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    console.log('Quote deleted from Supabase:', quoteRef);
+  } catch(e) {
+    console.warn('Supabase delete failed:', e.message);
+  }
+}
 
 const modules = {
   gb2po:{name:'Guided Buying',color:'indigo',icon:'🛒',desc:'Free-text automation, intelligent guided buying, and cross-platform catalog search with AI.',features:['AI-powered free-text to PO conversion','Cross-platform catalog search','Intelligent product matching','Automatic compliance checking','Multi-language support','SAP & P2P integration'],tiers:[{vol:'Up to $300M',price:50000},{vol:'Up to $600M',price:56250},{vol:'Up to $800M',price:68750},{vol:'Up to $1B',price:100000},{vol:'Up to $1.5B',price:150000},{vol:'Up to $2B',price:175000},{vol:'Up to $2.5B',price:200000},{vol:'Up to $3B',price:225000}],unit:'Relevant Indirect Spend'},
@@ -1643,6 +1751,7 @@ function downloadPDF() {
     }
   };
   const history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
+  const wasEditing = !!window._editingQuoteId;
   if (window._editingQuoteId) {
     const idx = history.findIndex(h => h.id === window._editingQuoteId);
     if (idx >= 0) {
@@ -1658,6 +1767,12 @@ function downloadPDF() {
     if (history.length > 50) history.pop();
   }
   localStorage.setItem('lio-quote-history', JSON.stringify(history));
+  // Sync to Supabase
+  if (wasEditing) {
+    sbUpdateQuote(historyEntry.ref, historyEntry);
+  } else {
+    sbSaveQuote(historyEntry);
+  }
 
   const w = window.open('','_blank'); w.document.write(html); w.document.close(); setTimeout(() => w.print(), 500);
 }
@@ -1679,11 +1794,26 @@ function formatTimestamp(iso) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }
 
-function renderQuoteHistory() {
-  const history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
+async function renderQuoteHistory() {
   const list = document.getElementById('quote-history-list');
   const empty = document.getElementById('quote-history-empty');
   const clearBtn = document.getElementById('quote-history-clear');
+  const syncStatus = document.getElementById('sb-sync-status');
+
+  // Try Supabase first, fall back to localStorage
+  let history = await sbLoadQuotes();
+  let isCloud = history !== null;
+  if (history === null) {
+    history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
+  } else {
+    localStorage.setItem('lio-quote-history', JSON.stringify(history));
+  }
+
+  if (syncStatus) {
+    syncStatus.textContent = isCloud ? '\u2601\ufe0f Cloud' : '\uD83D\uDCBE Local';
+    syncStatus.className = isCloud ? 'text-xs text-emerald-600 ml-2' : 'text-xs text-amber-500 ml-2';
+  }
+
   if (history.length === 0) {
     list.innerHTML = '';
     empty.classList.remove('hidden');
@@ -1709,7 +1839,7 @@ function renderQuoteHistory() {
         <td class="py-3 px-3 font-mono text-xs text-lio-600">${q.ref}</td>
         <td class="py-3 px-3 font-semibold text-slate-900">${q.company}</td>
         <td class="py-3 px-3 text-xs text-slate-500">${formatTimestamp(q.createdAt || q.date)}</td>
-        <td class="py-3 px-3 text-xs text-slate-500">${q.lastEditedAt && q.lastEditedAt !== q.createdAt ? formatTimestamp(q.lastEditedAt) : '—'}</td>
+        <td class="py-3 px-3 text-xs text-slate-500">${q.lastEditedAt && q.lastEditedAt !== q.createdAt ? formatTimestamp(q.lastEditedAt) : '\u2014'}</td>
         <td class="py-3 px-3 font-semibold text-emerald-600">${q.total}</td>
         <td class="py-3 px-3 text-xs text-slate-500 max-w-[200px] truncate" title="${q.modules}">${q.modules}</td>
         <td class="py-3 px-3 text-right space-x-2 whitespace-nowrap">
@@ -1820,6 +1950,8 @@ function redownloadQuote(id) {
 }
 function deleteQuote(id) {
   let history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
+  const entry = history.find(h => h.id === id);
+  if (entry) sbDeleteQuote(entry.ref);
   history = history.filter(h => h.id !== id);
   localStorage.setItem('lio-quote-history', JSON.stringify(history));
   renderQuoteHistory();
