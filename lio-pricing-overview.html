@@ -395,7 +395,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
           <div class="flex items-end justify-between">
             <div>
               <span class="text-xs text-slate-500">Starting at</span>
-              <div class="text-2xl font-bold text-amber-400 mp" data-usd="68750">$68,750</div>
+              <div class="text-2xl font-bold text-amber-400 mp" data-usd="20500" data-eur="17500" data-gbp="15500">$20,500</div>
               <span class="text-xs text-slate-500">/year</span>
             </div>
             <div class="text-xs text-slate-500">6 tiers</div>
@@ -583,11 +583,11 @@ input[type="checkbox"] { accent-color: #6366f1; }
               <tr class="border-b border-slate-700/30 hover:bg-slate-800/30 transition cursor-pointer" onclick="showModulePage('na')">
                 <td class="p-4 font-medium"><span class="text-amber-400">●</span> Negotiation Agent</td>
                 <td class="p-4 text-slate-400">Autonomous bid negotiation</td>
-                <td class="p-4 text-right font-semibold mp" data-usd="68750">$68,750</td>
+                <td class="p-4 text-right font-semibold mp" data-usd="20500" data-eur="17500" data-gbp="15500">$20,500</td>
                 <td class="p-4 text-right text-slate-400">Events</td>
-                <td class="p-4 text-right text-slate-400">2,000</td>
-                <td class="p-4 text-right text-slate-400 mp" data-usd="687500">$687,500</td>
-                <td class="p-4 text-center"><span class="text-xs px-2 py-1 bg-amber-500/10 text-amber-400 rounded">$34.38/event</span></td>
+                <td class="p-4 text-right text-slate-400">625</td>
+                <td class="p-4 text-right text-slate-400 mp" data-usd="380000" data-eur="320000" data-gbp="300000">$380,000</td>
+                <td class="p-4 text-center"><span class="text-xs px-2 py-1 bg-amber-500/10 text-amber-400 rounded">$32.80/event</span></td>
                 <td class="p-4 text-right text-amber-400 text-xs">→</td>
               </tr>
               <tr class="border-b border-slate-700/30 hover:bg-slate-800/30 transition cursor-pointer" onclick="showModulePage('sa')">
@@ -673,10 +673,10 @@ input[type="checkbox"] { accent-color: #6366f1; }
             <h3 class="font-bold">Negotiation Agent (NA)</h3>
           </div>
           <label class="text-xs text-slate-500">Negotiation Events per Year</label>
-          <input type="range" min="0" max="6" value="0" class="w-full slider-track mt-2" id="slider-na" oninput="updateSlider('na')">
+          <input type="range" min="0" max="5" value="0" class="w-full slider-track mt-2" id="slider-na" oninput="updateSlider('na')">
           <div class="flex justify-between mt-2">
-            <span class="text-xs text-slate-500" id="slider-na-vol">Up to 2,000</span>
-            <span class="text-lg font-bold text-amber-400" id="slider-na-price">$68,750/yr</span>
+            <span class="text-xs text-slate-500" id="slider-na-vol">Up to 625</span>
+            <span class="text-lg font-bold text-amber-400" id="slider-na-price">$20,500/yr</span>
           </div>
         </div>
 
@@ -1672,9 +1672,12 @@ const modules = {
     { vol: 'Up to 100,000', price: 118750 }
   ]},
   na: { name: 'Negotiation Agent', color: 'amber', tiers: [
-    { vol: 'Up to 2,000', price: 68750 }, { vol: 'Up to 4,000', price: 137500 },
-    { vol: 'Up to 6,000', price: 206250 }, { vol: 'Up to 8,000', price: 275000 },
-    { vol: 'Up to 10,000', price: 343750 }, { vol: 'Up to 20,000', price: 687500 }
+    { vol: 'Up to 625', price: 20500, eur: 17500, gbp: 15500 },
+    { vol: 'Up to 1,250', price: 35000, eur: 30000, gbp: 27000 },
+    { vol: 'Up to 2,500', price: 65000, eur: 55000, gbp: 50000 },
+    { vol: 'Up to 5,000', price: 115000, eur: 100000, gbp: 90000 },
+    { vol: 'Up to 10,000', price: 210000, eur: 180000, gbp: 160000 },
+    { vol: 'Up to 20,000', price: 380000, eur: 320000, gbp: 300000 }
   ]},
   sa: { name: 'Sourcing Agent', color: 'rose', tiers: [
     { vol: 'Up to 2,000', price: 25000 }, { vol: 'Up to 4,000', price: 50000 },
@@ -1743,6 +1746,23 @@ function fmtZero() {
   return currencySymbols[currentCurrency] + '0';
 }
 
+function fmtTierPrice(tier) {
+  if (currentCurrency === 'eur' && tier.eur !== undefined) return tier.eur.toLocaleString('de-DE') + ' €';
+  if (currentCurrency === 'gbp' && tier.gbp !== undefined) return '£' + tier.gbp.toLocaleString('en-US');
+  return fmt(tier.price);
+}
+function getTierPriceRaw(tier) {
+  if (currentCurrency === 'eur' && tier.eur !== undefined) return tier.eur;
+  if (currentCurrency === 'gbp' && tier.gbp !== undefined) return tier.gbp;
+  let c = tier.price * currencyRates[currentCurrency];
+  if (currentCurrency !== 'usd') c = Math.round(c / 500) * 500; else c = Math.round(c);
+  return c;
+}
+function fmtRaw(n) {
+  if (currentCurrency === 'eur') return n.toLocaleString('de-DE') + ' €';
+  return currencySymbols[currentCurrency] + n.toLocaleString('en-US');
+}
+
 function setCurrency(cur) {
   currentCurrency = cur;
   document.querySelectorAll('.currency-btn').forEach(b => {
@@ -1750,8 +1770,13 @@ function setCurrency(cur) {
   });
   // Update static module card prices
   document.querySelectorAll('.mp').forEach(el => {
-    const usd = parseInt(el.dataset.usd);
-    el.textContent = fmt(usd);
+    if (currentCurrency === 'eur' && el.dataset.eur) {
+      el.textContent = parseInt(el.dataset.eur).toLocaleString('de-DE') + ' €';
+    } else if (currentCurrency === 'gbp' && el.dataset.gbp) {
+      el.textContent = '£' + parseInt(el.dataset.gbp).toLocaleString('en-US');
+    } else {
+      el.textContent = fmt(parseInt(el.dataset.usd));
+    }
   });
   // Update calculator tier option labels (dark version uses static <option> tags)
   Object.keys(modules).forEach(k => {
@@ -1760,7 +1785,7 @@ function setCurrency(cur) {
     modules[k].tiers.forEach((t, i) => {
       if (sel.options[i]) {
         const suffix = modules[k].setup ? ' (+ ' + fmt(120000) + ' setup)' : '';
-        sel.options[i].text = t.vol + ' — ' + fmt(t.price) + '/yr' + suffix;
+        sel.options[i].text = t.vol + ' — ' + fmtTierPrice(t) + '/yr' + suffix;
       }
     });
   });
@@ -1792,7 +1817,7 @@ function updateSlider(mod) {
   const idx = parseInt(document.getElementById('slider-' + mod).value);
   const tier = sliderData[mod][idx];
   document.getElementById('slider-' + mod + '-vol').textContent = tier.vol;
-  document.getElementById('slider-' + mod + '-price').textContent = fmt(tier.price) + '/yr';
+  document.getElementById('slider-' + mod + '-price').textContent = fmtTierPrice(tier) + '/yr';
   updateSliderTotal();
 }
 
@@ -1803,10 +1828,10 @@ function updateSliderTotal() {
     if (!el) return;
     const data = modules[mod].tiers;
     const idx = parseInt(el.value);
-    total += data[idx].price;
+    total += getTierPriceRaw(data[idx]);
   });
-  document.getElementById('slider-total').textContent = fmt(total) + '/yr';
-  document.getElementById('slider-total-fees').textContent = '+ ' + fmt(Math.round(total * 0.25));
+  document.getElementById('slider-total').textContent = fmtRaw(total) + '/yr';
+  document.getElementById('slider-total-fees').textContent = '+ ' + fmtRaw(Math.round(total * 0.25));
 }
 
 function updateAllSliders() {
@@ -1815,7 +1840,7 @@ function updateAllSliders() {
     if (!el) return;
     const idx = parseInt(el.value);
     const tier = modules[mod].tiers[idx];
-    if (tier) document.getElementById('slider-' + mod + '-price').textContent = fmt(tier.price) + '/yr';
+    if (tier) document.getElementById('slider-' + mod + '-price').textContent = fmtTierPrice(tier) + '/yr';
   });
   updateSliderTotal();
 }
@@ -2053,7 +2078,7 @@ function showModulePage(modKey) {
   const tiersHtml = mod.tiers.map((t, i) => `
     <tr class="border-b border-slate-700/30 ${i === 0 ? 'bg-'+mod.color+'-500/5' : ''}">
       <td class="p-3 text-sm">${t.vol}</td>
-      <td class="p-3 text-sm text-right font-semibold">${fmt(t.price)}/yr</td>
+      <td class="p-3 text-sm text-right font-semibold">${fmtTierPrice(t)}/yr</td>
     </tr>
   `).join('');
 
@@ -2303,7 +2328,7 @@ const roiModels = {
     drivers: [
       { name: 'Negotiation Savings', desc: 'negotiations x successRate x avgPO x savingsRate', inputs: { negotiations: { label: 'Negotiations / Year', default: 625 }, successRate: { label: 'Success Rate (%)', default: 80, pct: true }, avgPO: { label: 'Avg PO Value ($)', default: 1750 }, savingsRate: { label: 'Savings Rate (%)', default: 7, pct: true } } }
     ],
-    tiers: [{ vol: '≤625', cost: 15000 },{ vol: '≤1,250', cost: 24000 },{ vol: '≤2,500', cost: 41000 },{ vol: '≤5,000', cost: 70000 },{ vol: '≤10,000', cost: 100000 }],
+    tiers: [{ vol: '≤625', cost: 20500 },{ vol: '≤1,250', cost: 35000 },{ vol: '≤2,500', cost: 65000 },{ vol: '≤5,000', cost: 115000 },{ vol: '≤10,000', cost: 210000 },{ vol: '≤20,000', cost: 380000 }],
     calc: (i) => i.negotiations * (i.successRate/100) * i.avgPO * (i.savingsRate/100)
   },
   sa: {
@@ -2744,7 +2769,7 @@ function downloadQuotePDF() {
     const allTiers = modules[m.key]?.tiers || [];
     const tierRows = allTiers.map(t => {
       const isSelected = t.vol === m.tier;
-      return `<tr style="border-bottom:1px solid #f1f5f9;${isSelected ? 'background:#f0fdf4;font-weight:600;' : ''}"><td style="padding:4px 8px;font-size:11px;color:#1e293b;">${isSelected ? '&#9654; ' : ''}${t.vol}</td><td style="padding:4px 8px;font-size:11px;text-align:right;color:#1e293b;">${fmt(t.price)}/yr</td></tr>`;
+      return `<tr style="border-bottom:1px solid #f1f5f9;${isSelected ? 'background:#f0fdf4;font-weight:600;' : ''}"><td style="padding:4px 8px;font-size:11px;color:#1e293b;">${isSelected ? '&#9654; ' : ''}${t.vol}</td><td style="padding:4px 8px;font-size:11px;text-align:right;color:#1e293b;">${fmtTierPrice(t)}/yr</td></tr>`;
     }).join('');
     return `<div style="margin-bottom:24px;page-break-inside:avoid;">
       <h3 style="font-size:16px;font-weight:700;color:#1e293b;margin:0 0 6px 0;">${m.name}</h3>
