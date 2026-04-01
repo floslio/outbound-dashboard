@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lio – AI Procurement Agents | Pricing</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script>
 tailwind.config = {
@@ -64,6 +65,10 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
 .badge-shine { position: relative; overflow: hidden; }
 .badge-shine::after { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: shimmer 3s infinite; }
 .sticky-summary { position: sticky; top: 100px; }
+/* Mobile responsive fixes */
+@media (max-width: 640px) {
+  .sticky-summary { position: relative !important; top: auto !important; }
+}
 .dots-bg { background-image: radial-gradient(rgba(79, 70, 229, 0.08) 1px, transparent 1px); background-size: 20px 20px; }
 </style>
 </head>
@@ -75,19 +80,21 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
     <div class="flex items-center gap-3">
       <svg class="h-7" viewBox="0 0 2000 1000" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M944.33 624.3H944.38C935.73 609.32 920 599.11 897.68 593.99C891.95 592.68 885.92 591.88 879.88 591.57C847.5 590.06 785.22 580.71 732.23 535.57C707.49 514.5 674.56 476.65 657.73 415.47C654.11 402.4 648.23 353.04 649.14 169.24C649.19 148.88 645.22 129.93 637.32 112.94C630.74 98.86 622.09 86.59 611.53 76.39C527.38-4.85 342.57 58.19 244.14 126.31C71.56 245.9 52.3 449.51 51.55 458.15C43.46 552.61 67.24 651.24 118.41 735.8C169.33 820.01 245.6 887.32 333.12 925.27C345.19 930.5 421.7 961.91 522.4 961.91C573.43 961.91 630.68 953.82 688.95 930.19C814.73 879.21 917.84 768.97 944.83 691.8C949.55 678.22 951.91 665.86 951.91 654.7C951.91 643.54 949.45 633.09 944.32 624.29ZM674.07 894.56L674.12 894.61C515.91 958.7 365.44 897.28 348.86 890.04C268.67 855.25 198.8 793.52 151.94 716.1C104.89 638.37 83.07 547.89 90.46 461.37C90.96 455.59 100.52 354.29 167.43 257.51C162.05 293.51 160.44 330.1 162.71 367.05C178.94 619.97 384.21 827.34 640.3 849.47C655.89 850.83 671.42 851.48 686.85 851.48C712.29 851.48 737.57 849.72 762.56 846.05C735.16 865.15 705.3 881.94 674.08 894.57ZM827.46 792.57C767.89 810.27 706.1 816.5 643.66 811.12C406.68 790.66 216.7 598.72 201.67 364.76C198.15 306.55 204.84 249.23 221.68 194.23C235.26 181.46 250.18 169.2 266.62 157.84C270.69 155.03 274.86 152.21 279.14 149.5C275.82 172.62 274.01 196.55 273.82 220.94C273.32 357.93 327.41 487.79 426.15 586.42C524.99 685.1 655.94 740.06 794.99 741.11C822.74 741.11 850.29 739.1 877.44 735.03C863.86 753.93 846.97 773.54 827.47 792.59ZM907.94 679.2V679.25C906.53 683.12 904.98 687.2 903.12 691.32C867.98 698.76 831.68 702.58 795.13 702.58C666.64 701.63 545.48 650.75 453.99 559.35C362.54 468 312.42 347.85 312.88 221.17C313.19 187.69 316.65 155.26 323.23 124.54C361.09 105.64 402.16 91.01 440.52 83.16C461.74 78.84 481.39 76.68 499.24 76.68C536.29 76.68 565.6 85.88 584.25 103.92C591.39 110.75 597.32 119.2 601.85 128.95C607.38 140.87 610.15 154.33 610.09 168.97C609.39 314.61 612.6 398.56 620.05 425.57C639.45 496.05 677.91 540.14 706.72 564.67C768.55 617.41 840.59 628.22 878 629.98C881.77 630.18 885.39 630.68 888.81 631.43C896.6 633.19 906.66 636.75 910.48 643.29C914.45 650.23 913.55 663.3 907.97 679.18Z" fill="#1e293b"/><path d="M1098.04 792.7V257.92H1163.74V735.26H1415.93V792.71H1098.04Z" fill="#1e293b"/><path d="M1496.17 324.75C1483.98 324.75 1473.53 320.67 1464.78 312.47C1456.03 304.29 1451.66 294.45 1451.66 282.95C1451.66 271.45 1456.03 261.62 1464.78 253.43C1473.53 245.25 1484.01 241.15 1496.17 241.15C1508.33 241.15 1518.81 245.25 1527.56 253.43C1536.31 261.61 1540.68 271.45 1540.68 282.95C1540.68 294.45 1536.31 304.29 1527.56 312.47C1518.81 320.65 1508.39 324.75 1496.17 324.75Z" fill="#1e293b"/><path d="M1526.91 391.61H1464.39V792.68H1526.91V391.61Z" fill="#1e293b"/><path d="M1926.82 484.84C1911.34 453.67 1889.82 429.49 1862.17 412.25C1834.52 395.01 1802.35 386.36 1765.65 386.36C1728.95 386.36 1696.72 395.01 1669.08 412.25C1641.43 429.49 1619.86 453.67 1604.43 484.84C1588.95 516.01 1581.25 552.8 1581.25 594.24C1581.25 635.68 1588.95 671.91 1604.43 702.88C1619.87 733.85 1641.43 757.98 1669.08 775.22C1696.73 792.42 1728.9 801.06 1765.65 801.06C1802.4 801.06 1834.52 792.41 1862.17 775.22C1889.82 757.98 1911.39 733.84 1926.82 702.88C1942.26 671.87 1950 636.02 1950 594.24C1950 552.46 1942.26 516.01 1926.82 484.84ZM1874.49 668.95C1865.84 691.93 1852.52 710.47 1834.47 724.55C1816.48 738.67 1793.55 745.71 1765.64 745.71C1737.73 745.71 1714.76 738.67 1696.71 724.55C1678.72 710.47 1665.39 691.92 1656.74 668.95C1648.04 645.97 1643.72 621.09 1643.72 594.24C1643.72 567.39 1648.05 542.46 1656.74 519.33C1665.39 496.15 1678.71 477.45 1696.71 463.17C1714.76 448.89 1737.68 441.75 1765.64 441.75C1793.6 441.75 1816.46 448.89 1834.47 463.17C1852.52 477.45 1865.84 496.15 1874.49 519.33C1883.19 542.45 1887.51 567.44 1887.51 594.24C1887.51 621.04 1883.19 645.97 1874.49 668.95Z" fill="#1e293b"/></svg>
     </div>
-    <div class="hidden md:flex items-center gap-6 text-sm no-print">
-      <a href="#overview" class="text-slate-500 hover:text-slate-800 transition font-medium">Overview</a>
-      <a href="#modules" class="text-slate-500 hover:text-slate-800 transition font-medium">Modules</a>
-      <a href="#bundles" class="text-slate-500 hover:text-slate-800 transition font-medium">Bundles</a>
-      <a href="#calculator" class="text-slate-500 hover:text-slate-800 transition font-medium">Calculator</a>
-      <a href="#roi" class="text-slate-500 hover:text-slate-800 transition font-medium">ROI</a>
-      <a href="#roi-calc" class="text-slate-500 hover:text-slate-800 transition font-medium">ROI Calculator</a>
+    <div class="flex items-center gap-2 md:gap-6 text-sm no-print">
       <div class="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5" id="currency-switcher">
         <button onclick="setCurrency('usd')" class="currency-btn active px-2 py-1 rounded text-xs font-medium" data-cur="usd">🇺🇸 $</button>
         <button onclick="setCurrency('eur')" class="currency-btn px-2 py-1 rounded text-xs font-medium" data-cur="eur">🇩🇪 €</button>
         <button onclick="setCurrency('gbp')" class="currency-btn px-2 py-1 rounded text-xs font-medium" data-cur="gbp">🇬🇧 £</button>
       </div>
-      <button onclick="document.getElementById('calculator').scrollIntoView({behavior:'smooth'})" class="px-5 py-2 accent-gradient text-white rounded-lg text-sm font-semibold transition hover:opacity-90">Get Quote</button>
+      <div class="hidden md:flex items-center gap-6">
+        <a href="#overview" class="text-slate-500 hover:text-slate-800 transition font-medium">Overview</a>
+        <a href="#modules" class="text-slate-500 hover:text-slate-800 transition font-medium">Modules</a>
+        <a href="#bundles" class="text-slate-500 hover:text-slate-800 transition font-medium">Bundles</a>
+        <a href="#calculator" class="text-slate-500 hover:text-slate-800 transition font-medium">Calculator</a>
+        <a href="#roi" class="text-slate-500 hover:text-slate-800 transition font-medium">ROI</a>
+        <a href="#roi-calc" class="text-slate-500 hover:text-slate-800 transition font-medium">ROI Calculator</a>
+        <button onclick="document.getElementById('calculator').scrollIntoView({behavior:'smooth'})" class="px-5 py-2 accent-gradient text-white rounded-lg text-sm font-semibold transition hover:opacity-90">Get Quote</button>
+      </div>
     </div>
   </div>
 </nav>
@@ -413,7 +420,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
       <h2 class="text-3xl font-bold text-slate-900 mb-2">Recommended Bundles</h2>
       <p class="text-slate-500">Pre-configured combinations for common procurement needs.</p>
     </div>
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
 
       <!-- P2P Starter -->
       <div class="card p-6 bg-white cursor-pointer" onclick="selectBundle(0)">
@@ -525,7 +532,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
     <div class="grid lg:grid-cols-3 gap-8">
       <div class="lg:col-span-2 space-y-3" id="calc-modules"></div>
       <div class="lg:col-span-1">
-        <div class="card p-6 sticky top-24 shadow-lg shadow-slate-200/50 sticky-summary">
+        <div class="card p-6 lg:sticky lg:top-24 shadow-lg shadow-slate-200/50 sticky-summary">
           <h3 class="font-bold text-lg text-slate-900 mb-4">Your Quote</h3>
           <div id="calc-empty" class="text-center py-10 text-slate-400 text-sm">Select modules to see pricing</div>
           <div id="calc-summary" class="hidden space-y-3">
@@ -564,7 +571,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
 
 <!-- Quote History Modal -->
 <div id="quote-history-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
-  <div class="bg-white border border-slate-200 rounded-2xl p-8 w-full max-w-6xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
+  <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8 w-full max-w-6xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
     <div class="flex justify-between items-center mb-6">
       <h3 class="text-xl font-bold text-slate-900">Quote Management<span id="sb-sync-status" class="text-xs text-slate-400 ml-2"></span></h3>
       <button onclick="closeQuoteHistory()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
@@ -577,7 +584,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
 
 <!-- Quote Modal -->
 <div id="quote-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
-  <div class="bg-white border border-slate-200 rounded-2xl p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
+  <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
     <div class="flex justify-between items-center mb-6">
       <h3 class="text-xl font-bold text-slate-900">Create Quote</h3>
       <button onclick="closeQuoteModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
@@ -648,8 +655,8 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
         </div>
 
         <!-- Line-by-line pricing table -->
-        <div class="rounded-lg border border-slate-200 overflow-hidden">
-          <table class="w-full text-sm">
+        <div class="rounded-lg border border-slate-200 overflow-hidden overflow-x-auto">
+          <table class="w-full text-sm min-w-[400px]">
             <thead>
               <tr class="bg-slate-50 text-slate-500 text-xs uppercase">
                 <th class="text-left p-2 pl-3">Module</th>
@@ -671,13 +678,13 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
         <!-- Exclusive Additional Discount -->
         <div class="mt-3 p-3 rounded-lg bg-slate-50 border border-slate-200">
           <label class="text-xs text-slate-500 block mb-2">Exclusive Discount (applied to SaaS subtotal)</label>
-          <div class="flex gap-2 items-center">
+          <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
             <select id="quote-exc-type" onchange="updateQuotePricing()" class="border border-slate-200 rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-lio-200">
               <option value="none">None</option>
               <option value="pct">Percentage (%)</option>
               <option value="fixed">Fixed Amount ($)</option>
             </select>
-            <input type="number" id="quote-exc-value" value="0" min="0" step="1" onchange="updateQuotePricing()" oninput="updateQuotePricing()" class="w-24 border border-slate-200 rounded-lg p-2 text-sm outline-none text-right focus:ring-2 focus:ring-lio-200">
+            <input type="number" id="quote-exc-value" value="0" min="0" step="1" onchange="updateQuotePricing()" oninput="updateQuotePricing()" class="w-full sm:w-24 border border-slate-200 rounded-lg p-2 text-sm outline-none text-right focus:ring-2 focus:ring-lio-200">
           </div>
         </div>
 
@@ -713,10 +720,16 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
           <div class="flex justify-between text-sm mt-2 pt-2 border-t border-slate-200 font-bold"><span>Total Annual</span><span id="quote-final-total" class="text-lg accent-text">$0</span></div>
         </div>
       </div>
-    <button onclick="downloadPDF()" class="mt-6 w-full py-3 accent-gradient text-white rounded-xl font-semibold transition hover:opacity-90 flex items-center justify-center gap-2">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-      Finalize &amp; Print Quote
-    </button>
+    <div class="flex gap-3 mt-6">
+      <button onclick="downloadPDF()" class="flex-1 py-3 accent-gradient text-white rounded-xl font-semibold transition hover:opacity-90 flex items-center justify-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Print Quote
+      </button>
+      <button onclick="downloadPDFFile()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold transition flex items-center justify-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        Download PDF
+      </button>
+    </div>
   </div>
 </div>
 
@@ -797,7 +810,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
 
       <!-- Right: Combined Results Summary (1/3) -->
       <div class="lg:col-span-1">
-        <div class="card p-6 sticky top-24 shadow-lg shadow-slate-200/50 sticky-summary">
+        <div class="card p-6 lg:sticky lg:top-24 shadow-lg shadow-slate-200/50 sticky-summary">
           <div class="text-center mb-6">
             <div class="text-5xl font-extrabold accent-text" id="roi-calc-big-roi">0.0x</div>
             <div class="text-xl text-slate-500 mt-1" id="roi-calc-big-pct">0% ROI</div>
@@ -1407,6 +1420,17 @@ function closeQuoteModal() {
   const modal = document.getElementById('quote-modal');
   modal.classList.add('hidden');
   modal.classList.remove('flex');
+  // Release lock if editing
+  if (window._editingQuoteId) {
+    const history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
+    const idx = history.findIndex(h => h.id === window._editingQuoteId);
+    if (idx >= 0 && history[idx].formState?._lock) {
+      delete history[idx].formState._lock;
+      localStorage.setItem('lio-quote-history', JSON.stringify(history));
+      sbUpdateQuote(history[idx].ref, history[idx]);
+    }
+    window._editingQuoteId = null;
+  }
 }
 
 // Bundle Auto-Select
@@ -1517,7 +1541,7 @@ function updateQuotePricing() {
   document.getElementById('quote-final-total').textContent = fmt(finalSaas + impl + cs);
 }
 
-function downloadPDF() {
+function generateQuoteData() {
   const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
   const sel = [];
   let totalSaas = 0, hasSM = false;
@@ -1702,15 +1726,21 @@ function downloadPDF() {
   ${includeTerms ? `<div style="margin-top:28px;padding:16px;border:1px solid #e2e8f0;border-radius:10px;font-size:11px;color:#1e293b;line-height:1.7;page-break-inside:avoid;"><div style="font-weight:600;color:#1e293b;margin-bottom:6px;">Terms & Conditions</div><div>&bull; All prices are annual SaaS fees in USD unless otherwise stated.</div><div>&bull; This quote is valid for 90 days from the date of issue.</div><div>&bull; Implementation and Customer Success fees are calculated as a percentage of the combined annual SaaS fee.</div><div>&bull; Minimum contract term: 24 months.</div><div>&bull; Prices scale with usage volume. Contact your Account Manager for higher volume tiers.</div></div>` : ''}
   <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:flex-start;"><div><div style="font-size:12px;font-weight:600;">Lio Technologies GmbH</div><div style="font-size:10px;color:#64748b;line-height:1.6;">Munich, Germany<br>VAT ID: DE 364047844<br>Register number: HRB 286659 | Munich<br>Managing directors: Lukas Heinzmann, Vladimir Keil</div></div><div style="text-align:right;"><div style="font-size:12px;font-weight:600;">${lioContact.name}</div><div style="font-size:11px;color:#1e293b;">${lioContact.email}</div></div></div>
   </div></body></html>`;
+
+  return { html, quoteRef, today, recipientCompany, recipientContact, recipientAddress, customNotes, selectedMods: sel, grandTotal: grand, bundleApply, includeDetails, includeROI, includeService, includeTerms };
+}
+
+function saveQuoteToHistory(data) {
+  const { html, quoteRef, today, recipientCompany, recipientContact, recipientAddress, customNotes, selectedMods, grandTotal, bundleApply, includeDetails, includeROI, includeService, includeTerms } = data;
   // Build tier values
   const tierValues = {};
-  sel.forEach(s => {
+  selectedMods.forEach(s => {
     const tierSel = document.getElementById('ct-' + s.key);
     if (tierSel) tierValues[s.key] = tierSel.value;
   });
   // Build line discounts
   const lineDiscounts = {};
-  sel.forEach(s => {
+  selectedMods.forEach(s => {
     const dv = parseFloat(document.getElementById('qd-' + s.key)?.value) || 0;
     const dt = document.getElementById('qdt-' + s.key)?.value || 'pct';
     if (dv > 0) lineDiscounts[s.key] = { value: dv, type: dt };
@@ -1723,8 +1753,8 @@ function downloadPDF() {
     date: today,
     company: recipientCompany || 'No company',
     contact: recipientContact || '',
-    total: fmt(grand),
-    modules: sel.map(s => s.name).join(', '),
+    total: fmt(grandTotal),
+    modules: selectedMods.map(s => s.name).join(', '),
     html: html,
     createdAt: new Date().toISOString(),
     lastEditedAt: new Date().toISOString(),
@@ -1736,7 +1766,7 @@ function downloadPDF() {
       validUntil: document.getElementById('quote-valid-until')?.value || '',
       lioContact: document.getElementById('quote-lio-contact')?.value || 'florian',
       notes: customNotes,
-      selectedModules: sel.map(s => s.key),
+      selectedModules: selectedMods.map(s => s.key),
       tiers: tierValues,
       lineDiscounts: lineDiscounts,
       bundleApply: bundleApply,
@@ -1755,26 +1785,71 @@ function downloadPDF() {
   if (window._editingQuoteId) {
     const idx = history.findIndex(h => h.id === window._editingQuoteId);
     if (idx >= 0) {
-      historyEntry.id = history[idx].id;
-      historyEntry.ref = history[idx].ref;
-      historyEntry.createdAt = history[idx].createdAt;
+      const existingEntry = history[idx];
+      historyEntry.versions = existingEntry.versions || [];
+      const snapshot = {
+        version: existingEntry.version || 1,
+        savedAt: existingEntry.lastEditedAt || existingEntry.createdAt,
+        total: existingEntry.total,
+        modules: existingEntry.modules,
+        company: existingEntry.company
+      };
+      historyEntry.versions.push(snapshot);
+      if (historyEntry.versions.length > 10) historyEntry.versions.shift();
+      historyEntry.version = (existingEntry.version || 1) + 1;
+      historyEntry.id = existingEntry.id;
+      historyEntry.ref = existingEntry.ref;
+      historyEntry.createdAt = existingEntry.createdAt;
       historyEntry.lastEditedAt = new Date().toISOString();
       history[idx] = historyEntry;
     }
     window._editingQuoteId = null;
   } else {
+    historyEntry.version = 1;
+    historyEntry.versions = [];
     history.unshift(historyEntry);
     if (history.length > 50) history.pop();
   }
+  if (historyEntry.formState && historyEntry.formState._lock) delete historyEntry.formState._lock;
   localStorage.setItem('lio-quote-history', JSON.stringify(history));
-  // Sync to Supabase
   if (wasEditing) {
     sbUpdateQuote(historyEntry.ref, historyEntry);
   } else {
     sbSaveQuote(historyEntry);
   }
+}
 
-  const w = window.open('','_blank'); w.document.write(html); w.document.close(); setTimeout(() => w.print(), 500);
+function downloadPDF() {
+  const data = generateQuoteData();
+  if (!data) return;
+  saveQuoteToHistory(data);
+  const w = window.open('','_blank'); w.document.write(data.html); w.document.close(); setTimeout(() => w.print(), 500);
+}
+
+function downloadPDFFile() {
+  const data = generateQuoteData();
+  if (!data) return;
+  saveQuoteToHistory(data);
+
+  const container = document.createElement('div');
+  const bodyMatch = data.html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+  container.innerHTML = bodyMatch ? bodyMatch[1] : data.html;
+  container.style.cssText = 'position:absolute;left:-9999px;top:0;width:800px;';
+  document.body.appendChild(container);
+
+  const company = data.recipientCompany || 'Quote';
+  const filename = data.quoteRef + '_' + company.replace(/[^a-zA-Z0-9]/g, '_') + '.pdf';
+
+  html2pdf().set({
+    margin: [10, 10, 10, 10],
+    filename: filename,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+  }).from(container).save().then(() => {
+    document.body.removeChild(container);
+  });
 }
 
 function openQuoteHistory() {
@@ -1822,34 +1897,41 @@ async function renderQuoteHistory() {
   }
   empty.classList.add('hidden');
   clearBtn.classList.remove('hidden');
-  list.innerHTML = `<table class="w-full text-sm">
+  list.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-sm min-w-[500px]">
     <thead>
       <tr class="text-left text-xs text-slate-500 uppercase tracking-wider border-b border-slate-200">
         <th class="py-3 px-3">Quote #</th>
         <th class="py-3 px-3">Company</th>
         <th class="py-3 px-3">Created</th>
-        <th class="py-3 px-3">Last Edited</th>
+        <th class="py-3 px-3 hidden md:table-cell">Last Edited</th>
         <th class="py-3 px-3">Total</th>
-        <th class="py-3 px-3">Modules</th>
+        <th class="py-3 px-3 hidden md:table-cell">Modules</th>
         <th class="py-3 px-3 text-right">Actions</th>
       </tr>
     </thead>
     <tbody>
-      ${history.map(q => `<tr class="border-b border-slate-100 hover:bg-slate-50">
-        <td class="py-3 px-3 font-mono text-xs text-lio-600">${q.ref}</td>
+      ${history.map(q => {
+        const vt = q.versions?.length ? 'Previous versions:\n' + q.versions.map(v => 'v' + v.version + ' \u2014 ' + v.total + ' (' + new Date(v.savedAt).toLocaleDateString() + ')').join('\n') : '';
+        const lk = q.formState?._lock && new Date(q.formState._lock.expires) > new Date() ? q.formState._lock.by : null;
+        return `<tr class="border-b border-slate-100 hover:bg-slate-50">
+        <td class="py-3 px-3">
+          <span class="font-mono text-xs text-lio-600">${q.ref}</span>
+          ${q.version > 1 ? '<span class="ml-1 text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded cursor-help" title="' + vt + '">v' + q.version + '</span>' : ''}
+          ${lk ? '<span class="ml-1 text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">&#128274; ' + lk + '</span>' : ''}
+        </td>
         <td class="py-3 px-3 font-semibold text-slate-900">${q.company}</td>
         <td class="py-3 px-3 text-xs text-slate-500">${formatTimestamp(q.createdAt || q.date)}</td>
-        <td class="py-3 px-3 text-xs text-slate-500">${q.lastEditedAt && q.lastEditedAt !== q.createdAt ? formatTimestamp(q.lastEditedAt) : '\u2014'}</td>
+        <td class="py-3 px-3 text-xs text-slate-500 hidden md:table-cell">${q.lastEditedAt && q.lastEditedAt !== q.createdAt ? formatTimestamp(q.lastEditedAt) : '\u2014'}</td>
         <td class="py-3 px-3 font-semibold text-emerald-600">${q.total}</td>
-        <td class="py-3 px-3 text-xs text-slate-500 max-w-[200px] truncate" title="${q.modules}">${q.modules}</td>
+        <td class="py-3 px-3 text-xs text-slate-500 max-w-[200px] truncate hidden md:table-cell" title="${q.modules}">${q.modules}</td>
         <td class="py-3 px-3 text-right space-x-2 whitespace-nowrap">
           <button onclick="loadQuote(${q.id})" class="text-lio-600 hover:text-lio-500 text-base" title="Edit">&#9998;</button>
           <button onclick="redownloadQuote(${q.id})" class="text-slate-400 hover:text-slate-700 text-base" title="Print">&#128424;</button>
           <button onclick="deleteQuote(${q.id})" class="text-red-400 hover:text-red-600 text-base" title="Delete">&#128465;</button>
         </td>
-      </tr>`).join('')}
+      </tr>`}).join('')}
     </tbody>
-  </table>`;
+  </table></div>`;
 }
 
 function loadQuote(id) {
@@ -1860,6 +1942,29 @@ function loadQuote(id) {
     redownloadQuote(id);
     return;
   }
+
+  // Check lock
+  const lock = entry.formState?._lock;
+  if (lock && lock.by && new Date(lock.expires) > new Date()) {
+    const currentUser = document.getElementById('quote-lio-contact')?.selectedOptions[0]?.text || '';
+    if (lock.by !== currentUser) {
+      if (!confirm('This quote is currently being edited by ' + lock.by + '. Open anyway?')) return;
+    }
+  }
+
+  // Set lock in Supabase
+  const currentFs = entry.formState || {};
+  currentFs._lock = {
+    by: document.getElementById('quote-lio-contact')?.selectedOptions[0]?.text || 'Unknown',
+    at: new Date().toISOString(),
+    expires: new Date(Date.now() + 30*60*1000).toISOString()
+  };
+  entry.formState = currentFs;
+  const histIdx = history.findIndex(h => h.id === id);
+  if (histIdx >= 0) history[histIdx] = entry;
+  localStorage.setItem('lio-quote-history', JSON.stringify(history));
+  sbUpdateQuote(entry.ref, entry);
+
   const fs = entry.formState;
 
   // Set currency
