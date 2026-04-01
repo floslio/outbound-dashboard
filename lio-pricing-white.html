@@ -912,10 +912,10 @@ async function sbSaveQuote(entry) {
     });
     if (!resp.ok) throw new Error('Save failed: ' + resp.status);
     const data = await resp.json();
-    console.log('Quote saved to Supabase:', entry.ref);
+    /* saved */
     return data[0];
   } catch(e) {
-    console.warn('Supabase save failed, localStorage only:', e.message);
+    /* save fallback */
     return null;
   }
 }
@@ -942,9 +942,9 @@ async function sbUpdateQuote(quoteRef, entry) {
       body: JSON.stringify(payload)
     });
     if (!resp.ok) throw new Error('Update failed: ' + resp.status);
-    console.log('Quote updated in Supabase:', quoteRef);
+    /* updated */
   } catch(e) {
-    console.warn('Supabase update failed:', e.message);
+    /* update fallback */
   }
 }
 
@@ -971,7 +971,7 @@ async function sbLoadQuotes() {
       _sbId: q.id
     }));
   } catch(e) {
-    console.warn('Supabase load failed, using localStorage:', e.message);
+    /* load fallback */
     return null;
   }
 }
@@ -982,9 +982,9 @@ async function sbDeleteQuote(quoteRef) {
       method: 'DELETE',
       headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
     });
-    console.log('Quote deleted from Supabase:', quoteRef);
+    /* deleted */
   } catch(e) {
-    console.warn('Supabase delete failed:', e.message);
+    /* delete fallback */
   }
 }
 
