@@ -545,10 +545,10 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
               </div>
               <div class="flex justify-between text-sm"><span class="text-slate-500">Customer Success (10%/yr)</span><span id="c-cs">$0</span></div>
             </div>
-            <div class="border-t-2 border-indigo-300 pt-3">
+            <div class="border-t-2 border-slate-300 pt-3">
               <div class="flex justify-between items-center">
                 <span class="font-bold text-sm text-slate-900">Recurring Annual</span>
-                <span class="text-2xl font-extrabold accent-text" id="c-recurring">$0</span>
+                <span class="text-2xl font-extrabold text-slate-900" id="c-recurring">$0</span>
               </div>
               <div class="flex justify-between text-sm mt-1"><span class="text-slate-400">Monthly</span><span class="text-slate-700 font-bold" id="c-monthly">$0</span></div>
             </div>
@@ -647,6 +647,11 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
       <!-- Pricing Adjustments -->
       <div class="mt-2 pt-4 border-t border-slate-200">
         <label class="text-xs text-slate-500 block mb-3">Pricing Adjustments</label>
+
+        <div class="flex items-center gap-2 mb-3">
+          <input type="checkbox" id="quote-hide-discounts" class="w-4 h-4 rounded accent-lio-500">
+          <label for="quote-hide-discounts" class="text-xs text-slate-500">Hide all discounts on quote (show adjusted prices as standard)</label>
+        </div>
 
         <!-- Bundle Detection -->
         <div id="quote-bundle-row" class="hidden mb-3 p-3 rounded-lg bg-emerald-50 border border-emerald-200">
@@ -1539,34 +1544,54 @@ function applyGlobalDiscount() {
 
 function updateQuotePricing() {
   const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
-  const selectedKeys = mods.filter(m => document.getElementById('chk-' + m).checked);
+  const selectedKeys = mods.filter(m => document.getElementById('chk-' + m)?.checked);
   const bundle = detectBundle(selectedKeys);
-  const bundleApply = document.getElementById('quote-bundle-apply').checked && bundle;
+  const bundleApply = document.getElementById('quote-bundle-apply')?.checked && bundle;
   const bundlePct = bundleApply ? bundle.discount : 0;
-  let saasTotal = 0;
+
+  // Sum Your Prices (from qf-{key} inputs) - NO bundle discount applied here
+  let saasSubtotal = 0;
   selectedKeys.forEach(mod => {
-    const finalEl = document.getElementById('qf-' + mod);
-    if (!finalEl) return;
-    let yourPrice = parseFloat(finalEl.value) || 0;
-    if (bundlePct > 0) yourPrice = Math.round(yourPrice * (1 - bundlePct / 100));
-    saasTotal += Math.max(0, yourPrice);
+    const el = document.getElementById('qf-' + mod);
+    if (el) saasSubtotal += Math.max(0, parseFloat(el.value) || 0);
   });
-  const finalSaas = saasTotal;
-  let implBase = Math.round(finalSaas * 0.15);
+
+  // Bundle discount on the subtotal
+  const bundleSavings = bundlePct > 0 ? Math.round(saasSubtotal * bundlePct / 100) : 0;
+  const netSaas = saasSubtotal - bundleSavings;
+
+  // Implementation discount
   const implDiscVal = parseFloat(document.getElementById('quote-impl-disc')?.value) || 0;
   const implDiscType = document.getElementById('quote-impl-disc-type')?.value || 'pct';
-  let implDisc = implDiscType === 'pct' ? Math.round(implBase * implDiscVal / 100) : implDiscVal;
-  const impl = Math.max(0, implBase - implDisc);
-  let csBase = Math.round(finalSaas * 0.10);
+  let impl = Math.round(netSaas * 0.15);
+  if (implDiscVal > 0) {
+    impl = implDiscType === 'pct' ? Math.round(impl * (1 - implDiscVal / 100)) : Math.max(0, impl - implDiscVal);
+  }
+
+  // CS discount
   const csDiscVal = parseFloat(document.getElementById('quote-cs-disc')?.value) || 0;
   const csDiscType = document.getElementById('quote-cs-disc-type')?.value || 'pct';
-  let csDisc = csDiscType === 'pct' ? Math.round(csBase * csDiscVal / 100) : csDiscVal;
-  const cs = Math.max(0, csBase - csDisc);
-  document.getElementById('quote-saas-subtotal').textContent = fmt(saasTotal);
-  document.getElementById('quote-final-saas').textContent = fmt(finalSaas);
+  let cs = Math.round(netSaas * 0.10);
+  if (csDiscVal > 0) {
+    cs = csDiscType === 'pct' ? Math.round(cs * (1 - csDiscVal / 100)) : Math.max(0, cs - csDiscVal);
+  }
+
+  const recurringAnnual = netSaas + cs;
+  const grandTotal = recurringAnnual + impl;
+  const monthly = Math.round(recurringAnnual / 12);
+
+  // Update display
+  document.getElementById('quote-saas-subtotal').textContent = fmt(saasSubtotal);
+  document.getElementById('quote-final-saas').textContent = fmt(netSaas);
   document.getElementById('quote-final-impl').textContent = fmt(impl);
   document.getElementById('quote-final-cs').textContent = fmt(cs);
-  document.getElementById('quote-final-total').textContent = fmt(finalSaas + impl + cs);
+  document.getElementById('quote-final-total').textContent = fmt(grandTotal);
+
+  // Show/hide bundle row
+  const bundleRow = document.getElementById('quote-bundle-row');
+  if (bundleRow) bundleRow.classList.toggle('hidden', !bundle);
+  const bundleLabel = document.getElementById('quote-bundle-label');
+  if (bundleLabel && bundle) bundleLabel.textContent = bundle.name + ' (' + bundle.discount + '% discount)';
 }
 
 function generateQuoteData() {
@@ -1588,31 +1613,43 @@ function generateQuoteData() {
   });
   if (!sel.length) { alert('Please select at least one module.'); return; }
 
+  // Bundle info
+  const selectedKeys = mods.filter(m => document.getElementById('chk-' + m).checked);
+  const bundleApply = document.getElementById('quote-bundle-apply')?.checked;
+  const bundle = bundleApply ? detectBundle(selectedKeys) : null;
+  const bundleName = bundle ? bundle.name : '';
+  const bundlePct = bundle ? bundle.discount : 0;
+  const bundleSavings = bundlePct > 0 ? Math.round(totalSaas * bundlePct / 100) : 0;
+  const finalSaas = totalSaas - bundleSavings;
+
   // No separate exclusive discount - discounts are per-module now
   const excType = 'none';
   const excVal = 0;
   const excDiscount = 0;
-  const finalSaas = totalSaas;
 
-  // Bundle info
-  const selectedKeys = mods.filter(m => document.getElementById('chk-' + m).checked);
-  const bundle = detectBundle(selectedKeys);
-  const bundleApply = document.getElementById('quote-bundle-apply').checked && bundle;
-  const bundleName = bundleApply ? bundle.name : '';
-  const bundlePct = bundleApply ? bundle.discount : 0;
-
-  let implBase = Math.round(finalSaas*0.15);
+  // Implementation on NET SaaS
   const implDiscVal = parseFloat(document.getElementById('quote-impl-disc')?.value) || 0;
   const implDiscType = document.getElementById('quote-impl-disc-type')?.value || 'pct';
-  let implDisc = implDiscType === 'pct' ? Math.round(implBase * implDiscVal / 100) : implDiscVal;
-  const impl = Math.max(0, implBase - implDisc);
-  let csBase = Math.round(finalSaas*0.10);
+  let impl = Math.round(finalSaas * 0.15);
+  let implDisc = 0;
+  if (implDiscVal > 0) {
+    implDisc = implDiscType === 'pct' ? Math.round(Math.round(finalSaas * 0.15) * implDiscVal / 100) : implDiscVal;
+    impl = Math.max(0, Math.round(finalSaas * 0.15) - implDisc);
+  }
+
+  // CS on NET SaaS
   const csDiscVal = parseFloat(document.getElementById('quote-cs-disc')?.value) || 0;
   const csDiscType = document.getElementById('quote-cs-disc-type')?.value || 'pct';
-  let csDisc = csDiscType === 'pct' ? Math.round(csBase * csDiscVal / 100) : csDiscVal;
-  const cs = Math.max(0, csBase - csDisc);
+  let cs = Math.round(finalSaas * 0.10);
+  let csDisc = 0;
+  if (csDiscVal > 0) {
+    csDisc = csDiscType === 'pct' ? Math.round(Math.round(finalSaas * 0.10) * csDiscVal / 100) : csDiscVal;
+    cs = Math.max(0, Math.round(finalSaas * 0.10) - csDisc);
+  }
 
-  const grand = finalSaas+impl+cs;
+  const recurringAnnual = finalSaas + cs;
+  const grand = recurringAnnual + impl;
+  const monthly = Math.round(recurringAnnual / 12);
   const today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   const validInput = document.getElementById('quote-valid-until')?.value;
   const validUntil = validInput ? new Date(validInput + 'T00:00:00').toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }) : offerValidStr;
@@ -1645,6 +1682,9 @@ function generateQuoteData() {
   const lioContactKey = document.getElementById('quote-lio-contact')?.value || 'florian';
   const lioContact = lioContacts[lioContactKey] || lioContacts.florian;
 
+  // Hide discounts option
+  const hideDiscounts = document.getElementById('quote-hide-discounts')?.checked || false;
+
   // Calculate savings for display
   let totalListPrice = 0;
   sel.forEach(m => {
@@ -1652,12 +1692,14 @@ function generateQuoteData() {
   });
   const totalSavingsAll = totalListPrice - finalSaas;
   const lineDiscTotal = totalListPrice - totalSaas;
-  const bundleSavings = bundleApply ? Math.round(totalSaas * bundlePct / 100) : 0;
 
   const rows = sel.map(m => {
     const listPrice = m.listPrice || m.price;
     let priceHtml;
-    if (m.discountMode === 'pct' && m.discountPct > 0) {
+    if (hideDiscounts) {
+      // Show Your Price as the regular price, no strikethrough, no discount
+      priceHtml = fmtRaw(m.price);
+    } else if (m.discountMode === 'pct' && m.discountPct > 0) {
       priceHtml = '<span style="text-decoration:line-through;color:#94a3b8;font-weight:400;margin-right:4px;">' + fmtRaw(listPrice) + '</span> <span style="color:#10b981;font-size:10px;">-' + m.discountPct + '%</span> ' + fmtRaw(m.price);
     } else {
       priceHtml = fmtRaw(m.price);
@@ -1738,17 +1780,21 @@ function generateQuoteData() {
   <h2 style="font-size:16px;font-weight:700;margin-bottom:12px;">Pricing Breakdown</h2>
   <table style="width:100%;border-collapse:collapse;margin-bottom:6px;"><thead><tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;"><th style="padding:10px 16px;text-align:left;font-size:11px;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;">Module</th><th style="padding:10px 16px;text-align:left;font-size:11px;color:#1e293b;text-transform:uppercase;">Tier</th><th style="padding:10px 16px;text-align:right;font-size:11px;color:#1e293b;text-transform:uppercase;">Annual Fee</th></tr></thead><tbody>${rows}</tbody></table>
   <table style="width:100%;border-collapse:collapse;margin-bottom:28px;">
+    ${hideDiscounts ? `
+    <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Net SaaS Fee (annual)</td><td style="padding:8px 16px;text-align:right;font-weight:600;">${fmt(finalSaas)}</td></tr>
+    ` : `
     <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">SaaS Subtotal</td><td style="padding:8px 16px;text-align:right;font-weight:600;">${fmt(totalListPrice)}</td></tr>
-    ${lineDiscTotal > 0 ? `<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Line Discounts</td><td style="padding:8px 16px;text-align:right;color:#dc2626;">-${fmt(lineDiscTotal)}</td></tr>` : ''}
-    ${bundleApply ? `<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Bundle Discount (${bundle.discount}% \u2013 ${bundle.name})</td><td style="padding:8px 16px;text-align:right;color:#dc2626;">-${fmt(bundleSavings)}</td></tr>` : ''}
-    ${excDiscount > 0 ? `<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Exclusive Discount${excType === 'pct' ? ' (' + excVal + '%)' : ''}</td><td style="padding:8px 16px;text-align:right;color:#dc2626;">\u2013${fmt(excDiscount)}</td></tr>` : ''}
+    ${lineDiscTotal > 0 ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Line Discounts</td><td style="padding:8px 16px;text-align:right;color:#dc2626;">-' + fmt(lineDiscTotal) + '</td></tr>' : ''}
+    ${bundle ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Bundle Discount (' + bundlePct + '% -- ' + bundleName + ')</td><td style="padding:8px 16px;text-align:right;color:#dc2626;">-' + fmt(bundleSavings) + '</td></tr>' : ''}
+    ${excDiscount > 0 ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Exclusive Discount' + (excType === 'pct' ? ' (' + excVal + '%)' : '') + '</td><td style="padding:8px 16px;text-align:right;color:#dc2626;">-' + fmt(excDiscount) + '</td></tr>' : ''}
     <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Net SaaS Fee (annual)</td><td style="padding:8px 16px;text-align:right;font-size:12px;">${fmt(finalSaas)}</td></tr>
-    <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Customer Success (10%/yr)${csDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (csDiscType === 'pct' ? csDiscVal + '%' : fmt(csDisc)) + ' discount</span>' : ''}</td><td style="padding:8px 16px;text-align:right;font-size:12px;">${fmt(cs)}</td></tr>
-    <tr style="border-top:2px solid #4f46e5;background:#eef2ff;"><td style="padding:14px 16px;font-size:16px;font-weight:800;color:#1e293b;" colspan="2">Recurring Annual (SaaS + CS)</td><td style="padding:14px 16px;text-align:right;font-size:18px;font-weight:800;color:#4f46e5;">${fmtRaw(finalSaas + cs)}</td></tr>
-    <tr><td style="padding:6px 16px;font-size:13px;font-weight:700;color:#1e293b;" colspan="2">Monthly equivalent</td><td style="padding:6px 16px;text-align:right;font-size:13px;font-weight:700;color:#1e293b;">${fmtRaw(Math.round((finalSaas + cs) / 12))}/mo</td></tr>
-    <tr style="border-top:1px solid #e2e8f0;"><td style="padding:8px 16px;font-size:11px;color:#94a3b8;" colspan="2">Implementation Fee (15%) -- one-time${implDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (implDiscType === 'pct' ? implDiscVal + '%' : fmt(implDisc)) + ' discount</span>' : ''}</td><td style="padding:8px 16px;text-align:right;font-size:11px;color:#94a3b8;">${fmtRaw(impl)}</td></tr>
+    `}
+    <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Customer Success (10%/yr)${!hideDiscounts && csDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (csDiscType === 'pct' ? csDiscVal + '%' : fmt(csDisc)) + ' discount</span>' : ''}</td><td style="padding:8px 16px;text-align:right;font-size:12px;">${fmt(cs)}</td></tr>
+    <tr style="border-top:2px solid #1e293b;"><td style="padding:14px 16px;font-size:16px;font-weight:800;color:#1e293b;" colspan="2">Recurring Annual (SaaS + CS)</td><td style="padding:14px 16px;text-align:right;font-size:18px;font-weight:800;color:#1e293b;">${fmtRaw(recurringAnnual)}</td></tr>
+    <tr><td style="padding:6px 16px;font-size:13px;font-weight:700;color:#1e293b;" colspan="2">Monthly equivalent</td><td style="padding:6px 16px;text-align:right;font-size:13px;font-weight:700;color:#1e293b;">${fmtRaw(monthly)}/mo</td></tr>
+    <tr style="border-top:1px solid #e2e8f0;"><td style="padding:8px 16px;font-size:11px;color:#94a3b8;" colspan="2">Implementation Fee (15%) -- one-time${!hideDiscounts && implDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (implDiscType === 'pct' ? implDiscVal + '%' : fmt(implDisc)) + ' discount</span>' : ''}</td><td style="padding:8px 16px;text-align:right;font-size:11px;color:#94a3b8;">${fmtRaw(impl)}</td></tr>
     <tr style="border-top:1px dashed #e2e8f0;"><td style="padding:8px 16px;font-size:11px;color:#94a3b8;" colspan="2">Total First Year (incl. one-time fees)</td><td style="padding:8px 16px;text-align:right;font-size:12px;color:#64748b;">${fmtRaw(grand)}</td></tr>
-    ${totalSavingsAll > 0 ? `<tr style="border-top:1px solid #e5e7eb;"><td style="padding:8px 16px;font-size:12px;font-weight:600;" colspan="2">Total Savings</td><td style="padding:8px 16px;text-align:right;font-weight:700;color:#16a34a;">-${fmt(totalSavingsAll)}</td></tr>` : ''}
+    ${!hideDiscounts && totalSavingsAll > 0 ? '<tr style="border-top:1px solid #e5e7eb;"><td style="padding:8px 16px;font-size:12px;font-weight:600;" colspan="2">Total Savings</td><td style="padding:8px 16px;text-align:right;font-weight:700;color:#16a34a;">-' + fmt(totalSavingsAll) + '</td></tr>' : ''}
   </table>
   ${includeDetails ? `<div style="page-break-before:always;"></div><h2 style="font-size:16px;font-weight:700;margin-bottom:12px;">Selected Modules</h2>${details}` : ''}
   ${additionalAgentsPdf}
@@ -1810,6 +1856,7 @@ function saveQuoteToHistory(data) {
       includeROI: includeROI,
       includeService: includeService,
       includeTerms: includeTerms,
+      hideDiscounts: hideDiscounts,
       additionalAgents: Array.from(document.querySelectorAll('.additional-agent-cb:checked')).map(cb => cb.value)
     }
   };
@@ -2075,6 +2122,11 @@ function loadQuote(id) {
     // Bundle
     if (fs.bundleApply) {
       setChk('quote-bundle-apply', true);
+    }
+
+    // Hide discounts
+    if (fs.hideDiscounts) {
+      setChk('quote-hide-discounts', true);
     }
 
     // Restore additional agents
