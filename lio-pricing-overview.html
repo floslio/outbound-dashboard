@@ -3208,11 +3208,11 @@ function generateQuoteData() {
 
 </div></body></html>`;
 
-  return { html, quoteRef, today, recipientCompany, recipientContact, recipientAddress, customNotes, selectedMods, grandTotal, bundleApply, includeDetails, includeROI, includeService, includeTerms };
+  return { html, quoteRef, today, recipientCompany, recipientContact, recipientAddress, customNotes, selectedMods, grandTotal, bundleApply, includeDetails, includeROI, includeService, includeTerms, hideDiscounts };
 }
 
 function saveQuoteToHistory(data) {
-  const { html, quoteRef, today, recipientCompany, recipientContact, recipientAddress, customNotes, selectedMods, grandTotal, bundleApply, includeDetails, includeROI, includeService, includeTerms } = data;
+  const { html, quoteRef, today, recipientCompany, recipientContact, recipientAddress, customNotes, selectedMods, grandTotal, bundleApply, includeDetails, includeROI, includeService, includeTerms, hideDiscounts } = data;
   // Build tier values
   const tierValues = {};
   selectedMods.forEach(s => {

@@ -1805,11 +1805,12 @@ function generateQuoteData() {
   <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:flex-start;"><div><div style="font-size:12px;font-weight:600;">Lio Technologies GmbH</div><div style="font-size:10px;color:#64748b;line-height:1.6;">Munich, Germany<br>VAT ID: DE 364047844<br>Register number: HRB 286659 | Munich<br>Managing directors: Lukas Heinzmann, Vladimir Keil</div></div><div style="text-align:right;"><div style="font-size:12px;font-weight:600;">${lioContact.name}</div><div style="font-size:11px;color:#1e293b;">${lioContact.email}</div></div></div>
   </div></body></html>`;
 
-  return { html, quoteRef, today, recipientCompany, recipientContact, recipientAddress, customNotes, selectedMods: sel, grandTotal: grand, bundleApply, includeDetails, includeROI, includeService, includeTerms };
+  const hideDiscounts = document.getElementById('quote-hide-discounts')?.checked || false;
+  return { html, quoteRef, today, recipientCompany, recipientContact, recipientAddress, customNotes, selectedMods: sel, grandTotal: grand, bundleApply, includeDetails, includeROI, includeService, includeTerms, hideDiscounts };
 }
 
 function saveQuoteToHistory(data) {
-  const { html, quoteRef, today, recipientCompany, recipientContact, recipientAddress, customNotes, selectedMods, grandTotal, bundleApply, includeDetails, includeROI, includeService, includeTerms } = data;
+  const { html, quoteRef, today, recipientCompany, recipientContact, recipientAddress, customNotes, selectedMods, grandTotal, bundleApply, includeDetails, includeROI, includeService, includeTerms, hideDiscounts } = data;
   // Build tier values
   const tierValues = {};
   selectedMods.forEach(s => {
@@ -1851,7 +1852,7 @@ function saveQuoteToHistory(data) {
       implDisc: { value: parseFloat(document.getElementById('quote-impl-disc')?.value) || 0, type: document.getElementById('quote-impl-disc-type')?.value || 'pct' },
       csDisc: { value: parseFloat(document.getElementById('quote-cs-disc')?.value) || 0, type: document.getElementById('quote-cs-disc-type')?.value || 'pct' },
       discountModes: Object.assign({}, discountMode),
-      discountPcts: (() => { const r = {}; sel.forEach(s => { const el = document.getElementById('qd-' + s.key); if (el) r[s.key] = parseFloat(el.value) || 0; }); return r; })(),
+      discountPcts: (() => { const r = {}; selectedMods.forEach(s => { const el = document.getElementById('qd-' + s.key); if (el) r[s.key] = parseFloat(el.value) || 0; }); return r; })(),
       includeDetails: includeDetails,
       includeROI: includeROI,
       includeService: includeService,
