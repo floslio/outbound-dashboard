@@ -3124,24 +3124,24 @@ function generateQuoteData() {
     ${hideDiscounts ? `
     <tr style="border-bottom:1px solid #e5e7eb;">
       <td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Net SaaS Fee (annual)</td>
-      <td style="padding:8px 16px;text-align:right;font-weight:600;font-size:12px;">${fmt(finalSaas)}</td>
+      <td style="padding:8px 16px;text-align:right;font-weight:600;font-size:12px;">${fmtRaw(finalSaas)}</td>
     </tr>
     ` : `
     <tr style="border-bottom:1px solid #e5e7eb;">
       <td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">SaaS Subtotal</td>
-      <td style="padding:8px 16px;text-align:right;font-weight:600;font-size:12px;">${fmt(totalListPrice)}</td>
+      <td style="padding:8px 16px;text-align:right;font-weight:600;font-size:12px;">${fmtRaw(totalListPrice)}</td>
     </tr>
-    ${lineDiscTotal > 0 ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">Line Discounts</td><td style="padding:8px 16px;text-align:right;color:#dc2626;font-size:12px;">-' + fmt(lineDiscTotal) + '</td></tr>' : ''}
-    ${bundle ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">Bundle Discount: ' + bundleName + ' (' + bundlePct + '%)</td><td style="padding:8px 16px;text-align:right;color:#dc2626;font-size:12px;">-' + fmt(bundleSavings) + '</td></tr>' : ''}
-    ${excDiscount > 0 ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">Exclusive Discount' + (excType === 'pct' ? ' (' + excVal + '%)' : '') + '</td><td style="padding:8px 16px;text-align:right;color:#dc2626;font-size:12px;">-' + fmt(excDiscount) + '</td></tr>' : ''}
+    ${lineDiscTotal > 0 ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">Line Discounts</td><td style="padding:8px 16px;text-align:right;color:#dc2626;font-size:12px;">-' + fmtRaw(lineDiscTotal) + '</td></tr>' : ''}
+    ${bundle ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">Bundle Discount: ' + bundleName + ' (' + bundlePct + '%)</td><td style="padding:8px 16px;text-align:right;color:#dc2626;font-size:12px;">-' + fmtRaw(bundleSavings) + '</td></tr>' : ''}
+    ${excDiscount > 0 ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">Exclusive Discount' + (excType === 'pct' ? ' (' + excVal + '%)' : '') + '</td><td style="padding:8px 16px;text-align:right;color:#dc2626;font-size:12px;">-' + fmtRaw(excDiscount) + '</td></tr>' : ''}
     <tr style="border-bottom:1px solid #e5e7eb;">
       <td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Net SaaS Fee (annual)</td>
-      <td style="padding:8px 16px;text-align:right;font-size:12px;">${fmt(finalSaas)}</td>
+      <td style="padding:8px 16px;text-align:right;font-size:12px;">${fmtRaw(finalSaas)}</td>
     </tr>
     `}
     <tr style="border-bottom:1px solid #e5e7eb;">
-      <td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Customer Success (10%/yr)${!hideDiscounts && csDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (csDiscType === 'pct' ? csDiscVal + '%' : fmt(csDisc)) + ' discount</span>' : ''}</td>
-      <td style="padding:8px 16px;text-align:right;font-size:12px;">${fmt(cs)}</td>
+      <td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Customer Success (10%/yr)${!hideDiscounts && csDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (csDiscType === 'pct' ? csDiscVal + '%' : fmtRaw(csDisc)) + ' discount</span>' : ''}</td>
+      <td style="padding:8px 16px;text-align:right;font-size:12px;">${fmtRaw(cs)}</td>
     </tr>
     <tr style="border-top:2px solid #1e293b;">
       <td style="padding:14px 16px;font-size:16px;font-weight:800;color:#1e293b;" colspan="2">Recurring Annual (SaaS + CS)</td>
@@ -3152,14 +3152,14 @@ function generateQuoteData() {
       <td style="padding:6px 16px;text-align:right;font-size:13px;font-weight:700;color:#1e293b;">${fmtRaw(monthly)}/mo</td>
     </tr>
     <tr style="border-top:1px solid #e2e8f0;">
-      <td style="padding:8px 16px;font-size:11px;color:#94a3b8;" colspan="2">Implementation Fee (15%) -- one-time${!hideDiscounts && implDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (implDiscType === 'pct' ? implDiscVal + '%' : fmt(implDisc)) + ' discount</span>' : ''}</td>
+      <td style="padding:8px 16px;font-size:11px;color:#94a3b8;" colspan="2">Implementation Fee (15%) -- one-time${!hideDiscounts && implDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (implDiscType === 'pct' ? implDiscVal + '%' : fmtRaw(implDisc)) + ' discount</span>' : ''}</td>
       <td style="padding:8px 16px;text-align:right;font-size:11px;color:#94a3b8;">${fmtRaw(impl)}</td>
     </tr>
     <tr style="border-top:1px dashed #e2e8f0;">
       <td style="padding:8px 16px;font-size:11px;color:#94a3b8;" colspan="2">Total First Year (incl. one-time fees)</td>
       <td style="padding:8px 16px;text-align:right;font-size:12px;color:#64748b;">${fmtRaw(grandTotal)}</td>
     </tr>
-    ${!hideDiscounts && totalSavingsAll > 0 ? '<tr style="border-top:1px solid #e5e7eb;"><td style="padding:8px 16px;font-size:11px;font-weight:600;" colspan="2">Total Savings</td><td style="padding:8px 16px;text-align:right;font-weight:700;font-size:12px;color:#16a34a;">-' + fmt(totalSavingsAll) + '</td></tr>' : ''}
+    ${!hideDiscounts && totalSavingsAll > 0 ? '<tr style="border-top:1px solid #e5e7eb;"><td style="padding:8px 16px;font-size:11px;font-weight:600;" colspan="2">Total Savings</td><td style="padding:8px 16px;text-align:right;font-weight:700;font-size:12px;color:#16a34a;">-' + fmtRaw(totalSavingsAll) + '</td></tr>' : ''}
   </table>
 
   <!-- Module Details (conditional) -->
