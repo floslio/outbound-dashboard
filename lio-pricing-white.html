@@ -253,13 +253,13 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
           <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-xl mb-4">🏢</div>
           <h3 class="font-bold text-slate-900 text-lg">SRM</h3>
           <p class="text-xs text-slate-600 font-medium mb-2">SRM</p>
-          <p class="text-sm text-slate-500 mb-4 leading-relaxed">Automated supplier onboarding and relationship management. No registration required for suppliers.</p>
+          <p class="text-sm text-slate-500 mb-4 leading-relaxed">Automated supplier relationship management with full supplier onboarding included.</p>
           <div class="flex items-end justify-between pt-4 border-t border-slate-100">
             <div>
-              <span class="text-xs text-slate-400">From</span>
-              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="2500">$2,500</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
+              <span class="text-xs text-slate-400">Flat Rate</span>
+              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="125000" data-eur="109000" data-gbp="99000">$125,000</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
             </div>
-            <span class="text-xs text-slate-600 font-medium arrow-slide">5 tiers <span class="arrow-icon">→</span></span>
+            <span class="text-xs text-slate-600 font-medium arrow-slide">Flat Rate <span class="arrow-icon">→</span></span>
           </div>
         </div>
 
@@ -391,7 +391,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
             <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('gr')"><td class="p-4 font-semibold">Goods Receipt Agent</td><td class="p-4 text-slate-500">GR processing</td><td class="p-4 text-right font-semibold mp" data-usd="7000">$7,000</td><td class="p-4 text-right text-slate-500">GR Checks</td><td class="p-4 text-center"><span class="px-2 py-1 bg-lime-50 text-lime-700 rounded text-xs font-medium">$1.14/check</span></td></tr>
             <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('inv')"><td class="p-4 font-semibold">Invoice Agent</td><td class="p-4 text-slate-500">3-way match</td><td class="p-4 text-right font-semibold mp" data-usd="8000">$8,000</td><td class="p-4 text-right text-slate-500">Invoice Checks</td><td class="p-4 text-center"><span class="px-2 py-1 bg-orange-50 text-orange-700 rounded text-xs font-medium">$1.19/check</span></td></tr>
             <tr class="bg-slate-50"><td colspan="5" class="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider">S2P — Source to Pay</td></tr>
-            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('sm')"><td class="p-4 font-semibold">SRM</td><td class="p-4 text-slate-500">Supplier onboarding</td><td class="p-4 text-right font-semibold mp" data-usd="122500">$122,500</td><td class="p-4 text-right text-slate-500">Onboardings</td><td class="p-4 text-center"><span class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-medium">$50/onboard</span></td></tr>
+            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('sm')"><td class="p-4 font-semibold">SRM</td><td class="p-4 text-slate-500">Supplier relationship management</td><td class="p-4 text-right font-semibold mp" data-usd="125000" data-eur="109000" data-gbp="99000">$125,000</td><td class="p-4 text-right text-slate-500">Flat Rate</td><td class="p-4 text-center"><span class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-medium">Flat</span></td></tr>
             <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('sa')"><td class="p-4 font-semibold">Sourcing Agent</td><td class="p-4 text-slate-500">Bid sourcing</td><td class="p-4 text-right font-semibold mp" data-usd="25000">$25,000</td><td class="p-4 text-right text-slate-500">Events</td><td class="p-4 text-center"><span class="px-2 py-1 bg-rose-50 text-rose-700 rounded text-xs font-medium">$12.50/event</span></td></tr>
             <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('na')"><td class="p-4 font-semibold">Negotiation Agent</td><td class="p-4 text-slate-500">Bid negotiation</td><td class="p-4 text-right font-semibold mp" data-usd="20500" data-eur="17500" data-gbp="15500">$20,500</td><td class="p-4 text-right text-slate-500">Events</td><td class="p-4 text-center"><span class="px-2 py-1 bg-amber-50 text-amber-700 rounded text-xs font-medium">$32.80/event</span></td></tr>
             <tr class="bg-slate-50"><td colspan="5" class="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Intelligence & Assistants</td></tr>
@@ -1007,7 +1007,7 @@ const modules = {
   sa:{name:'Sourcing Agent',color:'rose',icon:'🔍',desc:'AI agents source bids, compare them, and select the best outcome automatically.',features:['Automated RFQ creation','AI-powered bid comparison','Supplier matching & discovery','Total cost analysis','Weighted scoring models','Collaborative workflows'],tiers:[{vol:'Up to 2,000',price:25000},{vol:'Up to 4,000',price:50000},{vol:'Up to 6,000',price:75000},{vol:'Up to 8,000',price:100000},{vol:'Up to 10,000',price:125000},{vol:'Up to 20,000',price:250000}],unit:'Sourcing Events'},
   oc:{name:'Order Confirmations',color:'violet',icon:'📋',desc:'Automatically reviews delivery date, price, quantity, and address on every order confirmation.',features:['Automatic OC data extraction','Price & quantity deviation detection','Delivery date verification','Address validation','Auto-acceptance or flagging','ERP integration'],tiers:[{vol:'Up to 6,250',price:15000},{vol:'Up to 12,500',price:22500},{vol:'Up to 25,000',price:36250},{vol:'Up to 50,000',price:63750},{vol:'Up to 100,000',price:118750}],unit:'OC Checks'},
   liox:{name:'Lio X',color:'lio',icon:'🧠',desc:'AI procurement assistant with template library, custom creation, and Lio Academy access.',features:['AI-powered quote analysis','T&C review','Negotiation strategy templates','Custom AI assistant builder','Lio Academy access','Team collaboration'],tiers:[{vol:'Up to 15',price:5500,eur:4500,gbp:4000},{vol:'Up to 50',price:15000,eur:12500,gbp:11000},{vol:'Up to 100',price:28000,eur:23000,gbp:20000},{vol:'Up to 200',price:48000,eur:40000,gbp:35000},{vol:'Up to 400',price:85000,eur:70000,gbp:62000},{vol:'Up to 800',price:150000,eur:125000,gbp:110000},{vol:'Unlimited',price:250000,eur:210000,gbp:185000}],unit:'Users'},
-  sm:{name:'SRM',color:'slate',icon:'🏢',desc:'Automated supplier onboarding and relationship management. No registration required for suppliers.',features:['Auto data extraction','AI supplier outreach','No supplier registration','Compliance documents','Risk assessment','Continuous enrichment'],tiers:[{vol:'Up to 50',price:2500},{vol:'Up to 100',price:3125},{vol:'Up to 150',price:3750},{vol:'Up to 200',price:4375},{vol:'Up to 250',price:5000}],unit:'Onboardings/Year'},
+  sm:{name:'SRM',color:'slate',icon:'🏢',desc:'Automated supplier relationship management with full supplier onboarding included. AI-powered data extraction, outreach, compliance collection, and continuous enrichment -- no platform registration required for suppliers.',features:['Full supplier onboarding included','Automated data extraction from public sources','AI-driven supplier outreach','No supplier registration needed','Compliance document collection','Risk assessment & continuous enrichment'],tiers:[{vol:'Flat Rate',price:125000,eur:109000,gbp:99000}],unit:'Flat Rate'},
   aa:{name:'Approval Agent',color:'teal',icon:'🔐',desc:'Manages PR approval workflows — proactive outreach, OOO handling, and bottleneck prevention.',features:['Remote Approver','Configurable approval chains','AOP-based workflows','OOO escalation','Contextual approval requests','Integration as first approver'],tiers:[{vol:'Flat Rate',price:12500}],unit:'Flat Rate'},
   gr:{name:'Goods Receipt Agent',color:'lime',icon:'📦',desc:'Automates goods receipt processing — document-based receipt creation, partial delivery tracking, and proactive follow-ups.',features:['Document upload & OCR','Partial/full delivery handling','Pending receipt surfacing','Automated reminders','SAP integration','Proactive follow-ups'],tiers:[{vol:'Up to 5,000',price:7000},{vol:'Up to 10,000',price:13500},{vol:'Up to 25,000',price:32500},{vol:'Up to 50,000',price:62500},{vol:'Up to 100,000',price:113500}],unit:'GR Checks'},
   inv:{name:'Invoice Agent',color:'orange',icon:'🧾',desc:'Automated three-way match (PO, GR, Invoice), dispute detection, categorization, and resolution orchestration.',features:['Automatic 3-way match','Dispute type categorization','Resolution workflows','Aging tracking','Consolidated invoice handling','ERP integration'],tiers:[{vol:'Up to 5,000',price:8000},{vol:'Up to 10,000',price:15000},{vol:'Up to 25,000',price:35000},{vol:'Up to 50,000',price:65000},{vol:'Up to 100,000',price:118750}],unit:'Invoice Checks'},
@@ -1535,12 +1535,16 @@ function generateQuoteData() {
   let totalSaas = 0, hasSM = false;
   mods.forEach(k => {
     if (!document.getElementById('chk-' + k).checked) return;
-    const tierText = document.getElementById('ct-' + k).selectedOptions[0].text.split(' \u2014 ')[0];
+    const tierEl = document.getElementById('ct-' + k);
+    const tierText = tierEl.selectedOptions[0].text.split(' \u2014 ')[0];
+    const tierPrice = parseInt(tierEl.value);
+    const tierObj = modules[k]?.tiers?.find(t => t.price === tierPrice) || { price: tierPrice };
+    const listPrice = getTierPriceRaw(tierObj);
     const finalEl = document.getElementById('qf-' + k);
-    const p = finalEl ? (parseFloat(finalEl.value) || 0) : parseInt(document.getElementById('ct-' + k).value);
+    const p = finalEl ? (parseFloat(finalEl.value) || 0) : listPrice;
     totalSaas += p;
     if (k === 'sm') hasSM = true;
-    sel.push({ key: k, name: k === 'sm' ? 'Supplier Relationship Management (SRM)' : modules[k].name, price: p, tier: tierText, desc: modules[k].desc, features: modules[k].features });
+    sel.push({ key: k, name: k === 'sm' ? 'Supplier Relationship Management (SRM)' : modules[k].name, price: p, listPrice: listPrice, tier: tierText, desc: modules[k].desc, features: modules[k].features });
   });
   if (!sel.length) { alert('Please select at least one module.'); return; }
 
@@ -1554,6 +1558,8 @@ function generateQuoteData() {
   const selectedKeys = mods.filter(m => document.getElementById('chk-' + m).checked);
   const bundle = detectBundle(selectedKeys);
   const bundleApply = document.getElementById('quote-bundle-apply').checked && bundle;
+  const bundleName = bundleApply ? bundle.name : '';
+  const bundlePct = bundleApply ? bundle.discount : 0;
 
   let implBase = Math.round(finalSaas*0.15);
   const implDiscVal = parseFloat(document.getElementById('quote-impl-disc')?.value) || 0;
@@ -1602,17 +1608,14 @@ function generateQuoteData() {
   // Calculate savings for display
   let totalListPrice = 0;
   sel.forEach(m => {
-    const listCell = document.querySelector('tr[data-mod="' + m.key + '"] td[data-list-price]');
-    const listPrice = listCell ? parseInt(listCell.getAttribute('data-list-price')) : m.price;
-    totalListPrice += listPrice;
+    totalListPrice += m.listPrice || m.price;
   });
   const totalSavingsAll = totalListPrice - finalSaas;
   const lineDiscTotal = totalListPrice - totalSaas;
   const bundleSavings = bundleApply ? Math.round(totalSaas * bundlePct / 100) : 0;
 
   const rows = sel.map(m => {
-    const listCell = document.querySelector('tr[data-mod="' + m.key + '"] td[data-list-price]');
-    const listPrice = listCell ? parseInt(listCell.getAttribute('data-list-price')) : m.price;
+    const listPrice = m.listPrice || m.price;
     const priceHtml = listPrice !== m.price ? '<span style="text-decoration:line-through;color:#999;font-weight:400;margin-right:6px;">' + fmtRaw(listPrice) + '</span>' + fmtRaw(m.price) : fmtRaw(m.price);
     return '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:12px 16px;font-weight:600;">' + m.name + '</td><td style="padding:12px 16px;color:#1e293b;font-size:13px;">' + m.tier + '</td><td style="padding:12px 16px;text-align:right;font-weight:600;">' + priceHtml + '</td></tr>';
   }).join('');
@@ -1815,30 +1818,32 @@ async function downloadPDFFile() {
   if (!data) return;
   saveQuoteToHistory(data);
 
-  const container = document.createElement('div');
-  const bodyMatch = data.html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-  container.innerHTML = bodyMatch ? bodyMatch[1] : data.html;
-  // Must be visible for html2canvas to render - use opacity:0 instead of off-screen
-  container.style.cssText = 'position:fixed;left:0;top:0;width:210mm;padding:20mm;z-index:99999;background:white;opacity:0;pointer-events:none;';
-  document.body.appendChild(container);
+  // Create hidden iframe with full HTML (ensures CSS is loaded and content renders properly)
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;left:0;top:0;width:800px;height:1200px;z-index:99999;opacity:0;pointer-events:none;border:none;';
+  document.body.appendChild(iframe);
 
-  // Wait for fonts and images to load
-  await new Promise(r => setTimeout(r, 500));
+  iframe.contentDocument.open();
+  iframe.contentDocument.write(data.html);
+  iframe.contentDocument.close();
+
+  // Wait for content to render
+  await new Promise(r => setTimeout(r, 1000));
 
   const company = data.recipientCompany || 'Quote';
   const filename = data.quoteRef + '_' + company.replace(/[^a-zA-Z0-9]/g, '_') + '.pdf';
 
   try {
     await html2pdf().set({
-      margin: [10, 10, 10, 10],
+      margin: [8, 8, 8, 8],
       filename: filename,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0, windowWidth: 800 },
+      image: { type: 'jpeg', quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-    }).from(container).save();
+    }).from(iframe.contentDocument.body).save();
   } finally {
-    document.body.removeChild(container);
+    document.body.removeChild(iframe);
   }
 }
 

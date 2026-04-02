@@ -350,17 +350,17 @@ input[type="checkbox"] { accent-color: #6366f1; }
               <p class="text-xs text-slate-500">SRM</p>
             </div>
           </div>
-          <p class="text-sm text-slate-400 mb-4">Automated supplier data extraction, onboarding & relationship management.</p>
+          <p class="text-sm text-slate-400 mb-4">Automated supplier relationship management with full supplier onboarding included.</p>
           <div class="flex items-end justify-between">
             <div>
-              <span class="text-xs text-slate-500">Starting at</span>
-              <div class="text-2xl font-bold text-slate-400 mp" data-usd="2500">$2,500</div>
+              <span class="text-xs text-slate-500">Flat Rate</span>
+              <div class="text-2xl font-bold text-slate-400 mp" data-usd="125000" data-eur="109000" data-gbp="99000">$125,000</div>
               <span class="text-xs text-slate-500">/year</span>
             </div>
-            <div class="text-xs text-slate-500">5 tiers</div>
+            <div class="text-xs text-slate-500">Flat Rate</div>
           </div>
           <div class="mt-4 pt-4 border-t border-slate-700/50 flex items-center justify-between">
-            <span class="text-xs text-slate-500">Scales to 250+</span>
+            <span class="text-xs text-slate-500">Onboarding included</span>
             <span class="text-xs text-slate-400 font-medium arrow-slide">View details <span class="arrow-icon">→</span></span>
           </div>
         </div>
@@ -630,11 +630,11 @@ input[type="checkbox"] { accent-color: #6366f1; }
               <tr class="hover:bg-slate-800/30 transition cursor-pointer" onclick="showModulePage('sm')">
                 <td class="p-4 font-medium"><span class="text-slate-400">●</span> SRM</td>
                 <td class="p-4 text-slate-400">Supplier relationship management</td>
-                <td class="p-4 text-right font-semibold mp" data-usd="2500">$2,500</td>
-                <td class="p-4 text-right text-slate-400">Onboardings</td>
-                <td class="p-4 text-right text-slate-400">50</td>
-                <td class="p-4 text-right text-slate-400 mp" data-usd="125000">$125,000</td>
-                <td class="p-4 text-center"><span class="text-xs px-2 py-1 bg-slate-500/10 text-slate-400 rounded">$50/onboard</span></td>
+                <td class="p-4 text-right font-semibold mp" data-usd="125000" data-eur="109000" data-gbp="99000">$125,000</td>
+                <td class="p-4 text-right text-slate-400">Flat Rate</td>
+                <td class="p-4 text-right text-slate-400">1</td>
+                <td class="p-4 text-right text-slate-400 mp" data-usd="125000" data-eur="109000" data-gbp="99000">$125,000</td>
+                <td class="p-4 text-center"><span class="text-xs px-2 py-1 bg-slate-500/10 text-slate-400 rounded">Flat</span></td>
                 <td class="p-4 text-right text-slate-400 text-xs">→</td>
               </tr>
             </tbody>
@@ -1013,13 +1013,9 @@ input[type="checkbox"] { accent-color: #6366f1; }
             <span class="text-sm text-slate-400 font-semibold" id="calc-sm-price">$0</span>
           </div>
           <div class="ml-8 hidden" id="calc-sm-opts">
-            <label class="text-xs text-slate-500">Onboardings per Year</label>
+            <label class="text-xs text-slate-500">Flat Rate</label>
             <select id="calc-sm-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
-              <option value="2500">Up to 50 — $2,500/yr</option>
-              <option value="3125">Up to 100 — $3,125/yr</option>
-              <option value="3750">Up to 150 — $3,750/yr</option>
-              <option value="4375">Up to 200 — $4,375/yr</option>
-              <option value="5000">Up to 250 — $5,000/yr</option>
+              <option value="125000">Flat Rate — $125,000/yr</option>
             </select>
           </div>
         </div>
@@ -1823,6 +1819,9 @@ const modules = {
     { vol: 'Up to 800 users', price: 150000, eur: 125000, gbp: 110000 },
     { vol: 'Unlimited', price: 250000, eur: 210000, gbp: 185000 }
   ]},
+  sm: { name: 'SRM', color: 'slate', tiers: [
+    { vol: 'Flat Rate', price: 125000, eur: 109000, gbp: 99000 }
+  ]},
   aa: { name: 'Approval Agent', color: 'teal', tiers: [
     { vol: 'Flat Rate', price: 12500 }
   ]},
@@ -2078,19 +2077,15 @@ const moduleDetails = {
     subtitle: 'SRM',
     color: 'slate',
     icon: '🏢',
-    desc: 'Lio automates supplier onboarding and relationship management by extracting data from public sources and contacting suppliers for missing information. No platform registration required for suppliers.',
-    features: ['Automated data extraction from public sources', 'AI-driven supplier outreach', 'No supplier registration needed', 'Compliance document collection', 'Risk assessment scoring', 'Continuous data enrichment'],
+    desc: 'Automated supplier relationship management with full supplier onboarding included. AI-powered data extraction, outreach, compliance collection, and continuous enrichment -- no platform registration required for suppliers.',
+    features: ['Full supplier onboarding included', 'Automated data extraction from public sources', 'AI-driven supplier outreach', 'No supplier registration needed', 'Compliance document collection', 'Risk assessment & continuous enrichment'],
     metrics: [
       { label: 'Onboarding Time', value: '-80%' },
       { label: 'Data Completeness', value: '95%' },
       { label: 'Supplier Satisfaction', value: '4.8/5' }
     ],
-    tiers: [
-      { vol: 'Up to 50', price: 2500 }, { vol: 'Up to 100', price: 3125 },
-      { vol: 'Up to 150', price: 3750 }, { vol: 'Up to 200', price: 4375 },
-      { vol: 'Up to 250', price: 5000 }
-    ],
-    unit: 'Onboardings/Year'
+    tiers: modules.sm.tiers,
+    unit: 'Flat Rate'
   },
   aa: {
     title: 'Approval Agent',
@@ -2795,15 +2790,20 @@ function generateQuoteData() {
 
   mods.forEach(mod => {
     if (document.getElementById('check-' + mod).checked) {
-      const tierText = document.getElementById('calc-' + mod + '-tier').selectedOptions[0].text.split(' — ')[0];
+      const tierEl = document.getElementById('calc-' + mod + '-tier');
+      const tierText = tierEl.selectedOptions[0].text.split(' — ')[0];
+      const tierPrice = parseInt(tierEl.value);
+      const tierObj = modules[mod]?.tiers?.find(t => t.price === tierPrice) || { price: tierPrice };
+      const listPrice = getTierPriceRaw(tierObj);
       const finalPriceEl = document.getElementById('qf-' + mod);
-      const price = finalPriceEl ? (parseFloat(finalPriceEl.value) || 0) : parseInt(document.getElementById('calc-' + mod + '-tier').value);
+      const price = finalPriceEl ? (parseFloat(finalPriceEl.value) || 0) : listPrice;
       totalSaas += price;
       if (mod === 'sm') hasSM = true;
       selectedMods.push({
         key: mod,
         name: mod === 'sm' ? 'Supplier Relationship Management (SRM)' : (modules[mod]?.name || 'SRM'),
         price: price,
+        listPrice: listPrice,
         tier: tierText,
         desc: moduleDetails[mod]?.desc || '',
         features: moduleDetails[mod]?.features || []
@@ -2879,17 +2879,14 @@ function generateQuoteData() {
   // Calculate savings for display
   let totalListPrice = 0;
   selectedMods.forEach(m => {
-    const listCell = document.querySelector('tr[data-mod="' + m.key + '"] td[data-list-price]');
-    const listPrice = listCell ? parseInt(listCell.getAttribute('data-list-price')) : m.price;
-    totalListPrice += listPrice;
+    totalListPrice += m.listPrice || m.price;
   });
   const totalSavingsAll = totalListPrice - finalSaas;
   const lineDiscTotal = totalListPrice - totalSaas;
   const bundleSavings = bundleApply ? Math.round(totalSaas * bundlePct / 100) : 0;
 
   const moduleRows = selectedMods.map(m => {
-    const listCell = document.querySelector('tr[data-mod="' + m.key + '"] td[data-list-price]');
-    const listPrice = listCell ? parseInt(listCell.getAttribute('data-list-price')) : m.price;
+    const listPrice = m.listPrice || m.price;
     const priceDisplay = listPrice !== m.price
       ? '<span style="text-decoration:line-through;color:#999;font-weight:400;margin-right:6px;">' + fmtRaw(listPrice) + '</span>' + fmtRaw(m.price)
       : fmtRaw(m.price);
@@ -3241,31 +3238,32 @@ async function downloadQuoteAsPDF() {
   if (!data) return;
   saveQuoteToHistory(data);
 
-  const container = document.createElement('div');
-  // Extract just the body content from the full HTML
-  const bodyMatch = data.html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-  container.innerHTML = bodyMatch ? bodyMatch[1] : data.html;
-  // Must be visible for html2canvas to render - use opacity:0 instead of off-screen
-  container.style.cssText = 'position:fixed;left:0;top:0;width:210mm;padding:20mm;z-index:99999;background:white;opacity:0;pointer-events:none;';
-  document.body.appendChild(container);
+  // Create hidden iframe with full HTML (ensures CSS is loaded and content renders properly)
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;left:0;top:0;width:800px;height:1200px;z-index:99999;opacity:0;pointer-events:none;border:none;';
+  document.body.appendChild(iframe);
 
-  // Wait for fonts and images to load
-  await new Promise(r => setTimeout(r, 500));
+  iframe.contentDocument.open();
+  iframe.contentDocument.write(data.html);
+  iframe.contentDocument.close();
+
+  // Wait for content to render
+  await new Promise(r => setTimeout(r, 1000));
 
   const company = data.recipientCompany || 'Quote';
   const filename = data.quoteRef + '_' + company.replace(/[^a-zA-Z0-9]/g, '_') + '.pdf';
 
   try {
     await html2pdf().set({
-      margin: [10, 10, 10, 10],
+      margin: [8, 8, 8, 8],
       filename: filename,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0, windowWidth: 800 },
+      image: { type: 'jpeg', quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-    }).from(container).save();
+    }).from(iframe.contentDocument.body).save();
   } finally {
-    document.body.removeChild(container);
+    document.body.removeChild(iframe);
   }
 }
 
