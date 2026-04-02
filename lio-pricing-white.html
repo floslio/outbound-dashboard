@@ -543,16 +543,18 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
                 <div class="flex justify-between text-sm"><span class="text-emerald-600" id="c-bundle-name">Bundle: —</span><span class="text-emerald-600" id="c-bundle-savings">-$0</span></div>
                 <div class="flex justify-between text-sm"><span class="text-slate-500">Net SaaS Fee</span><span class="font-semibold text-slate-900" id="c-net-saas">$0</span></div>
               </div>
-              <div class="flex justify-between text-sm"><span class="text-slate-500">Implementation (15%) -- one-time</span><span id="c-impl">$0</span></div>
               <div class="flex justify-between text-sm"><span class="text-slate-500">Customer Success (10%/yr)</span><span id="c-cs">$0</span></div>
             </div>
-            <div class="border-t-2 border-lio-200 pt-3">
+            <div class="border-t-2 border-indigo-300 pt-3">
               <div class="flex justify-between items-center">
-                <span class="font-bold text-slate-900">Total First Year</span>
-                <span class="text-2xl font-extrabold accent-text" id="c-total">$0</span>
+                <span class="font-bold text-sm text-slate-900">Recurring Annual</span>
+                <span class="text-2xl font-extrabold accent-text" id="c-recurring">$0</span>
               </div>
-              <div class="flex justify-between text-sm mt-1"><span class="text-slate-400">Recurring Annual (SaaS + CS)</span><span class="text-slate-600 font-semibold" id="c-recurring">$0</span></div>
-              <div class="flex justify-between text-sm mt-1"><span class="text-slate-400">Monthly</span><span class="text-slate-600" id="c-monthly">$0</span></div>
+              <div class="flex justify-between text-sm mt-1"><span class="text-slate-400">Monthly</span><span class="text-slate-700 font-bold" id="c-monthly">$0</span></div>
+            </div>
+            <div class="border-t border-slate-200 pt-2 mt-2">
+              <div class="flex justify-between text-xs"><span class="text-slate-400">Implementation (15%) -- one-time</span><span class="text-slate-400" id="c-impl">$0</span></div>
+              <div class="flex justify-between text-xs mt-1"><span class="text-slate-400">Total First Year</span><span class="text-slate-400" id="c-total">$0</span></div>
             </div>
             <button onclick="openQuoteModal()" class="mt-4 w-full py-3 accent-gradient text-white rounded-xl font-semibold transition hover:opacity-90 flex items-center justify-center gap-2 no-print">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -1703,8 +1705,7 @@ function generateQuoteData() {
 
   const additionalAgentsPdf = additionalAgents.length > 0 ? `
   <div style="margin-top:32px;page-break-before:auto;">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-      <div style="width:4px;height:24px;background:linear-gradient(180deg,#6366f1,#22d3ee);border-radius:2px;"></div>
+    <div style="margin-bottom:16px;">
       <h2 style="font-size:20px;font-weight:700;color:#1e293b;margin:0;">More Ways Agents Can Automate Your Procurement</h2>
     </div>
     <p style="font-size:13px;color:#64748b;margin:0 0 20px 0;">The following agent modules are available to further automate and optimize your procurement operations.</p>
@@ -1741,12 +1742,12 @@ function generateQuoteData() {
     ${lineDiscTotal > 0 ? `<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Line Discounts</td><td style="padding:8px 16px;text-align:right;color:#dc2626;">-${fmt(lineDiscTotal)}</td></tr>` : ''}
     ${bundleApply ? `<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Bundle Discount (${bundle.discount}% \u2013 ${bundle.name})</td><td style="padding:8px 16px;text-align:right;color:#dc2626;">-${fmt(bundleSavings)}</td></tr>` : ''}
     ${excDiscount > 0 ? `<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Exclusive Discount${excType === 'pct' ? ' (' + excVal + '%)' : ''}</td><td style="padding:8px 16px;text-align:right;color:#dc2626;">\u2013${fmt(excDiscount)}</td></tr>` : ''}
-    <tr style="border-bottom:2px solid #e2e8f0;background:#f8fafc;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;font-weight:700;" colspan="2">Net SaaS Fee</td><td style="padding:8px 16px;text-align:right;font-weight:700;">${fmt(finalSaas)}</td></tr>
-    <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Implementation (15%) -- one-time${implDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (implDiscType === 'pct' ? implDiscVal + '%' : fmt(implDisc)) + ' discount</span>' : ''}</td><td style="padding:8px 16px;text-align:right;">${fmt(impl)}</td></tr>
-    <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Customer Success (10%/yr) -- annual${csDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (csDiscType === 'pct' ? csDiscVal + '%' : fmt(csDisc)) + ' discount</span>' : ''}</td><td style="padding:8px 16px;text-align:right;">${fmt(cs)}</td></tr>
-    <tr style="background:#f8fafc;"><td style="padding:12px 16px;font-weight:700;" colspan="2">Total First Year</td><td style="padding:12px 16px;text-align:right;font-weight:800;font-size:16px;color:#1e293b;">${fmt(grand)}</td></tr>
-    <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Recurring Annual (SaaS + CS)</td><td style="padding:8px 16px;text-align:right;font-weight:600;">${fmt(finalSaas + cs)}</td></tr>
-    <tr><td style="padding:6px 16px;font-size:12px;color:#64748b;" colspan="2">Monthly equivalent</td><td style="padding:6px 16px;text-align:right;font-size:12px;color:#64748b;font-weight:700;">${fmt(Math.round((finalSaas + cs) / 12))}/mo</td></tr>
+    <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Net SaaS Fee (annual)</td><td style="padding:8px 16px;text-align:right;font-size:12px;">${fmt(finalSaas)}</td></tr>
+    <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Customer Success (10%/yr)${csDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (csDiscType === 'pct' ? csDiscVal + '%' : fmt(csDisc)) + ' discount</span>' : ''}</td><td style="padding:8px 16px;text-align:right;font-size:12px;">${fmt(cs)}</td></tr>
+    <tr style="border-top:2px solid #4f46e5;background:#eef2ff;"><td style="padding:14px 16px;font-size:16px;font-weight:800;color:#1e293b;" colspan="2">Recurring Annual (SaaS + CS)</td><td style="padding:14px 16px;text-align:right;font-size:18px;font-weight:800;color:#4f46e5;">${fmtRaw(finalSaas + cs)}</td></tr>
+    <tr><td style="padding:6px 16px;font-size:13px;font-weight:700;color:#1e293b;" colspan="2">Monthly equivalent</td><td style="padding:6px 16px;text-align:right;font-size:13px;font-weight:700;color:#1e293b;">${fmtRaw(Math.round((finalSaas + cs) / 12))}/mo</td></tr>
+    <tr style="border-top:1px solid #e2e8f0;"><td style="padding:8px 16px;font-size:11px;color:#94a3b8;" colspan="2">Implementation Fee (15%) -- one-time${implDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (implDiscType === 'pct' ? implDiscVal + '%' : fmt(implDisc)) + ' discount</span>' : ''}</td><td style="padding:8px 16px;text-align:right;font-size:11px;color:#94a3b8;">${fmtRaw(impl)}</td></tr>
+    <tr style="border-top:1px dashed #e2e8f0;"><td style="padding:8px 16px;font-size:11px;color:#94a3b8;" colspan="2">Total First Year (incl. one-time fees)</td><td style="padding:8px 16px;text-align:right;font-size:12px;color:#64748b;">${fmtRaw(grand)}</td></tr>
     ${totalSavingsAll > 0 ? `<tr style="border-top:1px solid #e5e7eb;"><td style="padding:8px 16px;font-size:12px;font-weight:600;" colspan="2">Total Savings</td><td style="padding:8px 16px;text-align:right;font-weight:700;color:#16a34a;">-${fmt(totalSavingsAll)}</td></tr>` : ''}
   </table>
   ${includeDetails ? `<div style="page-break-before:always;"></div><h2 style="font-size:16px;font-weight:700;margin-bottom:12px;">Selected Modules</h2>${details}` : ''}
@@ -1754,7 +1755,7 @@ function generateQuoteData() {
   ${roiSection}
   ${customNotes ? `<div style="margin-top:28px;page-break-inside:avoid;"><h2 style="font-size:16px;font-weight:700;margin-bottom:10px;">Notes</h2><div style="background:#f8f8f8;border-radius:8px;padding:16px;font-size:12px;line-height:1.7;white-space:pre-wrap;">${customNotes}</div></div>` : ''}
   ${includeService ? `<div style="background:#f8fafc;border-radius:10px;padding:20px;margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;page-break-inside:avoid;"><div><div style="font-size:11px;font-weight:600;color:#1e293b;text-transform:uppercase;margin-bottom:6px;">Implementation (15%)</div><div style="font-size:11px;color:#1e293b;line-height:1.8;">&#10003; Web Interface & Teams<br>&#10003; ERP & P2P System integration<br>&#10003; System configuration<br>&#10003; Up to 50 punchout catalogs<br>&#10003; Training</div></div><div><div style="font-size:11px;font-weight:600;color:#1e293b;text-transform:uppercase;margin-bottom:6px;">Customer Success (10%)</div><div style="font-size:11px;color:#1e293b;line-height:1.8;">&#10003; Dedicated CSM<br>&#10003; SLA-backed response<br>&#10003; Escalation management<br>&#10003; Monthly strategy sessions</div></div></div>` : ''}
-  ${includeTerms ? `<div style="margin-top:28px;padding:16px;border:1px solid #e2e8f0;border-radius:10px;font-size:11px;color:#1e293b;line-height:1.7;page-break-inside:avoid;"><div style="font-weight:600;color:#1e293b;margin-bottom:6px;">Terms & Conditions</div><div>&bull; Prices are based on annual licensing, with customized terms possible upon mutual agreement.</div><div>&bull; This quotation is non-binding and does not constitute a contract. A legally binding agreement shall only come into effect upon execution of a formal Contract Agreement by both parties.</div><div>&bull; Implementation and Customer Success fees are calculated as a percentage of the combined annual SaaS fee.</div><div>&bull; Minimum contract term: 24 months.</div><div>&bull; Prices scale with usage volume. Contact your Account Manager for higher volume tiers.</div></div>` : ''}
+  ${includeTerms ? `<div style="margin-top:28px;padding:16px;border:1px solid #e2e8f0;border-radius:10px;font-size:11px;color:#1e293b;line-height:1.7;page-break-inside:avoid;"><div style="font-weight:600;color:#1e293b;margin-bottom:6px;">Terms & Conditions</div><div style="padding-left:16px;text-indent:-16px;">&bull; Prices are based on annual licensing, with customized terms possible upon mutual agreement.</div><div style="padding-left:16px;text-indent:-16px;">&bull; This quotation is non-binding and does not constitute a contract. A legally binding agreement shall only come into effect upon execution of a formal Contract Agreement by both parties.</div><div style="padding-left:16px;text-indent:-16px;">&bull; Implementation and Customer Success fees are calculated as a percentage of the combined annual SaaS fee.</div><div style="padding-left:16px;text-indent:-16px;">&bull; Minimum contract term: 24 months.</div><div style="padding-left:16px;text-indent:-16px;">&bull; Prices scale with usage volume. Contact your Account Manager for higher volume tiers.</div></div>` : ''}
   <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:flex-start;"><div><div style="font-size:12px;font-weight:600;">Lio Technologies GmbH</div><div style="font-size:10px;color:#64748b;line-height:1.6;">Munich, Germany<br>VAT ID: DE 364047844<br>Register number: HRB 286659 | Munich<br>Managing directors: Lukas Heinzmann, Vladimir Keil</div></div><div style="text-align:right;"><div style="font-size:12px;font-weight:600;">${lioContact.name}</div><div style="font-size:11px;color:#1e293b;">${lioContact.email}</div></div></div>
   </div></body></html>`;
 
