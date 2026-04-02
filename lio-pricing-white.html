@@ -1090,6 +1090,11 @@ function setCurrency(cur) {
   // Recalculate
   calcUpdate();
   calcROI();
+  // Update quote modal prices if it's open
+  const quoteModal = document.getElementById('quote-modal');
+  if (quoteModal && !quoteModal.classList.contains('hidden')) {
+    populateQuotePricing();
+  }
 }
 
 // View switcher
@@ -1599,17 +1604,28 @@ function generateQuoteData() {
   const sel = [];
   let totalSaas = 0, hasSM = false;
   mods.forEach(k => {
-    if (!document.getElementById('chk-' + k).checked) return;
+    if (!document.getElementById('chk-' + k)?.checked) return;
     const tierEl = document.getElementById('ct-' + k);
-    const tierText = tierEl.selectedOptions[0].text.split(' \u2014 ')[0];
+    if (!tierEl) return;
+    const tierText = tierEl.selectedOptions[0]?.text?.split(' \u2014 ')[0] || '';
     const tierPrice = parseInt(tierEl.value);
     const tierObj = modules[k]?.tiers?.find(t => t.price === tierPrice) || { price: tierPrice };
-    const listPrice = getTierPriceRaw(tierObj);
-    const finalEl = document.getElementById('qf-' + k);
-    const p = finalEl ? (parseFloat(finalEl.value) || 0) : listPrice;
-    totalSaas += p;
+    const listPrice = getTierPriceRaw(tierObj); // Correct current-currency price
+
+    // Check if user manually adjusted the price
+    const qfEl = document.getElementById('qf-' + k);
+    let customPrice = listPrice;
+    if (qfEl) {
+      const qfVal = parseFloat(qfEl.value) || 0;
+      if (qfVal > 0 && qfVal !== listPrice) {
+        customPrice = qfVal; // User manually changed the price
+      }
+    }
+
+    totalSaas += customPrice;
     if (k === 'sm') hasSM = true;
-    sel.push({ key: k, name: k === 'sm' ? 'Supplier Relationship Management (SRM)' : modules[k].name, price: p, listPrice: listPrice, discountPct: discountMode[k] === 'pct' ? (parseFloat(document.getElementById('qd-' + k)?.value) || 0) : 0, discountMode: discountMode[k] || 'manual', tier: tierText, desc: modules[k].desc, features: modules[k].features });
+    const discPct = (discountMode[k] === 'pct') ? (parseFloat(document.getElementById('qd-' + k)?.value) || 0) : 0;
+    sel.push({ key: k, name: k === 'sm' ? 'Supplier Relationship Management (SRM)' : modules[k].name, price: customPrice, listPrice: listPrice, discountPct: discPct, discountMode: discountMode[k] || 'manual', tier: tierText, desc: modules[k].desc, features: modules[k].features });
   });
   if (!sel.length) { alert('Please select at least one module.'); return; }
 

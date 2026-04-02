@@ -1925,6 +1925,11 @@ function setCurrency(cur) {
   calcROI();
   // Update slider view
   if (typeof updateAllSliders === 'function') updateAllSliders();
+  // Update quote modal prices if it's open
+  const quoteModal = document.getElementById('quote-modal');
+  if (quoteModal && !quoteModal.classList.contains('hidden')) {
+    populateQuotePricing();
+  }
 }
 
 // ============================
@@ -2842,28 +2847,42 @@ function generateQuoteData() {
   let hasSM = false;
 
   mods.forEach(mod => {
-    if (document.getElementById('check-' + mod).checked) {
-      const tierEl = document.getElementById('calc-' + mod + '-tier');
-      const tierText = tierEl.selectedOptions[0].text.split(' — ')[0];
-      const tierPrice = parseInt(tierEl.value);
-      const tierObj = modules[mod]?.tiers?.find(t => t.price === tierPrice) || { price: tierPrice };
-      const listPrice = getTierPriceRaw(tierObj);
-      const finalPriceEl = document.getElementById('qf-' + mod);
-      const price = finalPriceEl ? (parseFloat(finalPriceEl.value) || 0) : listPrice;
-      totalSaas += price;
-      if (mod === 'sm') hasSM = true;
-      selectedMods.push({
-        key: mod,
-        name: mod === 'sm' ? 'Supplier Relationship Management (SRM)' : (modules[mod]?.name || 'SRM'),
-        price: price,
-        listPrice: listPrice,
-        discountPct: discountMode[mod] === 'pct' ? (parseFloat(document.getElementById('qd-' + mod)?.value) || 0) : 0,
-        discountMode: discountMode[mod] || 'manual',
-        tier: tierText,
-        desc: moduleDetails[mod]?.desc || '',
-        features: moduleDetails[mod]?.features || []
-      });
+    if (!document.getElementById('check-' + mod)?.checked) return;
+    const tierEl = document.getElementById('calc-' + mod + '-tier');
+    if (!tierEl) return;
+    const tierText = tierEl.selectedOptions[0]?.text?.split(' — ')[0] || '';
+    const tierPrice = parseInt(tierEl.value);
+    const tierObj = modules[mod]?.tiers?.find(t => t.price === tierPrice) || { price: tierPrice };
+    const listPrice = getTierPriceRaw(tierObj); // Correct current-currency price
+
+    // Check if user manually adjusted the price
+    const qfEl = document.getElementById('qf-' + mod);
+    let customPrice = listPrice; // Default: use the correct tier price
+    let isManualOverride = false;
+    if (qfEl) {
+      const qfVal = parseFloat(qfEl.value) || 0;
+      if (qfVal > 0 && qfVal !== listPrice) {
+        // User manually changed the price
+        customPrice = qfVal;
+        isManualOverride = true;
+      }
     }
+
+    totalSaas += customPrice;
+    if (mod === 'sm') hasSM = true;
+
+    const discPct = (discountMode[mod] === 'pct') ? (parseFloat(document.getElementById('qd-' + mod)?.value) || 0) : 0;
+    selectedMods.push({
+      key: mod,
+      name: mod === 'sm' ? 'Supplier Relationship Management (SRM)' : (modules[mod]?.name || 'SRM'),
+      price: customPrice,
+      listPrice: listPrice,
+      discountPct: discPct,
+      discountMode: discountMode[mod] || 'manual',
+      tier: tierText,
+      desc: moduleDetails[mod]?.desc || '',
+      features: moduleDetails[mod]?.features || []
+    });
   });
 
   if (selectedMods.length === 0) { alert('Please select at least one module.'); return; }
