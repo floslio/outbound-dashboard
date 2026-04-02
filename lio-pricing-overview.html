@@ -145,7 +145,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
       AI Agents for<br><span class="gradient-text">Procurement at Scale</span>
     </h1>
     <p class="text-lg text-slate-400 max-w-2xl mx-auto mb-10">
-      Volume-based pricing that grows with you. Combine modules, unlock bundle savings, and let AI handle your procurement — from sourcing to order confirmation.
+      Volume-based pricing that grows with you. Combine modules, unlock bundle savings, and let AI handle your procurement. From sourcing to order confirmation.
     </p>
     <div class="flex flex-wrap justify-center gap-4 mb-12">
       <button onclick="showPage('overview')" class="px-6 py-3 bg-lio-600 hover:bg-lio-500 rounded-xl font-semibold transition glow shimmer-btn relative overflow-hidden">Explore Pricing</button>
@@ -248,7 +248,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
               <p class="text-xs text-slate-500">AA</p>
             </div>
           </div>
-          <p class="text-sm text-slate-400 mb-4">Manages PR approval workflows — proactive outreach, OOO handling, bottleneck prevention.</p>
+          <p class="text-sm text-slate-400 mb-4">Manages PR approval workflows with proactive outreach, OOO handling, and bottleneck prevention.</p>
           <div class="flex items-end justify-between">
             <div>
               <span class="text-xs text-slate-500">Starting at</span>
@@ -296,7 +296,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
               <p class="text-xs text-slate-500">GR</p>
             </div>
           </div>
-          <p class="text-sm text-slate-400 mb-4">Automates goods receipt — document-based creation, partial delivery tracking, and reminders.</p>
+          <p class="text-sm text-slate-400 mb-4">Automates goods receipt processing. Handles document-based creation, partial delivery tracking, and reminders.</p>
           <div class="flex items-end justify-between">
             <div>
               <span class="text-xs text-slate-500">Starting at</span>
@@ -803,7 +803,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
         <div class="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-3">Source to Pay</div>
         <h3 class="text-xl font-bold mb-1">Source to Pay</h3>
         <p class="text-sm text-slate-400 mb-4">Complete sourcing-to-contract pipeline with AI-driven negotiation.</p>
-        <div class="text-3xl font-bold gradient-text-amber">from <span class="mp" data-usd="50140">$50,140</span></div>
+        <div class="text-3xl font-bold gradient-text-amber">from <span class="mp" data-usd="162840">$162,840</span></div>
         <div class="text-xs text-slate-500 mb-6">/year · 8% bundle discount</div>
         <div class="space-y-2 mb-6">
           <div class="check-icon text-sm text-slate-300">SRM Agent</div>
@@ -844,7 +844,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
         <div class="bundle-badge" style="background: linear-gradient(135deg, #e11d48, #f43f5e);">Featured</div>
         <div class="text-xs font-semibold text-rose-400 uppercase tracking-wider mb-3">Enterprise</div>
         <h3 class="text-xl font-bold mb-1">Enterprise</h3>
-        <p class="text-sm text-slate-400 mb-4">Every Lio agent working together — the full AI-powered procurement suite.</p>
+        <p class="text-sm text-slate-400 mb-4">Every Lio agent working together. The full AI-powered procurement suite.</p>
         <div class="text-3xl font-bold gradient-text-rose">Custom</div>
         <div class="text-xs text-slate-500 mb-6">/year · 15% bundle discount</div>
         <div class="space-y-2 mb-6">
@@ -1342,11 +1342,12 @@ input[type="checkbox"] { accent-color: #6366f1; }
 
         <!-- Line-by-line pricing table -->
         <div class="rounded-lg border border-slate-700/50 overflow-hidden overflow-x-auto">
-          <table class="w-full text-sm min-w-[400px]">
+          <table class="w-full text-sm min-w-[500px]">
             <thead>
               <tr class="bg-slate-800/50 text-slate-400 text-xs uppercase">
                 <th class="text-left p-2 pl-3">Module</th>
                 <th class="text-right p-2">List Price</th>
+                <th class="text-center p-2" style="width:70px">Discount %</th>
                 <th class="text-right p-2 pr-3">Your Price</th>
               </tr>
             </thead>
@@ -1360,16 +1361,12 @@ input[type="checkbox"] { accent-color: #6366f1; }
           </table>
         </div>
 
-        <!-- Exclusive Additional Discount -->
+        <!-- Global Agent Discount -->
         <div class="mt-3 p-3 rounded-lg bg-slate-800/30 border border-slate-700/50">
-          <label class="text-xs text-slate-400 block mb-2">Exclusive Discount (applied to SaaS subtotal)</label>
+          <label class="text-xs text-slate-400 block mb-2">Global Agent Discount %</label>
           <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
-            <select id="quote-exc-type" onchange="updateQuotePricing()" class="bg-slate-800/50 border border-slate-600 rounded-lg p-2 text-sm text-white outline-none">
-              <option value="none">None</option>
-              <option value="pct">Percentage (%)</option>
-              <option value="fixed">Fixed Amount ($)</option>
-            </select>
-            <input type="number" id="quote-exc-value" value="0" min="0" step="1" onchange="updateQuotePricing()" oninput="updateQuotePricing()" class="w-full sm:w-24 bg-slate-800/50 border border-slate-600 rounded-lg p-2 text-sm text-white outline-none text-right">
+            <input type="number" id="quote-exc-value" value="0" min="0" max="100" step="1" onchange="applyGlobalDiscount()" oninput="applyGlobalDiscount()" class="w-full sm:w-24 bg-slate-800/50 border border-slate-600 rounded-lg p-2 text-sm text-white outline-none text-right" placeholder="%">
+            <span class="text-xs text-slate-500">Applied to all modules</span>
           </div>
         </div>
 
@@ -2002,7 +1999,7 @@ const moduleDetails = {
     subtitle: 'PR Review',
     color: 'emerald',
     icon: '✅',
-    desc: 'Automates the review and processing of purchase requisitions — sanity checks, triage, auto-corrections, and remote approver follow-up. Proven 35-40% no-touch rate at enterprise scale.',
+    desc: 'Automates the review and processing of purchase requisitions. Includes sanity checks, triage, auto-corrections, and remote approver follow-up. Proven 35-40% no-touch rate at enterprise scale.',
     features: ['PR sanity check & triage', 'Auto-corrections with change history', 'Configurable submission checks (AOPs)', 'Remote Approver functionality', 'Bottleneck prevention', 'SAP & Coupa integration'],
     metrics: [
       { label: 'No-Touch Rate', value: '35-40%' },
@@ -2017,7 +2014,7 @@ const moduleDetails = {
     subtitle: 'NA',
     color: 'amber',
     icon: '🤝',
-    desc: 'Lio AI agents autonomously negotiate supplier bids. Using advanced negotiation strategies, market data, and your historical pricing to achieve optimal outcomes on every deal.',
+    desc: 'Lio AI agents autonomously negotiate supplier bids. Uses advanced negotiation strategies, market data, and your historical pricing to achieve optimal outcomes on every deal.',
     features: ['Autonomous multi-round negotiations', 'Market-aware pricing intelligence', 'Historical benchmark analysis', 'Multi-supplier bid management', 'Custom negotiation strategy rules', 'Real-time negotiation dashboards'],
     metrics: [
       { label: 'Avg. Savings per Event', value: '12%' },
@@ -2047,7 +2044,7 @@ const moduleDetails = {
     subtitle: 'OC',
     color: 'violet',
     icon: '📋',
-    desc: 'Lio automatically reviews and processes all order confirmations — checking delivery date, price, quantity, and delivery address against the original order.',
+    desc: 'Lio automatically reviews and processes all order confirmations. Checks delivery date, price, quantity, and delivery address against the original order.',
     features: ['Automatic OC data extraction', 'Price & quantity deviation detection', 'Delivery date verification', 'Address validation', 'Automatic acceptance or flagging', 'Integration with ERP workflows'],
     metrics: [
       { label: 'Auto-Processing Rate', value: '95%' },
@@ -2077,8 +2074,8 @@ const moduleDetails = {
     subtitle: 'SRM',
     color: 'slate',
     icon: '🏢',
-    desc: 'Automated supplier relationship management with full supplier onboarding included. AI-powered data extraction, outreach, compliance collection, and continuous enrichment -- no platform registration required for suppliers.',
-    features: ['Full supplier onboarding included', 'Automated data extraction from public sources', 'AI-driven supplier outreach', 'No supplier registration needed', 'Compliance document collection', 'Risk assessment & continuous enrichment'],
+    desc: 'Automated supplier relationship management with full supplier onboarding included. AI-powered supplier data enrichment, outreach, compliance collection, and continuous validation. No platform registration required for suppliers.',
+    features: ['Full supplier onboarding included', 'Supplier data enrichment and validation', 'AI-driven supplier outreach', 'Contract Management', 'Certificate & ESG Management', 'Analytics'],
     metrics: [
       { label: 'Onboarding Time', value: '-80%' },
       { label: 'Data Completeness', value: '95%' },
@@ -2092,7 +2089,7 @@ const moduleDetails = {
     subtitle: 'AA',
     color: 'teal',
     icon: '🔐',
-    desc: 'Manages PR approval workflows — proactive outreach to approvers, OOO handling, and bottleneck prevention. Eliminates delays in the approval chain.',
+    desc: 'Manages PR approval workflows with proactive outreach to approvers, OOO handling, and bottleneck prevention. Eliminates delays in the approval chain.',
     features: ['Remote Approver with proactive outreach', 'Configurable approval chains', 'AOP-based approval workflows', 'OOO escalation handling', 'Contextual approval requests', 'Integration as first approver in Lio workflow'],
     metrics: [
       { label: 'Approval Speed', value: '3x faster' },
@@ -2107,7 +2104,7 @@ const moduleDetails = {
     subtitle: 'GR',
     color: 'lime',
     icon: '📦',
-    desc: 'Automates the goods receipt process — document-based receipt creation, partial delivery tracking, proactive surfacing of pending receipts, and automated reminders.',
+    desc: 'Automates the goods receipt process. Handles document-based receipt creation, partial delivery tracking, proactive surfacing of pending receipts, and automated reminders.',
     features: ['Document upload & OCR for receipts', 'Partial & full delivery handling', 'Pending receipt surfacing', 'Automated reminder notifications', 'SAP goods receipt integration', 'Proactive follow-up workflows'],
     metrics: [
       { label: 'Processing Speed', value: '5x faster' },
@@ -2152,7 +2149,7 @@ const moduleDetails = {
     subtitle: 'NPA',
     color: 'fuchsia',
     icon: '🎯',
-    desc: 'Prepares procurement teams for strategic negotiations — supplier analysis, market intelligence, contract history review, and AI-powered negotiation strategies.',
+    desc: 'Prepares procurement teams for strategic negotiations. Provides supplier analysis, market intelligence, contract history review, and AI-powered negotiation strategies.',
     features: ['Supplier data & history analysis', 'Market intelligence integration', 'Strategy & talking point generation', 'Live negotiation coaching assistant', 'Best practice template library', 'Custom prompt configuration'],
     metrics: [
       { label: 'Prep Time Saved', value: '75%' },
@@ -2694,6 +2691,8 @@ function detectBundle(selectedKeys) {
   return best;
 }
 
+const discountMode = {};
+
 function populateQuotePricing() {
   const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
   const tbody = document.getElementById('quote-pricing-lines');
@@ -2706,11 +2705,15 @@ function populateQuotePricing() {
     const price = parseInt(document.getElementById('calc-' + mod + '-tier').value);
     const rawPrice = getTierPriceRaw(modules[mod].tiers.find(t => t.price === price) || { price: price });
     const modName = mod === 'sm' ? 'SRM' : (modules[mod]?.name || 'SRM');
+    discountMode[mod] = discountMode[mod] || 'manual';
     tbody.innerHTML += '<tr class="border-t border-slate-700/30" data-mod="' + mod + '">'
       + '<td class="p-2 pl-3 text-slate-300">' + modName + '</td>'
       + '<td class="p-2 text-right text-slate-400" data-list-price="' + rawPrice + '">' + fmtRaw(rawPrice) + '</td>'
+      + '<td class="p-2 text-center">'
+      + '<input type="number" id="qd-' + mod + '" value="" min="0" max="100" step="1" placeholder="%" onchange="applyDiscountPct(\'' + mod + '\')" oninput="applyDiscountPct(\'' + mod + '\')" class="w-16 bg-slate-800/50 border border-slate-600 rounded p-1 text-sm text-white text-center outline-none">'
+      + '</td>'
       + '<td class="p-2 pr-3 text-right">'
-      + '<input type="number" id="qf-' + mod + '" value="' + rawPrice + '" min="0" step="100" onchange="updateQuotePricing()" oninput="updateQuotePricing()" class="w-28 bg-slate-800/50 border border-slate-600 rounded p-1 text-sm text-white text-right outline-none font-semibold">'
+      + '<input type="number" id="qf-' + mod + '" value="' + rawPrice + '" min="0" step="100" onchange="applyManualPrice(\'' + mod + '\')" oninput="applyManualPrice(\'' + mod + '\')" class="w-28 bg-slate-800/50 border border-slate-600 rounded p-1 text-sm text-white text-right outline-none font-semibold">'
       + '</td>'
       + '</tr>';
   });
@@ -2728,6 +2731,44 @@ function populateQuotePricing() {
   }
 
   updateQuotePricing();
+}
+
+function applyDiscountPct(key) {
+  const pctInput = document.getElementById('qd-' + key);
+  const priceInput = document.getElementById('qf-' + key);
+  const listPriceEl = document.querySelector('tr[data-mod="' + key + '"] td[data-list-price]');
+  const listPrice = parseFloat(listPriceEl?.getAttribute('data-list-price')) || 0;
+  const pct = parseFloat(pctInput.value) || 0;
+  if (pct > 0) {
+    let discounted = listPrice * (1 - pct / 100);
+    if (currentCurrency !== 'usd') discounted = Math.round(discounted / 500) * 500;
+    else discounted = Math.round(discounted);
+    priceInput.value = discounted;
+    discountMode[key] = 'pct';
+  } else {
+    priceInput.value = listPrice;
+    discountMode[key] = 'manual';
+  }
+  updateQuotePricing();
+}
+
+function applyManualPrice(key) {
+  const pctInput = document.getElementById('qd-' + key);
+  if (pctInput) pctInput.value = '';
+  discountMode[key] = 'manual';
+  updateQuotePricing();
+}
+
+function applyGlobalDiscount() {
+  const globalPct = parseFloat(document.getElementById('quote-exc-value')?.value) || 0;
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  mods.forEach(key => {
+    const pctInput = document.getElementById('qd-' + key);
+    const priceInput = document.getElementById('qf-' + key);
+    if (!pctInput || !priceInput) return;
+    pctInput.value = globalPct;
+    applyDiscountPct(key);
+  });
 }
 
 
@@ -2748,13 +2789,7 @@ function updateQuotePricing() {
     saasTotal += Math.max(0, yourPrice);
   });
 
-  const excType = document.getElementById('quote-exc-type').value;
-  const excVal = parseFloat(document.getElementById('quote-exc-value').value) || 0;
-  let excDiscount = 0;
-  if (excType === 'pct') excDiscount = Math.round(saasTotal * excVal / 100);
-  else if (excType === 'fixed') excDiscount = excVal;
-
-  const finalSaas = Math.max(0, saasTotal - excDiscount);
+  const finalSaas = saasTotal;
 
   // Implementation discount
   let implBase = Math.round(finalSaas * 0.15);
@@ -2804,6 +2839,8 @@ function generateQuoteData() {
         name: mod === 'sm' ? 'Supplier Relationship Management (SRM)' : (modules[mod]?.name || 'SRM'),
         price: price,
         listPrice: listPrice,
+        discountPct: discountMode[mod] === 'pct' ? (parseFloat(document.getElementById('qd-' + mod)?.value) || 0) : 0,
+        discountMode: discountMode[mod] || 'manual',
         tier: tierText,
         desc: moduleDetails[mod]?.desc || '',
         features: moduleDetails[mod]?.features || []
@@ -2813,13 +2850,11 @@ function generateQuoteData() {
 
   if (selectedMods.length === 0) { alert('Please select at least one module.'); return; }
 
-  // Exclusive discount
-  const excType = document.getElementById('quote-exc-type').value;
-  const excVal = parseFloat(document.getElementById('quote-exc-value').value) || 0;
-  let excDiscount = 0;
-  if (excType === 'pct') excDiscount = Math.round(totalSaas * excVal / 100);
-  else if (excType === 'fixed') excDiscount = excVal;
-  const finalSaas = Math.max(0, totalSaas - excDiscount);
+  // No separate exclusive discount - discounts are per-module now
+  const excType = 'none';
+  const excVal = 0;
+  const excDiscount = 0;
+  const finalSaas = totalSaas;
 
   // Bundle info for PDF
   const selectedKeys = mods.filter(m => document.getElementById('check-' + m).checked);
@@ -2887,13 +2922,16 @@ function generateQuoteData() {
 
   const moduleRows = selectedMods.map(m => {
     const listPrice = m.listPrice || m.price;
-    const priceDisplay = listPrice !== m.price
-      ? '<span style="text-decoration:line-through;color:#999;font-weight:400;margin-right:6px;">' + fmtRaw(listPrice) + '</span>' + fmtRaw(m.price)
-      : fmtRaw(m.price);
+    let priceDisplay;
+    if (m.discountMode === 'pct' && m.discountPct > 0) {
+      priceDisplay = '<span style="text-decoration:line-through;color:#94a3b8;font-weight:400;margin-right:4px;">' + fmtRaw(listPrice) + '</span> <span style="color:#10b981;font-size:10px;">-' + m.discountPct + '%</span> ' + fmtRaw(m.price);
+    } else {
+      priceDisplay = fmtRaw(m.price);
+    }
     return `<tr style="border-bottom:1px solid #e5e7eb;">
-      <td style="padding:14px 16px;font-weight:600;color:#1e293b;">${m.name}</td>
-      <td style="padding:14px 16px;color:#1e293b;font-size:13px;">${m.tier}</td>
-      <td style="padding:14px 16px;text-align:right;font-weight:600;color:#1e293b;">${priceDisplay}</td>
+      <td style="padding:10px 16px;font-weight:600;color:#1e293b;font-size:12px;">${m.name}</td>
+      <td style="padding:10px 16px;color:#1e293b;font-size:11px;">${m.tier}</td>
+      <td style="padding:10px 16px;text-align:right;font-weight:600;color:#1e293b;font-size:12px;">${priceDisplay}</td>
     </tr>`;
   }).join('');
 
@@ -2901,18 +2939,18 @@ function generateQuoteData() {
     const allTiers = modules[m.key]?.tiers || [];
     const tierRows = allTiers.map(t => {
       const isSelected = t.vol === m.tier;
-      return `<tr style="border-bottom:1px solid #f1f5f9;${isSelected ? 'background:#f0fdf4;font-weight:600;' : ''}"><td style="padding:4px 8px;font-size:11px;color:#1e293b;">${isSelected ? '&#9654; ' : ''}${t.vol}</td><td style="padding:4px 8px;font-size:11px;text-align:right;color:#1e293b;">${fmtTierPrice(t)}/yr</td></tr>`;
+      return `<tr style="border-bottom:1px solid #f1f5f9;${isSelected ? 'background:#f0fdf4;font-weight:600;' : ''}"><td style="padding:3px 8px;font-size:10px;color:#1e293b;">${isSelected ? '&#9654; ' : ''}${t.vol}</td><td style="padding:3px 8px;font-size:10px;text-align:right;color:#1e293b;">${fmtTierPrice(t)}/yr</td></tr>`;
     }).join('');
     return `<div style="margin-bottom:24px;page-break-inside:avoid;">
-      <h3 style="font-size:16px;font-weight:700;color:#1e293b;margin:0 0 6px 0;">${m.name}</h3>
-      <p style="font-size:13px;color:#1e293b;margin:0 0 10px 0;line-height:1.5;">${m.desc}</p>
+      <h3 style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 6px 0;">${m.name}</h3>
+      <p style="font-size:11px;color:#1e293b;margin:0 0 10px 0;line-height:1.5;">${m.desc}</p>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
-        ${m.features.slice(0, 4).map(f => `<span style="display:inline-block;background:#f0f0f0;color:#1e293b;padding:4px 10px;border-radius:6px;font-size:11px;">&#10003; ${f}</span>`).join('')}
+        ${m.features.slice(0, 4).map(f => `<span style="display:inline-block;background:#f0f0f0;color:#1e293b;padding:3px 8px;border-radius:6px;font-size:10px;">&#10003; ${f}</span>`).join('')}
       </div>
       <div style="margin-top:8px;">
-        <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers</div>
-        <table style="width:100%;max-width:400px;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;font-size:11px;">
-          <thead><tr style="background:#f8fafc;"><th style="padding:4px 8px;text-align:left;font-size:10px;color:#64748b;text-transform:uppercase;">Volume</th><th style="padding:4px 8px;text-align:right;font-size:10px;color:#64748b;text-transform:uppercase;">Price</th></tr></thead>
+        <div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers</div>
+        <table style="width:100%;max-width:400px;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;font-size:10px;">
+          <thead><tr style="background:#f8fafc;"><th style="padding:3px 8px;text-align:left;font-size:9px;color:#64748b;text-transform:uppercase;">Volume</th><th style="padding:3px 8px;text-align:right;font-size:9px;color:#64748b;text-transform:uppercase;">Price</th></tr></thead>
           <tbody>${tierRows}</tbody>
         </table>
       </div>
@@ -3034,37 +3072,37 @@ function generateQuoteData() {
   </table>
   <table style="width:100%;border-collapse:collapse;margin-bottom:32px;">
     <tr style="border-bottom:1px solid #e5e7eb;">
-      <td style="padding:10px 16px;color:#1e293b;font-size:13px;" colspan="2">SaaS Subtotal</td>
-      <td style="padding:10px 16px;text-align:right;font-weight:600;">${fmt(totalListPrice)}</td>
+      <td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">SaaS Subtotal</td>
+      <td style="padding:8px 16px;text-align:right;font-weight:600;font-size:12px;">${fmt(totalListPrice)}</td>
     </tr>
-    ${lineDiscTotal > 0 ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:10px 16px;color:#1e293b;font-size:13px;" colspan="2">Line Discounts</td><td style="padding:10px 16px;text-align:right;color:#dc2626;">-' + fmt(lineDiscTotal) + '</td></tr>' : ''}
-    ${bundleApply ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:10px 16px;color:#1e293b;font-size:13px;" colspan="2">Bundle Discount: ' + bundleName + ' (' + bundlePct + '%)</td><td style="padding:10px 16px;text-align:right;color:#dc2626;">-' + fmt(bundleSavings) + '</td></tr>' : ''}
-    ${excDiscount > 0 ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:10px 16px;color:#1e293b;font-size:13px;" colspan="2">Exclusive Discount' + (excType === 'pct' ? ' (' + excVal + '%)' : '') + '</td><td style="padding:10px 16px;text-align:right;color:#dc2626;">-' + fmt(excDiscount) + '</td></tr>' : ''}
+    ${lineDiscTotal > 0 ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">Line Discounts</td><td style="padding:8px 16px;text-align:right;color:#dc2626;font-size:12px;">-' + fmt(lineDiscTotal) + '</td></tr>' : ''}
+    ${bundleApply ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">Bundle Discount: ' + bundleName + ' (' + bundlePct + '%)</td><td style="padding:8px 16px;text-align:right;color:#dc2626;font-size:12px;">-' + fmt(bundleSavings) + '</td></tr>' : ''}
+    ${excDiscount > 0 ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">Exclusive Discount' + (excType === 'pct' ? ' (' + excVal + '%)' : '') + '</td><td style="padding:8px 16px;text-align:right;color:#dc2626;font-size:12px;">-' + fmt(excDiscount) + '</td></tr>' : ''}
     <tr style="border-bottom:2px solid #e2e8f0;background:#f8fafc;">
-      <td style="padding:10px 16px;color:#1e293b;font-size:13px;font-weight:700;" colspan="2">Net SaaS Fee</td>
-      <td style="padding:10px 16px;text-align:right;font-weight:700;">${fmt(finalSaas)}</td>
+      <td style="padding:8px 16px;color:#1e293b;font-size:12px;font-weight:700;" colspan="2">Net SaaS Fee</td>
+      <td style="padding:8px 16px;text-align:right;font-weight:700;font-size:12px;">${fmt(finalSaas)}</td>
     </tr>
     <tr style="border-bottom:1px solid #e5e7eb;">
-      <td style="padding:10px 16px;color:#1e293b;font-size:13px;" colspan="2">Implementation Fee (15%) -- one-time${implDisc > 0 ? ' <span style="font-size:11px;">incl. ' + (implDiscType === 'pct' ? implDiscVal + '%' : fmt(implDisc)) + ' discount</span>' : ''}</td>
-      <td style="padding:10px 16px;text-align:right;">${fmt(impl)}</td>
+      <td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">Implementation Fee (15%) -- one-time${implDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (implDiscType === 'pct' ? implDiscVal + '%' : fmt(implDisc)) + ' discount</span>' : ''}</td>
+      <td style="padding:8px 16px;text-align:right;font-size:12px;">${fmt(impl)}</td>
     </tr>
     <tr style="border-bottom:1px solid #e5e7eb;">
-      <td style="padding:10px 16px;color:#1e293b;font-size:13px;" colspan="2">Customer Success Fee (10%/yr) -- annual${csDisc > 0 ? ' <span style="font-size:11px;">incl. ' + (csDiscType === 'pct' ? csDiscVal + '%' : fmt(csDisc)) + ' discount</span>' : ''}</td>
-      <td style="padding:10px 16px;text-align:right;">${fmt(cs)}</td>
+      <td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">Customer Success Fee (10%/yr) -- annual${csDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (csDiscType === 'pct' ? csDiscVal + '%' : fmt(csDisc)) + ' discount</span>' : ''}</td>
+      <td style="padding:8px 16px;text-align:right;font-size:12px;">${fmt(cs)}</td>
     </tr>
     <tr style="background:#f8fafc;">
-      <td style="padding:14px 16px;font-weight:700;font-size:15px;" colspan="2">Total First Year</td>
-      <td style="padding:14px 16px;text-align:right;font-weight:800;font-size:18px;color:#1e293b;">${fmt(grandTotal)}</td>
+      <td style="padding:10px 16px;font-weight:700;font-size:13px;" colspan="2">Total First Year</td>
+      <td style="padding:10px 16px;text-align:right;font-weight:800;font-size:16px;color:#1e293b;">${fmt(grandTotal)}</td>
     </tr>
     <tr style="border-bottom:1px solid #e5e7eb;">
-      <td style="padding:8px 16px;font-size:13px;color:#1e293b;" colspan="2">Recurring Annual (SaaS + CS)</td>
-      <td style="padding:8px 16px;text-align:right;font-size:13px;font-weight:600;color:#1e293b;">${fmt(finalSaas + cs)}</td>
+      <td style="padding:6px 16px;font-size:11px;color:#1e293b;" colspan="2">Recurring Annual (SaaS + CS)</td>
+      <td style="padding:6px 16px;text-align:right;font-size:11px;font-weight:600;color:#1e293b;">${fmt(finalSaas + cs)}</td>
     </tr>
     <tr>
-      <td style="padding:8px 16px;font-size:13px;color:#64748b;" colspan="2">Monthly equivalent</td>
-      <td style="padding:8px 16px;text-align:right;font-size:13px;color:#64748b;font-weight:700;">${fmt(Math.round((finalSaas + cs) / 12))}/mo</td>
+      <td style="padding:6px 16px;font-size:11px;color:#64748b;" colspan="2">Monthly equivalent</td>
+      <td style="padding:6px 16px;text-align:right;font-size:11px;color:#64748b;font-weight:700;">${fmt(Math.round((finalSaas + cs) / 12))}/mo</td>
     </tr>
-    ${totalSavingsAll > 0 ? '<tr style="border-top:1px solid #e5e7eb;"><td style="padding:10px 16px;font-size:13px;font-weight:600;" colspan="2">Total Savings</td><td style="padding:10px 16px;text-align:right;font-weight:700;font-size:14px;color:#16a34a;">-' + fmt(totalSavingsAll) + '</td></tr>' : ''}
+    ${totalSavingsAll > 0 ? '<tr style="border-top:1px solid #e5e7eb;"><td style="padding:8px 16px;font-size:11px;font-weight:600;" colspan="2">Total Savings</td><td style="padding:8px 16px;text-align:right;font-weight:700;font-size:12px;color:#16a34a;">-' + fmt(totalSavingsAll) + '</td></tr>' : ''}
   </table>
 
   <!-- Module Details (conditional) -->
@@ -3112,7 +3150,7 @@ function generateQuoteData() {
   ${includeTerms ? `<div style="margin-top:32px;padding:20px;border:1px solid #e2e8f0;border-radius:10px;font-size:11px;color:#1e293b;line-height:1.7;page-break-inside:avoid;">
     <div style="font-weight:600;color:#1e293b;margin-bottom:8px;">Terms & Conditions</div>
     <div>&bull; Prices are based on annual licensing, with customized terms possible upon mutual agreement.</div>
-    <div>&bull; This quote is valid for 90 days from the date of issue.</div>
+    <div>&bull; This quotation is non-binding and does not constitute a contract. A legally binding agreement shall only come into effect upon execution of a formal Contract Agreement by both parties.</div>
     <div>&bull; Implementation and Customer Success fees are calculated as a percentage of the combined annual SaaS fee.</div>
     <div>&bull; Minimum contract term: 24 months.</div>
     <div>&bull; Prices scale with usage volume. Contact your Account Manager for higher volume tiers.</div>
@@ -3174,9 +3212,11 @@ function saveQuoteToHistory(data) {
       tiers: tierValues,
       customPrices: customPrices,
       bundleApply: bundleApply,
-      exclusiveDiscount: { value: parseFloat(document.getElementById('quote-exc-value')?.value) || 0, type: document.getElementById('quote-exc-type')?.value || 'pct' },
+      exclusiveDiscount: { value: parseFloat(document.getElementById('quote-exc-value')?.value) || 0, type: 'pct' },
       implDisc: { value: parseFloat(document.getElementById('quote-impl-disc')?.value) || 0, type: document.getElementById('quote-impl-disc-type')?.value || 'pct' },
       csDisc: { value: parseFloat(document.getElementById('quote-cs-disc')?.value) || 0, type: document.getElementById('quote-cs-disc-type')?.value || 'pct' },
+      discountModes: Object.assign({}, discountMode),
+      discountPcts: (() => { const r = {}; selectedMods.forEach(s => { const el = document.getElementById('qd-' + s.key); if (el) r[s.key] = parseFloat(el.value) || 0; }); return r; })(),
       includeDetails: includeDetails,
       includeROI: includeROI,
       includeService: includeService,
@@ -3423,9 +3463,8 @@ function loadQuote(id) {
     setChk('quote-inc-service', fs.includeService !== false);
     setChk('quote-inc-terms', fs.includeTerms !== false);
 
-    // Exclusive discount
+    // Global discount
     setVal('quote-exc-value', fs.exclusiveDiscount?.value || 0);
-    setVal('quote-exc-type', fs.exclusiveDiscount?.type || 'pct');
 
     // Impl & CS discounts
     setVal('quote-impl-disc', fs.implDisc?.value || 0);
@@ -3437,6 +3476,14 @@ function loadQuote(id) {
     Object.entries(fs.customPrices || {}).forEach(([key, price]) => {
       setVal('qf-' + key, price);
     });
+
+    // Restore per-module discount modes and pcts
+    if (fs.discountModes) Object.assign(discountMode, fs.discountModes);
+    if (fs.discountPcts) {
+      Object.entries(fs.discountPcts).forEach(([key, pct]) => {
+        setVal('qd-' + key, pct);
+      });
+    }
 
     // Bundle
     if (fs.bundleApply) {
