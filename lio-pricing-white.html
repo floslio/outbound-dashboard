@@ -303,7 +303,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
           <div class="flex items-end justify-between pt-4 border-t border-slate-100">
             <div>
               <span class="text-xs text-slate-400">From</span>
-              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="4400">$4,400</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
+              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="5500" data-eur="4500" data-gbp="4000">$5,500</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
             </div>
             <span class="text-xs text-lio-600 font-medium arrow-slide">7 tiers <span class="arrow-icon">→</span></span>
           </div>
@@ -395,7 +395,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
             <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('sa')"><td class="p-4 font-semibold">Sourcing Agent</td><td class="p-4 text-slate-500">Bid sourcing</td><td class="p-4 text-right font-semibold mp" data-usd="25000">$25,000</td><td class="p-4 text-right text-slate-500">Events</td><td class="p-4 text-center"><span class="px-2 py-1 bg-rose-50 text-rose-700 rounded text-xs font-medium">$12.50/event</span></td></tr>
             <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('na')"><td class="p-4 font-semibold">Negotiation Agent</td><td class="p-4 text-slate-500">Bid negotiation</td><td class="p-4 text-right font-semibold mp" data-usd="20500" data-eur="17500" data-gbp="15500">$20,500</td><td class="p-4 text-right text-slate-500">Events</td><td class="p-4 text-center"><span class="px-2 py-1 bg-amber-50 text-amber-700 rounded text-xs font-medium">$32.80/event</span></td></tr>
             <tr class="bg-slate-50"><td colspan="5" class="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Intelligence & Assistants</td></tr>
-            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('liox')"><td class="p-4 font-semibold">Lio X</td><td class="p-4 text-slate-500">AI assistant</td><td class="p-4 text-right font-semibold mp" data-usd="4400">$4,400</td><td class="p-4 text-right text-slate-500">Users</td><td class="p-4 text-center"><span class="px-2 py-1 bg-lio-50 text-lio-700 rounded text-xs font-medium">$350/user</span></td></tr>
+            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('liox')"><td class="p-4 font-semibold">Lio X</td><td class="p-4 text-slate-500">AI assistant</td><td class="p-4 text-right font-semibold mp" data-usd="5500" data-eur="4500" data-gbp="4000">$5,500</td><td class="p-4 text-right text-slate-500">Users</td><td class="p-4 text-center"><span class="px-2 py-1 bg-lio-50 text-lio-700 rounded text-xs font-medium">$367/user</span></td></tr>
             <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('pia')"><td class="p-4 font-semibold">Procurement Intelligence</td><td class="p-4 text-slate-500">Spend analytics</td><td class="p-4 text-right font-semibold mp" data-usd="6000">$6,000</td><td class="p-4 text-right text-slate-500">Users</td><td class="p-4 text-center"><span class="px-2 py-1 bg-sky-50 text-sky-700 rounded text-xs font-medium">$688/user</span></td></tr>
             <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('npa')"><td class="p-4 font-semibold">Negotiation Preparation</td><td class="p-4 text-slate-500">Negotiation prep</td><td class="p-4 text-right font-semibold mp" data-usd="12000">$12,000</td><td class="p-4 text-right text-slate-500">Prep Events</td><td class="p-4 text-center"><span class="px-2 py-1 bg-fuchsia-50 text-fuchsia-700 rounded text-xs font-medium">$12.50/event</span></td></tr>
             <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('cna')"><td class="p-4 font-semibold">Contract Negotiation</td><td class="p-4 text-slate-500">Contract analysis</td><td class="p-4 text-right font-semibold mp" data-usd="15000">$15,000</td><td class="p-4 text-right text-slate-500">Negotiations</td><td class="p-4 text-center"><span class="px-2 py-1 bg-red-50 text-red-700 rounded text-xs font-medium">$13.50/neg</span></td></tr>
@@ -543,15 +543,15 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
                 <div class="flex justify-between text-sm"><span class="text-emerald-600" id="c-bundle-name">Bundle: —</span><span class="text-emerald-600" id="c-bundle-savings">-$0</span></div>
                 <div class="flex justify-between text-sm"><span class="text-slate-500">Net SaaS Fee</span><span class="font-semibold text-slate-900" id="c-net-saas">$0</span></div>
               </div>
-              <div class="flex justify-between text-sm"><span class="text-slate-500">Implementation (15%)</span><span id="c-impl">$0</span></div>
-              <div class="flex justify-between text-sm"><span class="text-slate-500">Customer Success (10%)</span><span id="c-cs">$0</span></div>
-              <div id="c-setup-row" class="hidden flex justify-between text-sm"><span class="text-slate-500">SRM Setup</span><span class="mp" data-usd="120000">$120,000</span></div>
+              <div class="flex justify-between text-sm"><span class="text-slate-500">Implementation (15%) -- one-time</span><span id="c-impl">$0</span></div>
+              <div class="flex justify-between text-sm"><span class="text-slate-500">Customer Success (10%/yr)</span><span id="c-cs">$0</span></div>
             </div>
             <div class="border-t-2 border-lio-200 pt-3">
               <div class="flex justify-between items-center">
-                <span class="font-bold text-slate-900">Total Annual</span>
+                <span class="font-bold text-slate-900">Total First Year</span>
                 <span class="text-2xl font-extrabold accent-text" id="c-total">$0</span>
               </div>
+              <div class="flex justify-between text-sm mt-1"><span class="text-slate-400">Recurring Annual (SaaS + CS)</span><span class="text-slate-600 font-semibold" id="c-recurring">$0</span></div>
               <div class="flex justify-between text-sm mt-1"><span class="text-slate-400">Monthly</span><span class="text-slate-600" id="c-monthly">$0</span></div>
             </div>
             <button onclick="openQuoteModal()" class="mt-4 w-full py-3 accent-gradient text-white rounded-xl font-semibold transition hover:opacity-90 flex items-center justify-center gap-2 no-print">
@@ -661,8 +661,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
               <tr class="bg-slate-50 text-slate-500 text-xs uppercase">
                 <th class="text-left p-2 pl-3">Module</th>
                 <th class="text-right p-2">List Price</th>
-                <th class="text-center p-2" style="width:120px;">Discount</th>
-                <th class="text-right p-2 pr-3">Final Price</th>
+                <th class="text-right p-2 pr-3">Your Price</th>
               </tr>
             </thead>
             <tbody id="quote-pricing-lines"></tbody>
@@ -692,7 +691,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
         <div class="mt-3 p-3 rounded-lg bg-slate-50 border border-slate-200">
           <div class="flex justify-between text-sm"><span class="text-slate-500">SaaS (after discounts)</span><span id="quote-final-saas">$0</span></div>
           <div class="flex justify-between items-center text-sm mt-1">
-            <span class="text-slate-500">Implementation (15%)</span>
+            <span class="text-slate-500">Implementation (15%) -- one-time</span>
             <div class="flex items-center gap-2">
               <div class="flex items-center gap-1">
                 <input type="number" id="quote-impl-disc" value="0" min="0" step="1" onchange="updateQuotePricing()" oninput="updateQuotePricing()" class="w-12 border border-slate-200 rounded p-1 text-xs text-right outline-none">
@@ -705,7 +704,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
             </div>
           </div>
           <div class="flex justify-between items-center text-sm mt-1">
-            <span class="text-slate-500">Customer Success (10%)</span>
+            <span class="text-slate-500">Customer Success (10%/yr)</span>
             <div class="flex items-center gap-2">
               <div class="flex items-center gap-1">
                 <input type="number" id="quote-cs-disc" value="0" min="0" step="1" onchange="updateQuotePricing()" oninput="updateQuotePricing()" class="w-12 border border-slate-200 rounded p-1 text-xs text-right outline-none">
@@ -717,16 +716,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
               <span id="quote-final-cs" class="w-20 text-right">$0</span>
             </div>
           </div>
-          <div id="quote-srm-setup-row" class="hidden mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
-            <label class="text-xs text-slate-500 block mb-1">SRM One-Time Setup Fee Adjustment</label>
-            <div class="flex items-center gap-3">
-              <span class="text-xs text-slate-500">Original: <span id="quote-srm-original" class="text-slate-800 font-semibold"></span></span>
-              <input type="number" id="quote-srm-fee" placeholder="Adjusted fee" class="flex-1 border border-slate-200 rounded-lg p-2 text-sm placeholder-slate-400 focus:ring-2 focus:ring-lio-200 outline-none" onchange="updateQuotePricing()" oninput="updateQuotePricing()">
-              <span class="text-xs text-slate-500">or</span>
-              <input type="number" id="quote-srm-disc-pct" placeholder="Discount %" class="w-20 border border-slate-200 rounded-lg p-2 text-sm placeholder-slate-400 focus:ring-2 focus:ring-lio-200 outline-none" max="100" onchange="updateSrmFeeFromPct()" oninput="updateSrmFeeFromPct()">
-            </div>
-          </div>
-          <div class="flex justify-between text-sm mt-2 pt-2 border-t border-slate-200 font-bold"><span>Total Annual</span><span id="quote-final-total" class="text-lg accent-text">$0</span></div>
+          <div class="flex justify-between text-sm mt-2 pt-2 border-t border-slate-200 font-bold"><span>Total First Year</span><span id="quote-final-total" class="text-lg accent-text">$0</span></div>
         </div>
       </div>
     <div class="flex gap-3 mt-6">
@@ -1016,8 +1006,8 @@ const modules = {
   na:{name:'Negotiation Agent',color:'amber',icon:'🤝',desc:'AI agents autonomously negotiate supplier bids using advanced strategies and market data.',features:['Autonomous multi-round negotiations','Market-aware pricing intelligence','Historical benchmark analysis','Multi-supplier bid management','Custom strategy rules','Real-time dashboards'],tiers:[{vol:'Up to 625',price:20500,eur:17500,gbp:15500},{vol:'Up to 1,250',price:35000,eur:30000,gbp:27000},{vol:'Up to 2,500',price:65000,eur:55000,gbp:50000},{vol:'Up to 5,000',price:115000,eur:100000,gbp:90000},{vol:'Up to 10,000',price:210000,eur:180000,gbp:160000},{vol:'Up to 20,000',price:380000,eur:320000,gbp:300000}],unit:'Negotiation Events'},
   sa:{name:'Sourcing Agent',color:'rose',icon:'🔍',desc:'AI agents source bids, compare them, and select the best outcome automatically.',features:['Automated RFQ creation','AI-powered bid comparison','Supplier matching & discovery','Total cost analysis','Weighted scoring models','Collaborative workflows'],tiers:[{vol:'Up to 2,000',price:25000},{vol:'Up to 4,000',price:50000},{vol:'Up to 6,000',price:75000},{vol:'Up to 8,000',price:100000},{vol:'Up to 10,000',price:125000},{vol:'Up to 20,000',price:250000}],unit:'Sourcing Events'},
   oc:{name:'Order Confirmations',color:'violet',icon:'📋',desc:'Automatically reviews delivery date, price, quantity, and address on every order confirmation.',features:['Automatic OC data extraction','Price & quantity deviation detection','Delivery date verification','Address validation','Auto-acceptance or flagging','ERP integration'],tiers:[{vol:'Up to 6,250',price:15000},{vol:'Up to 12,500',price:22500},{vol:'Up to 25,000',price:36250},{vol:'Up to 50,000',price:63750},{vol:'Up to 100,000',price:118750}],unit:'OC Checks'},
-  liox:{name:'Lio X',color:'lio',icon:'🧠',desc:'AI procurement assistant with template library, custom creation, and Lio Academy access.',features:['AI-powered quote analysis','T&C review','Negotiation strategy templates','Custom AI assistant builder','Lio Academy access','Team collaboration'],tiers:[{vol:'Up to 5',price:4400},{vol:'Up to 10',price:9400},{vol:'Up to 50',price:25000},{vol:'Up to 100',price:40000},{vol:'Up to 150',price:56250},{vol:'Up to 200',price:72500},{vol:'Up to 250',price:87500}],unit:'Users'},
-  sm:{name:'SRM',color:'slate',icon:'🏢',desc:'Automated supplier onboarding and relationship management. No registration required for suppliers.',features:['Auto data extraction','AI supplier outreach','No supplier registration','Compliance documents','Risk assessment','Continuous enrichment'],tiers:[{vol:'Up to 50',price:2500},{vol:'Up to 100',price:3125},{vol:'Up to 150',price:3750},{vol:'Up to 200',price:4375},{vol:'Up to 250',price:5000}],unit:'Onboardings/Year',setup:120000},
+  liox:{name:'Lio X',color:'lio',icon:'🧠',desc:'AI procurement assistant with template library, custom creation, and Lio Academy access.',features:['AI-powered quote analysis','T&C review','Negotiation strategy templates','Custom AI assistant builder','Lio Academy access','Team collaboration'],tiers:[{vol:'Up to 15',price:5500,eur:4500,gbp:4000},{vol:'Up to 50',price:15000,eur:12500,gbp:11000},{vol:'Up to 100',price:28000,eur:23000,gbp:20000},{vol:'Up to 200',price:48000,eur:40000,gbp:35000},{vol:'Up to 400',price:85000,eur:70000,gbp:62000},{vol:'Up to 800',price:150000,eur:125000,gbp:110000},{vol:'Unlimited',price:250000,eur:210000,gbp:185000}],unit:'Users'},
+  sm:{name:'SRM',color:'slate',icon:'🏢',desc:'Automated supplier onboarding and relationship management. No registration required for suppliers.',features:['Auto data extraction','AI supplier outreach','No supplier registration','Compliance documents','Risk assessment','Continuous enrichment'],tiers:[{vol:'Up to 50',price:2500},{vol:'Up to 100',price:3125},{vol:'Up to 150',price:3750},{vol:'Up to 200',price:4375},{vol:'Up to 250',price:5000}],unit:'Onboardings/Year'},
   aa:{name:'Approval Agent',color:'teal',icon:'🔐',desc:'Manages PR approval workflows — proactive outreach, OOO handling, and bottleneck prevention.',features:['Remote Approver','Configurable approval chains','AOP-based workflows','OOO escalation','Contextual approval requests','Integration as first approver'],tiers:[{vol:'Flat Rate',price:12500}],unit:'Flat Rate'},
   gr:{name:'Goods Receipt Agent',color:'lime',icon:'📦',desc:'Automates goods receipt processing — document-based receipt creation, partial delivery tracking, and proactive follow-ups.',features:['Document upload & OCR','Partial/full delivery handling','Pending receipt surfacing','Automated reminders','SAP integration','Proactive follow-ups'],tiers:[{vol:'Up to 5,000',price:7000},{vol:'Up to 10,000',price:13500},{vol:'Up to 25,000',price:32500},{vol:'Up to 50,000',price:62500},{vol:'Up to 100,000',price:113500}],unit:'GR Checks'},
   inv:{name:'Invoice Agent',color:'orange',icon:'🧾',desc:'Automated three-way match (PO, GR, Invoice), dispute detection, categorization, and resolution orchestration.',features:['Automatic 3-way match','Dispute type categorization','Resolution workflows','Aging tracking','Consolidated invoice handling','ERP integration'],tiers:[{vol:'Up to 5,000',price:8000},{vol:'Up to 10,000',price:15000},{vol:'Up to 25,000',price:35000},{vol:'Up to 50,000',price:65000},{vol:'Up to 100,000',price:118750}],unit:'Invoice Checks'},
@@ -1035,7 +1025,7 @@ function fmt(n) {
   let converted = n * currencyRates[currentCurrency];
   if (currentCurrency !== 'usd') converted = Math.round(converted / 500) * 500;
   else converted = Math.round(converted);
-  if (currentCurrency === 'eur') return converted.toLocaleString('de-DE') + ' €';
+  if (currentCurrency === 'eur') return converted.toLocaleString('de-DE') + '\u00a0\u20ac';
   return currencySymbols[currentCurrency] + converted.toLocaleString('en-US');
 }
 
@@ -1044,8 +1034,8 @@ function fmtZero() {
 }
 
 function fmtTierPrice(tier) {
-  if (currentCurrency === 'eur' && tier.eur !== undefined) return tier.eur.toLocaleString('de-DE') + ' €';
-  if (currentCurrency === 'gbp' && tier.gbp !== undefined) return '£' + tier.gbp.toLocaleString('en-US');
+  if (currentCurrency === 'eur' && tier.eur !== undefined) return tier.eur.toLocaleString('de-DE') + '\u00a0\u20ac';
+  if (currentCurrency === 'gbp' && tier.gbp !== undefined) return '\u00a3' + tier.gbp.toLocaleString('en-US');
   return fmt(tier.price);
 }
 function getTierPriceRaw(tier) {
@@ -1056,7 +1046,7 @@ function getTierPriceRaw(tier) {
   return c;
 }
 function fmtRaw(n) {
-  if (currentCurrency === 'eur') return n.toLocaleString('de-DE') + ' €';
+  if (currentCurrency === 'eur') return n.toLocaleString('de-DE') + '\u00a0\u20ac';
   return currencySymbols[currentCurrency] + n.toLocaleString('en-US');
 }
 
@@ -1068,7 +1058,7 @@ function setCurrency(cur) {
   // Update static prices
   document.querySelectorAll('.mp').forEach(el => {
     if (currentCurrency === 'eur' && el.dataset.eur) {
-      el.textContent = parseInt(el.dataset.eur).toLocaleString('de-DE') + ' €';
+      el.textContent = parseInt(el.dataset.eur).toLocaleString('de-DE') + '\u00a0\u20ac';
     } else if (currentCurrency === 'gbp' && el.dataset.gbp) {
       el.textContent = '£' + parseInt(el.dataset.gbp).toLocaleString('en-US');
     } else {
@@ -1128,7 +1118,6 @@ function showModule(key) {
       <div><h3 class="font-bold text-slate-900 mb-3">Features</h3><div class="space-y-2">${featsHtml}</div></div>
       <div><h3 class="font-bold text-slate-900 mb-3">Pricing Tiers</h3>
         <table class="w-full"><thead><tr class="border-b border-slate-200"><th class="text-left p-2.5 text-xs text-slate-500 font-medium">${m.unit}</th><th class="text-right p-2.5 text-xs text-slate-500 font-medium">Annual Fee</th></tr></thead><tbody>${tiersHtml}</tbody></table>
-        ${m.setup ? `<div class="mt-3 p-2.5 bg-amber-50 rounded-lg text-sm text-amber-700">+ Setup: ${fmt(m.setup)}</div>` : ''}
         <div class="mt-3 p-2.5 bg-slate-50 rounded-lg text-xs text-slate-500">+ 15% Implementation + 10% Customer Success</div>
       </div>
     </div>`;
@@ -1150,7 +1139,7 @@ function buildCalc() {
     html += `<div class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-6 mb-2 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> ${cat.label}</div>`;
     cat.keys.forEach(key => {
       const m = modules[key];
-      const opts = m.tiers.map(t => `<option value="${t.price}">${t.vol} — ${fmtTierPrice(t)}/yr${m.setup?' (+ '+fmt(120000)+' setup)':''}</option>`).join('');
+      const opts = m.tiers.map(t => `<option value="${t.price}">${t.vol} — ${fmtTierPrice(t)}/yr</option>`).join('');
       const label = key === 'sm' ? 'Supplier Relationship Management (SRM)' : m.name + (key === 'liox' ? ' – AI Assistant' : '') + ' (' + key.toUpperCase() + ')';
       html += `<div class="card p-4 bg-white" id="calc-${key}">
         <div class="flex items-center justify-between">
@@ -1208,8 +1197,9 @@ function calcUpdate() {
   document.getElementById('c-impl').textContent = fmt(impl);
   document.getElementById('c-cs').textContent = fmt(cs);
   document.getElementById('c-total').textContent = fmt(calcGrandTotal);
-  document.getElementById('c-monthly').textContent = fmt(Math.round(calcGrandTotal / 12)) + '/mo';
-  document.getElementById('c-setup-row').classList.toggle('hidden', !hasSM);
+  const recurringAnnual = netSaas + cs;
+  document.getElementById('c-recurring').textContent = fmt(recurringAnnual);
+  document.getElementById('c-monthly').textContent = fmt(Math.round(recurringAnnual / 12)) + '/mo';
   calcROI();
 }
 
@@ -1480,20 +1470,14 @@ function populateQuotePricing() {
     if (!document.getElementById('chk-' + mod).checked) return;
     selectedKeys.push(mod);
     const price = parseInt(document.getElementById('ct-' + mod).value);
+    const rawPrice = getTierPriceRaw(modules[mod].tiers.find(t => t.price === price) || { price: price });
     const modName = mod === 'sm' ? 'SRM' : modules[mod].name;
     tbody.innerHTML += `<tr class="border-t border-slate-100" data-mod="${mod}">
       <td class="p-2 pl-3 text-slate-700">${modName}</td>
-      <td class="p-2 text-right text-slate-500" data-list-price="${price}">${fmt(price)}</td>
-      <td class="p-2 text-center">
-        <div class="flex items-center gap-1 justify-center">
-          <input type="number" id="qd-${mod}" value="0" min="0" step="1" onchange="updateQuotePricing()" oninput="updateQuotePricing()" class="w-14 border border-slate-200 rounded p-1 text-xs text-right outline-none">
-          <select id="qdt-${mod}" onchange="updateQuotePricing()" class="border border-slate-200 rounded p-1 text-xs outline-none">
-            <option value="pct">%</option>
-            <option value="fixed">$</option>
-          </select>
-        </div>
+      <td class="p-2 text-right text-slate-500" data-list-price="${rawPrice}">${fmtRaw(rawPrice)}</td>
+      <td class="p-2 pr-3 text-right">
+        <input type="number" id="qf-${mod}" value="${rawPrice}" min="0" step="100" onchange="updateQuotePricing()" oninput="updateQuotePricing()" class="w-28 border border-slate-200 rounded p-1 text-sm text-right outline-none font-semibold">
       </td>
-      <td class="p-2 pr-3 text-right font-semibold text-slate-900" id="qf-${mod}">${fmt(price)}</td>
     </tr>`;
   });
   const bundle = detectBundle(selectedKeys);
@@ -1509,48 +1493,20 @@ function populateQuotePricing() {
   updateQuotePricing();
 }
 
-function updateSrmFeeFromPct() {
-  const pct = parseFloat(document.getElementById('quote-srm-disc-pct')?.value) || 0;
-  if (pct > 0) {
-    const original = modules.sm?.setup || 120000;
-    document.getElementById('quote-srm-fee').value = Math.round(original * (1 - pct / 100));
-  }
-  updateQuotePricing();
-}
-
-function showHideSrmSetupRow() {
-  const smChecked = document.getElementById('chk-sm')?.checked;
-  const row = document.getElementById('quote-srm-setup-row');
-  if (row) {
-    if (smChecked) {
-      row.classList.remove('hidden');
-      document.getElementById('quote-srm-original').textContent = fmt(modules.sm?.setup || 120000);
-    } else {
-      row.classList.add('hidden');
-    }
-  }
-}
 
 function updateQuotePricing() {
   const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
   const selectedKeys = mods.filter(m => document.getElementById('chk-' + m).checked);
-  showHideSrmSetupRow();
   const bundle = detectBundle(selectedKeys);
   const bundleApply = document.getElementById('quote-bundle-apply').checked && bundle;
   const bundlePct = bundleApply ? bundle.discount : 0;
   let saasTotal = 0;
   selectedKeys.forEach(mod => {
-    const cell = document.querySelector(`tr[data-mod="${mod}"] td[data-list-price]`);
-    if (!cell) return;
-    const listPrice = parseInt(cell.getAttribute('data-list-price'));
-    const discVal = parseFloat(document.getElementById('qd-' + mod)?.value) || 0;
-    const discType = document.getElementById('qdt-' + mod)?.value || 'pct';
-    let lineDiscount = discType === 'pct' ? Math.round(listPrice * discVal / 100) : discVal;
-    let afterLine = listPrice - lineDiscount;
-    if (bundlePct > 0) afterLine = Math.round(afterLine * (1 - bundlePct / 100));
     const finalEl = document.getElementById('qf-' + mod);
-    if (finalEl) finalEl.textContent = fmt(Math.max(0, afterLine));
-    saasTotal += Math.max(0, afterLine);
+    if (!finalEl) return;
+    let yourPrice = parseFloat(finalEl.value) || 0;
+    if (bundlePct > 0) yourPrice = Math.round(yourPrice * (1 - bundlePct / 100));
+    saasTotal += Math.max(0, yourPrice);
   });
   const excType = document.getElementById('quote-exc-type').value;
   const excVal = parseFloat(document.getElementById('quote-exc-value').value) || 0;
@@ -1581,7 +1537,7 @@ function generateQuoteData() {
     if (!document.getElementById('chk-' + k).checked) return;
     const tierText = document.getElementById('ct-' + k).selectedOptions[0].text.split(' \u2014 ')[0];
     const finalEl = document.getElementById('qf-' + k);
-    const p = finalEl ? parseInt(finalEl.textContent.replace(/[^0-9]/g, '')) : parseInt(document.getElementById('ct-' + k).value);
+    const p = finalEl ? (parseFloat(finalEl.value) || 0) : parseInt(document.getElementById('ct-' + k).value);
     totalSaas += p;
     if (k === 'sm') hasSM = true;
     sel.push({ key: k, name: k === 'sm' ? 'Supplier Relationship Management (SRM)' : modules[k].name, price: p, tier: tierText, desc: modules[k].desc, features: modules[k].features });
@@ -1609,11 +1565,6 @@ function generateQuoteData() {
   const csDiscType = document.getElementById('quote-cs-disc-type')?.value || 'pct';
   let csDisc = csDiscType === 'pct' ? Math.round(csBase * csDiscVal / 100) : csDiscVal;
   const cs = Math.max(0, csBase - csDisc);
-
-  // SRM setup fee adjustment
-  const srmOriginalFee = modules.sm?.setup || 120000;
-  const srmAdjustedFee = hasSM ? (parseFloat(document.getElementById('quote-srm-fee')?.value) || srmOriginalFee) : srmOriginalFee;
-  const srmFeeDiscount = srmOriginalFee - srmAdjustedFee;
 
   const grand = finalSaas+impl+cs;
   const today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
@@ -1649,24 +1600,20 @@ function generateQuoteData() {
   const lioContact = lioContacts[lioContactKey] || lioContacts.florian;
 
   // Calculate savings for display
-  let totalListPrice = 0, totalWithLineDiscOnly = 0;
+  let totalListPrice = 0;
   sel.forEach(m => {
     const listCell = document.querySelector('tr[data-mod="' + m.key + '"] td[data-list-price]');
     const listPrice = listCell ? parseInt(listCell.getAttribute('data-list-price')) : m.price;
     totalListPrice += listPrice;
-    const discVal = parseFloat(document.getElementById('qd-' + m.key)?.value) || 0;
-    const discType = document.getElementById('qdt-' + m.key)?.value || 'pct';
-    let lineDisc = discType === 'pct' ? Math.round(listPrice * discVal / 100) : discVal;
-    totalWithLineDiscOnly += (listPrice - lineDisc);
   });
-  const bundleSavings = bundleApply ? (totalWithLineDiscOnly - totalSaas) : 0;
-  const lineDiscTotal = totalListPrice - totalWithLineDiscOnly;
   const totalSavingsAll = totalListPrice - finalSaas;
+  const lineDiscTotal = totalListPrice - totalSaas;
+  const bundleSavings = bundleApply ? Math.round(totalSaas * bundlePct / 100) : 0;
 
   const rows = sel.map(m => {
     const listCell = document.querySelector('tr[data-mod="' + m.key + '"] td[data-list-price]');
     const listPrice = listCell ? parseInt(listCell.getAttribute('data-list-price')) : m.price;
-    const priceHtml = listPrice !== m.price ? '<span style="text-decoration:line-through;color:#999;font-weight:400;margin-right:6px;">' + fmt(listPrice) + '</span>' + fmt(m.price) : fmt(m.price);
+    const priceHtml = listPrice !== m.price ? '<span style="text-decoration:line-through;color:#999;font-weight:400;margin-right:6px;">' + fmtRaw(listPrice) + '</span>' + fmtRaw(m.price) : fmtRaw(m.price);
     return '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:12px 16px;font-weight:600;">' + m.name + '</td><td style="padding:12px 16px;color:#1e293b;font-size:13px;">' + m.tier + '</td><td style="padding:12px 16px;text-align:right;font-weight:600;">' + priceHtml + '</td></tr>';
   }).join('');
   const details = sel.map(m => {
@@ -1749,13 +1696,13 @@ function generateQuoteData() {
     ${bundleApply ? `<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Bundle Discount (${bundle.discount}% \u2013 ${bundle.name})</td><td style="padding:8px 16px;text-align:right;color:#dc2626;">-${fmt(bundleSavings)}</td></tr>` : ''}
     ${excDiscount > 0 ? `<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Exclusive Discount${excType === 'pct' ? ' (' + excVal + '%)' : ''}</td><td style="padding:8px 16px;text-align:right;color:#dc2626;">\u2013${fmt(excDiscount)}</td></tr>` : ''}
     <tr style="border-bottom:2px solid #e2e8f0;background:#f8fafc;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;font-weight:700;" colspan="2">Net SaaS Fee</td><td style="padding:8px 16px;text-align:right;font-weight:700;">${fmt(finalSaas)}</td></tr>
-    <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Implementation (15%)${implDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (implDiscType === 'pct' ? implDiscVal + '%' : fmt(implDisc)) + ' discount</span>' : ''}</td><td style="padding:8px 16px;text-align:right;">${fmt(impl)}</td></tr>
-    <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Customer Success (10%)${csDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (csDiscType === 'pct' ? csDiscVal + '%' : fmt(csDisc)) + ' discount</span>' : ''}</td><td style="padding:8px 16px;text-align:right;">${fmt(cs)}</td></tr>
-    <tr style="background:#f8fafc;"><td style="padding:12px 16px;font-weight:700;" colspan="2">Total Annual</td><td style="padding:12px 16px;text-align:right;font-weight:800;font-size:16px;color:#1e293b;">${fmt(grand)}</td></tr>
-    <tr><td style="padding:6px 16px;font-size:12px;color:#64748b;" colspan="2">Monthly equivalent</td><td style="padding:6px 16px;text-align:right;font-size:12px;color:#64748b;font-weight:700;">${fmt(Math.round(grand / 12))}/mo</td></tr>
+    <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Implementation (15%) -- one-time${implDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (implDiscType === 'pct' ? implDiscVal + '%' : fmt(implDisc)) + ' discount</span>' : ''}</td><td style="padding:8px 16px;text-align:right;">${fmt(impl)}</td></tr>
+    <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Customer Success (10%/yr) -- annual${csDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (csDiscType === 'pct' ? csDiscVal + '%' : fmt(csDisc)) + ' discount</span>' : ''}</td><td style="padding:8px 16px;text-align:right;">${fmt(cs)}</td></tr>
+    <tr style="background:#f8fafc;"><td style="padding:12px 16px;font-weight:700;" colspan="2">Total First Year</td><td style="padding:12px 16px;text-align:right;font-weight:800;font-size:16px;color:#1e293b;">${fmt(grand)}</td></tr>
+    <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Recurring Annual (SaaS + CS)</td><td style="padding:8px 16px;text-align:right;font-weight:600;">${fmt(finalSaas + cs)}</td></tr>
+    <tr><td style="padding:6px 16px;font-size:12px;color:#64748b;" colspan="2">Monthly equivalent</td><td style="padding:6px 16px;text-align:right;font-size:12px;color:#64748b;font-weight:700;">${fmt(Math.round((finalSaas + cs) / 12))}/mo</td></tr>
     ${totalSavingsAll > 0 ? `<tr style="border-top:1px solid #e5e7eb;"><td style="padding:8px 16px;font-size:12px;font-weight:600;" colspan="2">Total Savings</td><td style="padding:8px 16px;text-align:right;font-weight:700;color:#16a34a;">-${fmt(totalSavingsAll)}</td></tr>` : ''}
   </table>
-  ${hasSM ? `<table style="width:100%;border-collapse:collapse;margin-bottom:28px;"><tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;"><th style="padding:12px 16px;text-align:left;font-size:12px;color:#1e293b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">One-Time Fees</th><th style="padding:12px 16px;text-align:right;font-size:12px;color:#1e293b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Amount</th></tr><tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:12px 16px;color:#1e293b;font-size:13px;">SRM Platform Setup &amp; Configuration</td><td style="padding:12px 16px;text-align:right;font-weight:600;">${srmFeeDiscount > 0 ? '<span style="text-decoration:line-through;color:#94a3b8;margin-right:6px;">' + fmt(srmOriginalFee) + '</span>' + fmt(srmAdjustedFee) : fmt(srmOriginalFee)}</td></tr>${srmFeeDiscount > 0 ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#16a34a;font-size:12px;">Setup Fee Discount</td><td style="padding:8px 16px;text-align:right;color:#16a34a;font-weight:600;">-' + fmt(srmFeeDiscount) + '</td></tr>' : ''}<tr style="background:#f8fafc;"><td style="padding:14px 16px;font-weight:700;font-size:15px;">Total One-Time</td><td style="padding:14px 16px;text-align:right;font-weight:800;font-size:18px;color:#1e293b;">${fmt(srmAdjustedFee)}</td></tr></table>` : ''}
   ${includeDetails ? `<div style="page-break-before:always;"></div><h2 style="font-size:16px;font-weight:700;margin-bottom:12px;">Selected Modules</h2>${details}` : ''}
   ${additionalAgentsPdf}
   ${roiSection}
@@ -1776,12 +1723,11 @@ function saveQuoteToHistory(data) {
     const tierSel = document.getElementById('ct-' + s.key);
     if (tierSel) tierValues[s.key] = tierSel.value;
   });
-  // Build line discounts
-  const lineDiscounts = {};
+  // Build custom prices
+  const customPrices = {};
   selectedMods.forEach(s => {
-    const dv = parseFloat(document.getElementById('qd-' + s.key)?.value) || 0;
-    const dt = document.getElementById('qdt-' + s.key)?.value || 'pct';
-    if (dv > 0) lineDiscounts[s.key] = { value: dv, type: dt };
+    const el = document.getElementById('qf-' + s.key);
+    if (el) customPrices[s.key] = parseFloat(el.value) || 0;
   });
 
   // Save to history
@@ -1806,13 +1752,11 @@ function saveQuoteToHistory(data) {
       notes: customNotes,
       selectedModules: selectedMods.map(s => s.key),
       tiers: tierValues,
-      lineDiscounts: lineDiscounts,
+      customPrices: customPrices,
       bundleApply: bundleApply,
       exclusiveDiscount: { value: parseFloat(document.getElementById('quote-exc-value')?.value) || 0, type: document.getElementById('quote-exc-type')?.value || 'pct' },
       implDisc: { value: parseFloat(document.getElementById('quote-impl-disc')?.value) || 0, type: document.getElementById('quote-impl-disc-type')?.value || 'pct' },
       csDisc: { value: parseFloat(document.getElementById('quote-cs-disc')?.value) || 0, type: document.getElementById('quote-cs-disc-type')?.value || 'pct' },
-      srmFee: parseFloat(document.getElementById('quote-srm-fee')?.value) || 0,
-      srmDiscPct: parseFloat(document.getElementById('quote-srm-disc-pct')?.value) || 0,
       includeDetails: includeDetails,
       includeROI: includeROI,
       includeService: includeService,
@@ -1866,7 +1810,7 @@ function downloadPDF() {
   const w = window.open('','_blank'); w.document.write(data.html); w.document.close(); setTimeout(() => w.print(), 500);
 }
 
-function downloadPDFFile() {
+async function downloadPDFFile() {
   const data = generateQuoteData();
   if (!data) return;
   saveQuoteToHistory(data);
@@ -1874,22 +1818,28 @@ function downloadPDFFile() {
   const container = document.createElement('div');
   const bodyMatch = data.html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
   container.innerHTML = bodyMatch ? bodyMatch[1] : data.html;
-  container.style.cssText = 'position:absolute;left:-9999px;top:0;width:800px;';
+  // Must be visible for html2canvas to render - use opacity:0 instead of off-screen
+  container.style.cssText = 'position:fixed;left:0;top:0;width:210mm;padding:20mm;z-index:99999;background:white;opacity:0;pointer-events:none;';
   document.body.appendChild(container);
+
+  // Wait for fonts and images to load
+  await new Promise(r => setTimeout(r, 500));
 
   const company = data.recipientCompany || 'Quote';
   const filename = data.quoteRef + '_' + company.replace(/[^a-zA-Z0-9]/g, '_') + '.pdf';
 
-  html2pdf().set({
-    margin: [10, 10, 10, 10],
-    filename: filename,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-  }).from(container).save().then(() => {
+  try {
+    await html2pdf().set({
+      margin: [10, 10, 10, 10],
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0, windowWidth: 800 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    }).from(container).save();
+  } finally {
     document.body.removeChild(container);
-  });
+  }
 }
 
 function openQuoteHistory() {
@@ -2059,14 +2009,9 @@ function loadQuote(id) {
     setVal('quote-cs-disc', fs.csDisc?.value || 0);
     setVal('quote-cs-disc-type', fs.csDisc?.type || 'pct');
 
-    // SRM fee
-    if (fs.srmFee) setVal('quote-srm-fee', fs.srmFee);
-    if (fs.srmDiscPct) setVal('quote-srm-disc-pct', fs.srmDiscPct);
-
-    // Line discounts
-    Object.entries(fs.lineDiscounts || {}).forEach(([key, disc]) => {
-      setVal('qd-' + key, disc.value || 0);
-      setVal('qdt-' + key, disc.type || 'pct');
+    // Custom prices
+    Object.entries(fs.customPrices || {}).forEach(([key, price]) => {
+      setVal('qf-' + key, price);
     });
 
     // Bundle

@@ -355,7 +355,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
             <div>
               <span class="text-xs text-slate-500">Starting at</span>
               <div class="text-2xl font-bold text-slate-400 mp" data-usd="2500">$2,500</div>
-              <span class="text-xs text-slate-500">/year + $120K setup</span>
+              <span class="text-xs text-slate-500">/year</span>
             </div>
             <div class="text-xs text-slate-500">5 tiers</div>
           </div>
@@ -432,13 +432,13 @@ input[type="checkbox"] { accent-color: #6366f1; }
           <div class="flex items-end justify-between">
             <div>
               <span class="text-xs text-slate-500">Starting at</span>
-              <div class="text-2xl font-bold text-lio-400 mp" data-usd="4400">$4,400</div>
+              <div class="text-2xl font-bold text-lio-400 mp" data-usd="5500" data-eur="4500" data-gbp="4000">$5,500</div>
               <span class="text-xs text-slate-500">/year</span>
             </div>
             <div class="text-xs text-slate-500">7 tiers</div>
           </div>
           <div class="mt-4 pt-4 border-t border-slate-700/50 flex items-center justify-between">
-            <span class="text-xs text-slate-500">Scales to 250+</span>
+            <span class="text-xs text-slate-500">Scales to Unlimited</span>
             <span class="text-xs text-lio-400 font-medium arrow-slide">View details <span class="arrow-icon">→</span></span>
           </div>
         </div>
@@ -620,17 +620,17 @@ input[type="checkbox"] { accent-color: #6366f1; }
               <tr class="border-b border-slate-700/30 hover:bg-slate-800/30 transition cursor-pointer" onclick="showModulePage('liox')">
                 <td class="p-4 font-medium"><span class="text-lio-400">●</span> Lio X</td>
                 <td class="p-4 text-slate-400">AI procurement assistant</td>
-                <td class="p-4 text-right font-semibold mp" data-usd="4400">$4,400</td>
+                <td class="p-4 text-right font-semibold mp" data-usd="5500" data-eur="4500" data-gbp="4000">$5,500</td>
                 <td class="p-4 text-right text-slate-400">Users</td>
-                <td class="p-4 text-right text-slate-400">5</td>
-                <td class="p-4 text-right text-slate-400 mp" data-usd="87500">$87,500</td>
+                <td class="p-4 text-right text-slate-400">15</td>
+                <td class="p-4 text-right text-slate-400 mp" data-usd="250000" data-eur="210000" data-gbp="185000">$250,000</td>
                 <td class="p-4 text-center"><span class="text-xs px-2 py-1 bg-lio-500/10 text-lio-400 rounded">$350/user</span></td>
                 <td class="p-4 text-right text-lio-400 text-xs">→</td>
               </tr>
               <tr class="hover:bg-slate-800/30 transition cursor-pointer" onclick="showModulePage('sm')">
                 <td class="p-4 font-medium"><span class="text-slate-400">●</span> SRM</td>
                 <td class="p-4 text-slate-400">Supplier relationship management</td>
-                <td class="p-4 text-right font-semibold mp" data-usd="122500">$122,500</td>
+                <td class="p-4 text-right font-semibold mp" data-usd="2500">$2,500</td>
                 <td class="p-4 text-right text-slate-400">Onboardings</td>
                 <td class="p-4 text-right text-slate-400">50</td>
                 <td class="p-4 text-right text-slate-400 mp" data-usd="125000">$125,000</td>
@@ -1015,11 +1015,11 @@ input[type="checkbox"] { accent-color: #6366f1; }
           <div class="ml-8 hidden" id="calc-sm-opts">
             <label class="text-xs text-slate-500">Onboardings per Year</label>
             <select id="calc-sm-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
-              <option value="2500">Up to 50 — $2,500/yr (+ $120K setup)</option>
-              <option value="3125">Up to 100 — $3,125/yr (+ $120K setup)</option>
-              <option value="3750">Up to 150 — $3,750/yr (+ $120K setup)</option>
-              <option value="4375">Up to 200 — $4,375/yr (+ $120K setup)</option>
-              <option value="5000">Up to 250 — $5,000/yr (+ $120K setup)</option>
+              <option value="2500">Up to 50 — $2,500/yr</option>
+              <option value="3125">Up to 100 — $3,125/yr</option>
+              <option value="3750">Up to 150 — $3,750/yr</option>
+              <option value="4375">Up to 200 — $4,375/yr</option>
+              <option value="5000">Up to 250 — $5,000/yr</option>
             </select>
           </div>
         </div>
@@ -1082,13 +1082,13 @@ input[type="checkbox"] { accent-color: #6366f1; }
           <div class="ml-8 hidden" id="calc-liox-opts">
             <label class="text-xs text-slate-500">Number of Users</label>
             <select id="calc-liox-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
-              <option value="4400">Up to 5 — $4,400/yr</option>
-              <option value="9400">Up to 10 — $9,400/yr</option>
-              <option value="25000">Up to 50 — $25,000/yr</option>
-              <option value="40000">Up to 100 — $40,000/yr</option>
-              <option value="56250">Up to 150 — $56,250/yr</option>
-              <option value="72500">Up to 200 — $72,500/yr</option>
-              <option value="87500">Up to 250 — $87,500/yr</option>
+              <option value="5500">Up to 15 — $5,500/yr</option>
+              <option value="15000">Up to 50 — $15,000/yr</option>
+              <option value="28000">Up to 100 — $28,000/yr</option>
+              <option value="48000">Up to 200 — $48,000/yr</option>
+              <option value="85000">Up to 400 — $85,000/yr</option>
+              <option value="150000">Up to 800 — $150,000/yr</option>
+              <option value="250000">Unlimited — $250,000/yr</option>
             </select>
           </div>
         </div>
@@ -1210,23 +1210,23 @@ input[type="checkbox"] { accent-color: #6366f1; }
                 </div>
               </div>
               <div class="flex justify-between text-sm mt-1">
-                <span class="text-slate-400">Implementation (15%)</span>
+                <span class="text-slate-400">Implementation (15%) — one-time</span>
                 <span id="calc-impl-fee">$0</span>
               </div>
               <div class="flex justify-between text-sm mt-1">
-                <span class="text-slate-400">Customer Success (10%)</span>
+                <span class="text-slate-400">Customer Success (10%/yr)</span>
                 <span id="calc-cs-fee">$0</span>
-              </div>
-              <div id="calc-setup-row" class="hidden flex justify-between text-sm mt-1">
-                <span class="text-slate-400">SRM Setup (one-time)</span>
-                <span class="mp" data-usd="120000">$120,000</span>
               </div>
             </div>
 
             <div class="border-t border-lio-500/30 pt-3">
               <div class="flex justify-between">
-                <span class="font-semibold">Total Annual</span>
+                <span class="font-semibold">Total First Year</span>
                 <span class="text-xl font-bold gradient-text" id="calc-grand-total">$0</span>
+              </div>
+              <div class="flex justify-between text-sm mt-1">
+                <span class="text-slate-400">Recurring Annual (SaaS + CS)</span>
+                <span class="text-slate-300" id="calc-recurring">$0</span>
               </div>
               <div class="flex justify-between text-sm mt-1">
                 <span class="text-slate-400">Monthly equiv.</span>
@@ -1351,8 +1351,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
               <tr class="bg-slate-800/50 text-slate-400 text-xs uppercase">
                 <th class="text-left p-2 pl-3">Module</th>
                 <th class="text-right p-2">List Price</th>
-                <th class="text-center p-2" style="width:120px;">Discount</th>
-                <th class="text-right p-2 pr-3">Final Price</th>
+                <th class="text-right p-2 pr-3">Your Price</th>
               </tr>
             </thead>
             <tbody id="quote-pricing-lines"></tbody>
@@ -1382,7 +1381,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
         <div class="mt-3 p-3 rounded-lg bg-slate-800/30 border border-slate-700/50">
           <div class="flex justify-between text-sm"><span class="text-slate-400">SaaS (after discounts)</span><span id="quote-final-saas">$0</span></div>
           <div class="flex justify-between items-center text-sm mt-1">
-            <span class="text-slate-400">Implementation (15%)</span>
+            <span class="text-slate-400">Implementation (15%) — one-time</span>
             <div class="flex items-center gap-2">
               <div class="flex items-center gap-1">
                 <input type="number" id="quote-impl-disc" value="0" min="0" step="1" onchange="updateQuotePricing()" oninput="updateQuotePricing()" class="w-12 bg-slate-800/50 border border-slate-600 rounded p-1 text-xs text-white text-right outline-none">
@@ -1395,7 +1394,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
             </div>
           </div>
           <div class="flex justify-between items-center text-sm mt-1">
-            <span class="text-slate-400">Customer Success (10%)</span>
+            <span class="text-slate-400">Customer Success (10%/yr)</span>
             <div class="flex items-center gap-2">
               <div class="flex items-center gap-1">
                 <input type="number" id="quote-cs-disc" value="0" min="0" step="1" onchange="updateQuotePricing()" oninput="updateQuotePricing()" class="w-12 bg-slate-800/50 border border-slate-600 rounded p-1 text-xs text-white text-right outline-none">
@@ -1407,16 +1406,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
               <span id="quote-final-cs" class="w-20 text-right">$0</span>
             </div>
           </div>
-          <div id="quote-srm-setup-row" class="hidden mt-3 p-3 bg-slate-800/50 border border-slate-600 rounded-lg">
-            <label class="text-xs text-slate-400 block mb-1">SRM One-Time Setup Fee Adjustment</label>
-            <div class="flex items-center gap-3">
-              <span class="text-xs text-slate-400">Original: <span id="quote-srm-original" class="text-white font-semibold"></span></span>
-              <input type="number" id="quote-srm-fee" placeholder="Adjusted fee" class="flex-1 bg-slate-800/50 border border-slate-600 rounded-lg p-2 text-sm text-white placeholder-slate-500 focus:ring-2 focus:ring-lio-500 outline-none" onchange="updateQuotePricing()" oninput="updateQuotePricing()">
-              <span class="text-xs text-slate-400">or</span>
-              <input type="number" id="quote-srm-disc-pct" placeholder="Discount %" class="w-20 bg-slate-800/50 border border-slate-600 rounded-lg p-2 text-sm text-white placeholder-slate-500 focus:ring-2 focus:ring-lio-500 outline-none" max="100" onchange="updateSrmFeeFromPct()" oninput="updateSrmFeeFromPct()">
-            </div>
-          </div>
-          <div class="flex justify-between text-sm mt-2 pt-2 border-t border-slate-700/50 font-bold"><span>Total Annual</span><span id="quote-final-total" class="text-lg">$0</span></div>
+          <div class="flex justify-between text-sm mt-2 pt-2 border-t border-slate-700/50 font-bold"><span>Total First Year</span><span id="quote-final-total" class="text-lg">$0</span></div>
         </div>
       </div>
     </div>
@@ -1825,10 +1815,13 @@ const modules = {
     { vol: 'Up to 100,000', price: 118750 }
   ]},
   liox: { name: 'Lio X', color: 'indigo', tiers: [
-    { vol: 'Up to 5 users', price: 4400 }, { vol: 'Up to 10 users', price: 9400 },
-    { vol: 'Up to 50 users', price: 25000 }, { vol: 'Up to 100 users', price: 40000 },
-    { vol: 'Up to 150 users', price: 56250 }, { vol: 'Up to 200 users', price: 72500 },
-    { vol: 'Up to 250 users', price: 87500 }
+    { vol: 'Up to 15 users', price: 5500, eur: 4500, gbp: 4000 },
+    { vol: 'Up to 50 users', price: 15000, eur: 12500, gbp: 11000 },
+    { vol: 'Up to 100 users', price: 28000, eur: 23000, gbp: 20000 },
+    { vol: 'Up to 200 users', price: 48000, eur: 40000, gbp: 35000 },
+    { vol: 'Up to 400 users', price: 85000, eur: 70000, gbp: 62000 },
+    { vol: 'Up to 800 users', price: 150000, eur: 125000, gbp: 110000 },
+    { vol: 'Unlimited', price: 250000, eur: 210000, gbp: 185000 }
   ]},
   aa: { name: 'Approval Agent', color: 'teal', tiers: [
     { vol: 'Flat Rate', price: 12500 }
@@ -1873,7 +1866,7 @@ function fmt(n) {
   let converted = n * currencyRates[currentCurrency];
   if (currentCurrency !== 'usd') converted = Math.round(converted / 500) * 500;
   else converted = Math.round(converted);
-  if (currentCurrency === 'eur') return converted.toLocaleString('de-DE') + ' €';
+  if (currentCurrency === 'eur') return converted.toLocaleString('de-DE') + '\u00a0\u20ac';
   return currencySymbols[currentCurrency] + converted.toLocaleString('en-US');
 }
 
@@ -1882,8 +1875,8 @@ function fmtZero() {
 }
 
 function fmtTierPrice(tier) {
-  if (currentCurrency === 'eur' && tier.eur !== undefined) return tier.eur.toLocaleString('de-DE') + ' €';
-  if (currentCurrency === 'gbp' && tier.gbp !== undefined) return '£' + tier.gbp.toLocaleString('en-US');
+  if (currentCurrency === 'eur' && tier.eur !== undefined) return tier.eur.toLocaleString('de-DE') + '\u00a0\u20ac';
+  if (currentCurrency === 'gbp' && tier.gbp !== undefined) return '\u00a3' + tier.gbp.toLocaleString('en-US');
   return fmt(tier.price);
 }
 function getTierPriceRaw(tier) {
@@ -1894,7 +1887,7 @@ function getTierPriceRaw(tier) {
   return c;
 }
 function fmtRaw(n) {
-  if (currentCurrency === 'eur') return n.toLocaleString('de-DE') + ' €';
+  if (currentCurrency === 'eur') return n.toLocaleString('de-DE') + '\u00a0\u20ac';
   return currencySymbols[currentCurrency] + n.toLocaleString('en-US');
 }
 
@@ -1906,7 +1899,7 @@ function setCurrency(cur) {
   // Update static module card prices
   document.querySelectorAll('.mp').forEach(el => {
     if (currentCurrency === 'eur' && el.dataset.eur) {
-      el.textContent = parseInt(el.dataset.eur).toLocaleString('de-DE') + ' €';
+      el.textContent = parseInt(el.dataset.eur).toLocaleString('de-DE') + '\u00a0\u20ac';
     } else if (currentCurrency === 'gbp' && el.dataset.gbp) {
       el.textContent = '£' + parseInt(el.dataset.gbp).toLocaleString('en-US');
     } else {
@@ -1919,8 +1912,7 @@ function setCurrency(cur) {
     if (!sel) return;
     modules[k].tiers.forEach((t, i) => {
       if (sel.options[i]) {
-        const suffix = modules[k].setup ? ' (+ ' + fmt(120000) + ' setup)' : '';
-        sel.options[i].text = t.vol + ' — ' + fmtTierPrice(t) + '/yr' + suffix;
+        sel.options[i].text = t.vol + ' — ' + fmtTierPrice(t) + '/yr';
       }
     });
   });
@@ -2098,8 +2090,7 @@ const moduleDetails = {
       { vol: 'Up to 150', price: 3750 }, { vol: 'Up to 200', price: 4375 },
       { vol: 'Up to 250', price: 5000 }
     ],
-    unit: 'Onboardings/Year',
-    setup: 120000
+    unit: 'Onboardings/Year'
   },
   aa: {
     title: 'Approval Agent',
@@ -2253,7 +2244,6 @@ function showModulePage(modKey) {
             </tr></thead>
             <tbody>${tiersHtml}</tbody>
           </table>
-          ${mod.setup ? `<div class="mt-4 p-3 rounded-lg bg-amber-500/10 text-sm text-amber-300">+ One-time setup fee: ${fmt(mod.setup)}</div>` : ''}
           <div class="mt-4 p-3 rounded-lg bg-slate-800/50 text-xs text-slate-500">
             + 15% Implementation Fee + 10% Customer Success Fee
           </div>
@@ -2335,11 +2325,11 @@ function calcUpdate() {
   document.getElementById('calc-impl-fee').textContent = fmt(implB);
   document.getElementById('calc-cs-fee').textContent = fmt(csB);
   document.getElementById('calc-grand-total').textContent = fmt(grandTotalB);
-  document.getElementById('calc-monthly').textContent = fmt(Math.round(grandTotalB / 12)) + '/mo';
+  const recurringAnnual = netSaas + csB;
+  document.getElementById('calc-recurring').textContent = fmt(recurringAnnual);
+  document.getElementById('calc-monthly').textContent = fmt(Math.round(recurringAnnual / 12)) + '/mo';
   document.getElementById('calc-mod-count').textContent = count;
 
-  const setupRow = document.getElementById('calc-setup-row');
-  if (hasSM) { setupRow.classList.remove('hidden'); } else { setupRow.classList.add('hidden'); }
 
   // Bundle hint
   let hint = '';
@@ -2719,17 +2709,14 @@ function populateQuotePricing() {
     if (!document.getElementById('check-' + mod).checked) return;
     selectedKeys.push(mod);
     const price = parseInt(document.getElementById('calc-' + mod + '-tier').value);
+    const rawPrice = getTierPriceRaw(modules[mod].tiers.find(t => t.price === price) || { price: price });
     const modName = mod === 'sm' ? 'SRM' : (modules[mod]?.name || 'SRM');
     tbody.innerHTML += '<tr class="border-t border-slate-700/30" data-mod="' + mod + '">'
       + '<td class="p-2 pl-3 text-slate-300">' + modName + '</td>'
-      + '<td class="p-2 text-right text-slate-400" data-list-price="' + price + '">' + fmt(price) + '</td>'
-      + '<td class="p-2 text-center">'
-      + '<div class="flex items-center gap-1 justify-center">'
-      + '<input type="number" id="qd-' + mod + '" value="0" min="0" step="1" onchange="updateQuotePricing()" oninput="updateQuotePricing()" class="w-14 bg-slate-800/50 border border-slate-600 rounded p-1 text-xs text-white text-right outline-none">'
-      + '<select id="qdt-' + mod + '" onchange="updateQuotePricing()" class="bg-slate-800/50 border border-slate-600 rounded p-1 text-xs text-white outline-none">'
-      + '<option value="pct">%</option><option value="fixed">$</option></select>'
-      + '</div></td>'
-      + '<td class="p-2 pr-3 text-right font-semibold text-white" id="qf-' + mod + '">' + fmt(price) + '</td>'
+      + '<td class="p-2 text-right text-slate-400" data-list-price="' + rawPrice + '">' + fmtRaw(rawPrice) + '</td>'
+      + '<td class="p-2 pr-3 text-right">'
+      + '<input type="number" id="qf-' + mod + '" value="' + rawPrice + '" min="0" step="100" onchange="updateQuotePricing()" oninput="updateQuotePricing()" class="w-28 bg-slate-800/50 border border-slate-600 rounded p-1 text-sm text-white text-right outline-none font-semibold">'
+      + '</td>'
       + '</tr>';
   });
 
@@ -2748,33 +2735,10 @@ function populateQuotePricing() {
   updateQuotePricing();
 }
 
-function updateSrmFeeFromPct() {
-  const pct = parseFloat(document.getElementById('quote-srm-disc-pct')?.value) || 0;
-  if (pct > 0) {
-    const original = modules.sm?.setup || 120000;
-    document.getElementById('quote-srm-fee').value = Math.round(original * (1 - pct / 100));
-  }
-  updateQuotePricing();
-}
-
-function showHideSrmSetupRow() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
-  const smChecked = document.getElementById('check-sm')?.checked;
-  const row = document.getElementById('quote-srm-setup-row');
-  if (row) {
-    if (smChecked) {
-      row.classList.remove('hidden');
-      document.getElementById('quote-srm-original').textContent = fmt(modules.sm?.setup || 120000);
-    } else {
-      row.classList.add('hidden');
-    }
-  }
-}
 
 function updateQuotePricing() {
   const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
   const selectedKeys = mods.filter(m => document.getElementById('check-' + m).checked);
-  showHideSrmSetupRow();
 
   const bundle = detectBundle(selectedKeys);
   const bundleApply = document.getElementById('quote-bundle-apply').checked && bundle;
@@ -2782,23 +2746,11 @@ function updateQuotePricing() {
 
   let saasTotal = 0;
   selectedKeys.forEach(mod => {
-    const cell = document.querySelector('tr[data-mod="' + mod + '"] td[data-list-price]');
-    if (!cell) return;
-    const listPrice = parseInt(cell.getAttribute('data-list-price'));
-
-    const discVal = parseFloat(document.getElementById('qd-' + mod)?.value) || 0;
-    const discType = document.getElementById('qdt-' + mod)?.value || 'pct';
-
-    let lineDiscount = 0;
-    if (discType === 'pct') lineDiscount = Math.round(listPrice * discVal / 100);
-    else lineDiscount = discVal;
-
-    let afterLine = listPrice - lineDiscount;
-    if (bundlePct > 0) afterLine = Math.round(afterLine * (1 - bundlePct / 100));
-
     const finalEl = document.getElementById('qf-' + mod);
-    if (finalEl) finalEl.textContent = fmt(Math.max(0, afterLine));
-    saasTotal += Math.max(0, afterLine);
+    if (!finalEl) return;
+    let yourPrice = parseFloat(finalEl.value) || 0;
+    if (bundlePct > 0) yourPrice = Math.round(yourPrice * (1 - bundlePct / 100));
+    saasTotal += Math.max(0, yourPrice);
   });
 
   const excType = document.getElementById('quote-exc-type').value;
@@ -2845,7 +2797,7 @@ function generateQuoteData() {
     if (document.getElementById('check-' + mod).checked) {
       const tierText = document.getElementById('calc-' + mod + '-tier').selectedOptions[0].text.split(' — ')[0];
       const finalPriceEl = document.getElementById('qf-' + mod);
-      const price = finalPriceEl ? parseInt(finalPriceEl.textContent.replace(/[^0-9]/g, '')) : parseInt(document.getElementById('calc-' + mod + '-tier').value);
+      const price = finalPriceEl ? (parseFloat(finalPriceEl.value) || 0) : parseInt(document.getElementById('calc-' + mod + '-tier').value);
       totalSaas += price;
       if (mod === 'sm') hasSM = true;
       selectedMods.push({
@@ -2890,11 +2842,6 @@ function generateQuoteData() {
   let csDisc = csDiscType === 'pct' ? Math.round(csBase * csDiscVal / 100) : csDiscVal;
   const cs = Math.max(0, csBase - csDisc);
 
-  // SRM setup fee adjustment
-  const srmOriginalFee = modules.sm?.setup || 120000;
-  const srmAdjustedFee = hasSM ? (parseFloat(document.getElementById('quote-srm-fee')?.value) || srmOriginalFee) : srmOriginalFee;
-  const srmFeeDiscount = srmOriginalFee - srmAdjustedFee;
-
   const grandTotal = finalSaas + impl + cs;
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const validInput = document.getElementById('quote-valid-until')?.value;
@@ -2931,27 +2878,21 @@ function generateQuoteData() {
 
   // Calculate savings for display
   let totalListPrice = 0;
-  let totalWithLineDiscOnly = 0;
   selectedMods.forEach(m => {
     const listCell = document.querySelector('tr[data-mod="' + m.key + '"] td[data-list-price]');
     const listPrice = listCell ? parseInt(listCell.getAttribute('data-list-price')) : m.price;
     totalListPrice += listPrice;
-    // Line discount only (no bundle)
-    const discVal = parseFloat(document.getElementById('qd-' + m.key)?.value) || 0;
-    const discType = document.getElementById('qdt-' + m.key)?.value || 'pct';
-    let lineDisc = discType === 'pct' ? Math.round(listPrice * discVal / 100) : discVal;
-    totalWithLineDiscOnly += (listPrice - lineDisc);
   });
-  const bundleSavings = bundleApply ? (totalWithLineDiscOnly - totalSaas) : 0;
-  const lineDiscTotal = totalListPrice - totalWithLineDiscOnly;
   const totalSavingsAll = totalListPrice - finalSaas;
+  const lineDiscTotal = totalListPrice - totalSaas;
+  const bundleSavings = bundleApply ? Math.round(totalSaas * bundlePct / 100) : 0;
 
   const moduleRows = selectedMods.map(m => {
     const listCell = document.querySelector('tr[data-mod="' + m.key + '"] td[data-list-price]');
     const listPrice = listCell ? parseInt(listCell.getAttribute('data-list-price')) : m.price;
     const priceDisplay = listPrice !== m.price
-      ? '<span style="text-decoration:line-through;color:#999;font-weight:400;margin-right:6px;">' + fmt(listPrice) + '</span>' + fmt(m.price)
-      : fmt(m.price);
+      ? '<span style="text-decoration:line-through;color:#999;font-weight:400;margin-right:6px;">' + fmtRaw(listPrice) + '</span>' + fmtRaw(m.price)
+      : fmtRaw(m.price);
     return `<tr style="border-bottom:1px solid #e5e7eb;">
       <td style="padding:14px 16px;font-weight:600;color:#1e293b;">${m.name}</td>
       <td style="padding:14px 16px;color:#1e293b;font-size:13px;">${m.tier}</td>
@@ -3107,38 +3048,27 @@ function generateQuoteData() {
       <td style="padding:10px 16px;text-align:right;font-weight:700;">${fmt(finalSaas)}</td>
     </tr>
     <tr style="border-bottom:1px solid #e5e7eb;">
-      <td style="padding:10px 16px;color:#1e293b;font-size:13px;" colspan="2">Implementation Fee (15%)${implDisc > 0 ? ' <span style="font-size:11px;">incl. ' + (implDiscType === 'pct' ? implDiscVal + '%' : fmt(implDisc)) + ' discount</span>' : ''}</td>
+      <td style="padding:10px 16px;color:#1e293b;font-size:13px;" colspan="2">Implementation Fee (15%) -- one-time${implDisc > 0 ? ' <span style="font-size:11px;">incl. ' + (implDiscType === 'pct' ? implDiscVal + '%' : fmt(implDisc)) + ' discount</span>' : ''}</td>
       <td style="padding:10px 16px;text-align:right;">${fmt(impl)}</td>
     </tr>
     <tr style="border-bottom:1px solid #e5e7eb;">
-      <td style="padding:10px 16px;color:#1e293b;font-size:13px;" colspan="2">Customer Success Fee (10%)${csDisc > 0 ? ' <span style="font-size:11px;">incl. ' + (csDiscType === 'pct' ? csDiscVal + '%' : fmt(csDisc)) + ' discount</span>' : ''}</td>
+      <td style="padding:10px 16px;color:#1e293b;font-size:13px;" colspan="2">Customer Success Fee (10%/yr) -- annual${csDisc > 0 ? ' <span style="font-size:11px;">incl. ' + (csDiscType === 'pct' ? csDiscVal + '%' : fmt(csDisc)) + ' discount</span>' : ''}</td>
       <td style="padding:10px 16px;text-align:right;">${fmt(cs)}</td>
     </tr>
     <tr style="background:#f8fafc;">
-      <td style="padding:14px 16px;font-weight:700;font-size:15px;" colspan="2">Total Annual</td>
+      <td style="padding:14px 16px;font-weight:700;font-size:15px;" colspan="2">Total First Year</td>
       <td style="padding:14px 16px;text-align:right;font-weight:800;font-size:18px;color:#1e293b;">${fmt(grandTotal)}</td>
+    </tr>
+    <tr style="border-bottom:1px solid #e5e7eb;">
+      <td style="padding:8px 16px;font-size:13px;color:#1e293b;" colspan="2">Recurring Annual (SaaS + CS)</td>
+      <td style="padding:8px 16px;text-align:right;font-size:13px;font-weight:600;color:#1e293b;">${fmt(finalSaas + cs)}</td>
     </tr>
     <tr>
       <td style="padding:8px 16px;font-size:13px;color:#64748b;" colspan="2">Monthly equivalent</td>
-      <td style="padding:8px 16px;text-align:right;font-size:13px;color:#64748b;font-weight:700;">${fmt(Math.round(grandTotal / 12))}/mo</td>
+      <td style="padding:8px 16px;text-align:right;font-size:13px;color:#64748b;font-weight:700;">${fmt(Math.round((finalSaas + cs) / 12))}/mo</td>
     </tr>
     ${totalSavingsAll > 0 ? '<tr style="border-top:1px solid #e5e7eb;"><td style="padding:10px 16px;font-size:13px;font-weight:600;" colspan="2">Total Savings</td><td style="padding:10px 16px;text-align:right;font-weight:700;font-size:14px;color:#16a34a;">-' + fmt(totalSavingsAll) + '</td></tr>' : ''}
   </table>
-  ${hasSM ? `<table style="width:100%;border-collapse:collapse;margin-bottom:32px;">
-    <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;">
-      <th style="padding:12px 16px;text-align:left;font-size:12px;color:#1e293b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">One-Time Fees</th>
-      <th style="padding:12px 16px;text-align:right;font-size:12px;color:#1e293b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Amount</th>
-    </tr>
-    <tr style="border-bottom:1px solid #e5e7eb;">
-      <td style="padding:12px 16px;color:#1e293b;font-size:13px;">SRM Platform Setup &amp; Configuration</td>
-      <td style="padding:12px 16px;text-align:right;font-weight:600;">${srmFeeDiscount > 0 ? '<span style="text-decoration:line-through;color:#94a3b8;margin-right:6px;">' + fmt(srmOriginalFee) + '</span>' + fmt(srmAdjustedFee) : fmt(srmOriginalFee)}</td>
-    </tr>
-    ${srmFeeDiscount > 0 ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#16a34a;font-size:12px;">Setup Fee Discount</td><td style="padding:8px 16px;text-align:right;color:#16a34a;font-weight:600;">-' + fmt(srmFeeDiscount) + '</td></tr>' : ''}
-    <tr style="background:#f8fafc;">
-      <td style="padding:14px 16px;font-weight:700;font-size:15px;">Total One-Time</td>
-      <td style="padding:14px 16px;text-align:right;font-weight:800;font-size:18px;color:#1e293b;">${fmt(srmAdjustedFee)}</td>
-    </tr>
-  </table>` : ''}
 
   <!-- Module Details (conditional) -->
   ${includeDetails ? `<div style="page-break-before:always;"></div><h2 style="font-size:18px;font-weight:700;margin-bottom:16px;color:#1e293b;">Selected Modules</h2>${moduleDetails_pdf}` : ''}
@@ -3216,12 +3146,11 @@ function saveQuoteToHistory(data) {
     const sel = document.getElementById('calc-' + s.key + '-tier');
     if (sel) tierValues[s.key] = sel.value;
   });
-  // Build line discounts
-  const lineDiscounts = {};
+  // Build custom prices
+  const customPrices = {};
   selectedMods.forEach(s => {
-    const dv = parseFloat(document.getElementById('qd-' + s.key)?.value) || 0;
-    const dt = document.getElementById('qdt-' + s.key)?.value || 'pct';
-    if (dv > 0) lineDiscounts[s.key] = { value: dv, type: dt };
+    const el = document.getElementById('qf-' + s.key);
+    if (el) customPrices[s.key] = parseFloat(el.value) || 0;
   });
 
   // Save to history
@@ -3246,13 +3175,11 @@ function saveQuoteToHistory(data) {
       notes: customNotes,
       selectedModules: selectedMods.map(s => s.key),
       tiers: tierValues,
-      lineDiscounts: lineDiscounts,
+      customPrices: customPrices,
       bundleApply: bundleApply,
       exclusiveDiscount: { value: parseFloat(document.getElementById('quote-exc-value')?.value) || 0, type: document.getElementById('quote-exc-type')?.value || 'pct' },
       implDisc: { value: parseFloat(document.getElementById('quote-impl-disc')?.value) || 0, type: document.getElementById('quote-impl-disc-type')?.value || 'pct' },
       csDisc: { value: parseFloat(document.getElementById('quote-cs-disc')?.value) || 0, type: document.getElementById('quote-cs-disc-type')?.value || 'pct' },
-      srmFee: parseFloat(document.getElementById('quote-srm-fee')?.value) || 0,
-      srmDiscPct: parseFloat(document.getElementById('quote-srm-disc-pct')?.value) || 0,
       includeDetails: includeDetails,
       includeROI: includeROI,
       includeService: includeService,
@@ -3309,7 +3236,7 @@ function downloadQuotePDF() {
   setTimeout(() => { printWindow.print(); }, 500);
 }
 
-function downloadQuoteAsPDF() {
+async function downloadQuoteAsPDF() {
   const data = generateQuoteData();
   if (!data) return;
   saveQuoteToHistory(data);
@@ -3318,22 +3245,28 @@ function downloadQuoteAsPDF() {
   // Extract just the body content from the full HTML
   const bodyMatch = data.html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
   container.innerHTML = bodyMatch ? bodyMatch[1] : data.html;
-  container.style.cssText = 'position:absolute;left:-9999px;top:0;width:800px;';
+  // Must be visible for html2canvas to render - use opacity:0 instead of off-screen
+  container.style.cssText = 'position:fixed;left:0;top:0;width:210mm;padding:20mm;z-index:99999;background:white;opacity:0;pointer-events:none;';
   document.body.appendChild(container);
+
+  // Wait for fonts and images to load
+  await new Promise(r => setTimeout(r, 500));
 
   const company = data.recipientCompany || 'Quote';
   const filename = data.quoteRef + '_' + company.replace(/[^a-zA-Z0-9]/g, '_') + '.pdf';
 
-  html2pdf().set({
-    margin: [10, 10, 10, 10],
-    filename: filename,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-  }).from(container).save().then(() => {
+  try {
+    await html2pdf().set({
+      margin: [10, 10, 10, 10],
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0, windowWidth: 800 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    }).from(container).save();
+  } finally {
     document.body.removeChild(container);
-  });
+  }
 }
 
 function openQuoteHistory() {
@@ -3502,14 +3435,9 @@ function loadQuote(id) {
     setVal('quote-cs-disc', fs.csDisc?.value || 0);
     setVal('quote-cs-disc-type', fs.csDisc?.type || 'pct');
 
-    // SRM fee
-    if (fs.srmFee) setVal('quote-srm-fee', fs.srmFee);
-    if (fs.srmDiscPct) setVal('quote-srm-disc-pct', fs.srmDiscPct);
-
-    // Line discounts
-    Object.entries(fs.lineDiscounts || {}).forEach(([key, disc]) => {
-      setVal('qd-' + key, disc.value || 0);
-      setVal('qdt-' + key, disc.type || 'pct');
+    // Custom prices
+    Object.entries(fs.customPrices || {}).forEach(([key, price]) => {
+      setVal('qf-' + key, price);
     });
 
     // Bundle
