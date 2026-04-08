@@ -153,7 +153,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
     </div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
       <div class="glass rounded-xl p-4 text-center">
-        <div class="text-2xl font-bold gradient-text" data-count="14">0</div>
+        <div class="text-2xl font-bold gradient-text" data-count="15">0</div>
         <div class="text-xs text-slate-400 mt-1">Agent Modules</div>
       </div>
       <div class="glass rounded-xl p-4 text-center">
@@ -547,6 +547,26 @@ input[type="checkbox"] { accent-color: #6366f1; }
 
       </div>
 
+      <!-- Modules -->
+      <h3 class="text-lg font-bold text-slate-200 mb-4 mt-8 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-teal-400"></span> Modules</h3>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="glass rounded-2xl p-6 hover-glow card-glass-header cursor-pointer" style="border-color: rgba(20, 184, 166, 0.3);" onclick="showModulePage('clm')">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center text-teal-400 text-lg">📑</div>
+            <div><h3 class="font-bold">Contract Lifecycle Management</h3><p class="text-xs text-slate-500">CLM</p></div>
+          </div>
+          <p class="text-sm text-slate-400 mb-4">Real-time contract portfolio monitoring with proactive renewals and compliance tracking.</p>
+          <div class="flex items-end justify-between">
+            <div><span class="text-xs text-slate-500">Starting at</span><div class="text-2xl font-bold text-teal-400 mp" data-usd="15000" data-eur="12500" data-gbp="11000">$15,000</div><span class="text-xs text-slate-500">/year</span></div>
+            <div class="text-xs text-slate-500">5 tiers</div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-slate-700/50 flex items-center justify-between">
+            <span class="text-xs text-slate-500">Scales to 10K contracts</span>
+            <span class="text-xs text-teal-400 font-medium arrow-slide">View details <span class="arrow-icon">→</span></span>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- VIEW 2: COMPARISON TABLE -->
@@ -636,6 +656,17 @@ input[type="checkbox"] { accent-color: #6366f1; }
                 <td class="p-4 text-right text-slate-400 mp" data-usd="125000" data-eur="109000" data-gbp="99000">$125,000</td>
                 <td class="p-4 text-center"><span class="text-xs px-2 py-1 bg-slate-500/10 text-slate-400 rounded">Flat</span></td>
                 <td class="p-4 text-right text-slate-400 text-xs">→</td>
+              </tr>
+              <tr class="bg-slate-800/30"><td colspan="8" class="p-3 text-xs text-slate-500 font-bold uppercase tracking-wider">Modules</td></tr>
+              <tr class="hover:bg-slate-800/30 transition cursor-pointer" onclick="showModulePage('clm')">
+                <td class="p-4 font-medium"><span class="text-teal-400">●</span> Contract Lifecycle Management</td>
+                <td class="p-4 text-slate-400">Portfolio monitoring & renewals</td>
+                <td class="p-4 text-right font-semibold mp" data-usd="15000" data-eur="12500" data-gbp="11000">$15,000</td>
+                <td class="p-4 text-right text-slate-400">Contracts</td>
+                <td class="p-4 text-right text-slate-400">250</td>
+                <td class="p-4 text-right text-slate-400 mp" data-usd="135000" data-eur="113000" data-gbp="99000">$135,000</td>
+                <td class="p-4 text-center"><span class="text-xs px-2 py-1 bg-teal-500/10 text-teal-400 rounded">$60/contract</span></td>
+                <td class="p-4 text-right text-teal-400 text-xs">→</td>
               </tr>
             </tbody>
           </table>
@@ -1172,6 +1203,29 @@ input[type="checkbox"] { accent-color: #6366f1; }
               <option value="178500">Up to 8,000 — $178,500/yr</option>
               <option value="335000">Up to 10,000 — $335,000/yr</option>
               <option value="632500">Up to 20,000 — $632,500/yr</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-4 mb-2 px-2">Modules</div>
+
+        <!-- CLM -->
+        <div class="glass rounded-xl p-5 transition-all duration-300" id="calc-clm">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="check-clm" class="w-5 h-5 rounded" onchange="calcUpdate()">
+              <label for="check-clm" class="font-semibold cursor-pointer">Contract Lifecycle Management (CLM)</label>
+            </div>
+            <span class="text-sm text-teal-400 font-semibold" id="calc-clm-price">$0</span>
+          </div>
+          <div class="ml-8 hidden" id="calc-clm-opts">
+            <label class="text-xs text-slate-500">Contracts Managed per Year</label>
+            <select id="calc-clm-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="15000">Up to 250 — $15,000/yr</option>
+              <option value="26000">Up to 500 — $26,000/yr</option>
+              <option value="45500">Up to 1,000 — $45,500/yr</option>
+              <option value="80000">Up to 5,000 — $80,000/yr</option>
+              <option value="135000">Up to 10,000 — $135,000/yr</option>
             </select>
           </div>
         </div>
@@ -1859,7 +1913,8 @@ const modules = {
     { vol: 'Up to 2,000', price: 27000 }, { vol: 'Up to 4,000', price: 52000 },
     { vol: 'Up to 6,000', price: 97500 }, { vol: 'Up to 8,000', price: 178500 },
     { vol: 'Up to 10,000', price: 335000 }, { vol: 'Up to 20,000', price: 632500 }
-  ]}
+  ]},
+  clm:{name:'Contract Lifecycle Management',color:'teal',icon:'📑',desc:'Monitors your entire contract portfolio in real time. Proactive alerts for renewals, budget tracking, SLA compliance, and risk detection. Multi-step approval workflows with version control and full audit trails.',features:['Real-time contract portfolio monitoring','Proactive renewal and expiry alerts','Budget tracking against framework agreements','Multi-step approval workflows','Version control and compliance tracking','Audit trail linking contracts to POs and invoices'],tiers:[{vol:'Up to 250',price:15000,eur:12500,gbp:11000},{vol:'Up to 500',price:26000,eur:22000,gbp:19000},{vol:'Up to 1,000',price:45500,eur:38000,gbp:33500},{vol:'Up to 5,000',price:80000,eur:67000,gbp:58500},{vol:'Up to 10,000',price:135000,eur:113000,gbp:99000}],unit:'Contracts Managed'}
 };
 
 let currentCurrency = 'usd';
@@ -2201,6 +2256,21 @@ const moduleDetails = {
     ],
     tiers: modules.aop.tiers,
     unit: 'Agent Runs'
+  },
+  clm: {
+    title: 'Contract Lifecycle Management',
+    subtitle: 'CLM',
+    color: 'teal',
+    icon: '📑',
+    desc: 'Monitors your entire contract portfolio in real time. Proactive alerts for upcoming renewals, budget tracking against framework agreements, SLA compliance monitoring, and risk detection. Guides users through contract creation with multi-step approval workflows, version control, and full audit trails linking contracts to POs and invoices.',
+    features: ['Real-time contract portfolio monitoring', 'Proactive renewal and expiry alerts', 'Budget tracking against framework agreements', 'Multi-step approval workflows', 'Version control and compliance tracking', 'Audit trail linking contracts to POs and invoices'],
+    metrics: [
+      { label: 'Renewal Capture Rate', value: '98%' },
+      { label: 'Contract Visibility', value: '100%' },
+      { label: 'Approval Cycle', value: '-60%' }
+    ],
+    tiers: modules.clm.tiers,
+    unit: 'Contracts Managed'
   }
 };
 
@@ -2270,7 +2340,7 @@ function hideModulePage() {
 // CALCULATOR
 // ============================
 function calcUpdate() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
   let totalSaas = 0;
   let count = 0;
   let lineItems = '';
@@ -2623,7 +2693,7 @@ function updateAdvancedROI() {
 }
 
 function openQuoteModal() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
   const anyChecked = mods.some(m => document.getElementById('check-' + m).checked);
   if (!anyChecked) { alert('Please select at least one module first.'); return; }
   const modal = document.getElementById('quote-modal');
@@ -2637,7 +2707,7 @@ function openQuoteModal() {
   // Populate additional agents (modules not in the quote)
   const additionalContainer = document.getElementById('quote-additional-agents');
   if (additionalContainer) {
-    const allModKeys = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+    const allModKeys = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
     const selectedKeys = [];
     allModKeys.forEach(m => {
       const cb = document.getElementById('check-' + m);
@@ -2676,7 +2746,7 @@ function closeQuoteModal() {
 function selectBundle(index) {
   const bundle = bundleDefs[index];
   if (!bundle) return;
-  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
   allMods.forEach(m => { document.getElementById('check-' + m).checked = false; });
   bundle.modules.forEach(m => { const cb = document.getElementById('check-' + m); if (cb) cb.checked = true; });
   calcUpdate();
@@ -2691,7 +2761,7 @@ const bundleDefs = [
   { name: 'Intelligence Suite', discount: 6, modules: ['liox','pia','npa'] },
   { name: 'Source to Pay', discount: 8, modules: ['sm','sa','npa','cna'] },
   { name: 'P2P Complete', discount: 10, modules: ['gb2po','ntpo','aa','oc','gr','inv'] },
-  { name: 'Enterprise – Total Procurement AI', discount: 15, modules: ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'] }
+  { name: 'Enterprise – Total Procurement AI', discount: 15, modules: ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'] }
 ];
 
 function detectBundle(selectedKeys) {
@@ -2707,7 +2777,7 @@ function detectBundle(selectedKeys) {
 const discountMode = {};
 
 function populateQuotePricing() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
   const tbody = document.getElementById('quote-pricing-lines');
   const selectedKeys = [];
   tbody.innerHTML = '';
@@ -2774,7 +2844,7 @@ function applyManualPrice(key) {
 
 function applyGlobalDiscount() {
   const globalPct = parseFloat(document.getElementById('quote-exc-value')?.value) || 0;
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
   mods.forEach(key => {
     const pctInput = document.getElementById('qd-' + key);
     const priceInput = document.getElementById('qf-' + key);
@@ -2786,7 +2856,7 @@ function applyGlobalDiscount() {
 
 
 function updateQuotePricing() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
   const selectedKeys = mods.filter(m => document.getElementById('check-' + m)?.checked);
   const bundle = detectBundle(selectedKeys);
   const bundleApply = document.getElementById('quote-bundle-apply')?.checked && bundle;
@@ -2841,7 +2911,7 @@ function updateQuotePricing() {
 // PDF QUOTE DOWNLOAD
 // ============================
 function generateQuoteData() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
   const selectedMods = [];
   let totalSaas = 0;
   let hasSM = false;
@@ -3484,7 +3554,7 @@ function loadQuote(id) {
   if (entry.currency && typeof setCurrency === 'function') setCurrency(entry.currency);
 
   // Select modules in calculator
-  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
   allMods.forEach(m => {
     const cb = document.getElementById('check-' + m);
     if (cb) cb.checked = fs.selectedModules.includes(m);

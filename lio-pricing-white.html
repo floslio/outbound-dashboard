@@ -123,7 +123,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
     </div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-5 max-w-3xl mx-auto">
       <div class="bg-slate-50 rounded-2xl p-5 text-center">
-        <div class="text-3xl font-extrabold accent-text" data-count="14">0</div>
+        <div class="text-3xl font-extrabold accent-text" data-count="15">0</div>
         <div class="text-xs text-slate-500 mt-1 font-medium">Agent Modules</div>
       </div>
       <div class="bg-slate-50 rounded-2xl p-5 text-center">
@@ -369,6 +369,24 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
           </div>
         </div>
       </div>
+
+      <!-- Modules -->
+      <h3 class="text-base font-bold text-slate-700 mb-4 mt-8 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-teal-500"></span> Modules</h3>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="card p-6 cursor-pointer hover-lift card-glass-header" onclick="showModule('clm')">
+          <div class="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-xl mb-4">📑</div>
+          <h3 class="font-bold text-slate-900 text-lg">Contract Lifecycle Management</h3>
+          <p class="text-xs text-teal-600 font-medium mb-2">CLM</p>
+          <p class="text-sm text-slate-500 mb-4 leading-relaxed">Real-time contract portfolio monitoring with proactive renewals and compliance tracking.</p>
+          <div class="flex items-end justify-between pt-4 border-t border-slate-100">
+            <div>
+              <span class="text-xs text-slate-400">From</span>
+              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="15000" data-eur="12500" data-gbp="11000">$15,000</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
+            </div>
+            <span class="text-xs text-teal-600 font-medium arrow-slide">5 tiers <span class="arrow-icon">→</span></span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- TABLE VIEW -->
@@ -401,6 +419,8 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
             <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('cna')"><td class="p-4 font-semibold">Contract Negotiation</td><td class="p-4 text-slate-500">Contract analysis</td><td class="p-4 text-right font-semibold mp" data-usd="15000">$15,000</td><td class="p-4 text-right text-slate-500">Negotiations</td><td class="p-4 text-center"><span class="px-2 py-1 bg-red-50 text-red-700 rounded text-xs font-medium">$13.50/neg</span></td></tr>
             <tr class="bg-slate-50"><td colspan="5" class="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Platform</td></tr>
             <tr class="hover:bg-slate-50 cursor-pointer" onclick="showModule('aop')"><td class="p-4 font-semibold">Agent Builder</td><td class="p-4 text-slate-500">Custom agent workflows</td><td class="p-4 text-right font-semibold mp" data-usd="27000">$27,000</td><td class="p-4 text-right text-slate-500">Agent Runs</td><td class="p-4 text-center"><span class="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium">$13.50/run</span></td></tr>
+            <tr class="bg-slate-50"><td colspan="5" class="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Modules</td></tr>
+            <tr class="hover:bg-slate-50 cursor-pointer" onclick="showModule('clm')"><td class="p-4 font-semibold">Contract Lifecycle Management</td><td class="p-4 text-slate-500">Portfolio monitoring & renewals</td><td class="p-4 text-right font-semibold mp" data-usd="15000" data-eur="12500" data-gbp="11000">$15,000</td><td class="p-4 text-right text-slate-500">Contracts</td><td class="p-4 text-center"><span class="px-2 py-1 bg-teal-50 text-teal-700 rounded text-xs font-medium">$60/contract</span></td></tr>
           </tbody>
         </table>
       </div>
@@ -1018,7 +1038,8 @@ const modules = {
   pia:{name:'Procurement Intelligence',color:'sky',icon:'📊',desc:'AI-powered spend analytics and dynamic reporting. Query procurement data in natural language.',features:['Natural language queries','Dynamic chart creation','Spend analysis','Order analytics','Procurement insights dashboard','Data visualization'],tiers:[{vol:'Up to 5',price:6000},{vol:'Up to 10',price:12000},{vol:'Up to 25',price:25000},{vol:'Up to 50',price:40000},{vol:'Up to 100',price:68750}],unit:'Users'},
   npa:{name:'Negotiation Preparation',color:'fuchsia',icon:'🎯',desc:'Prepares procurement teams for strategic negotiations. Includes supplier analysis, market intelligence, and negotiation strategies.',features:['Supplier data analysis','Contract history review','Strategy recommendations','Live coaching assistant','Market data integration','Best practice templates'],tiers:[{vol:'Up to 500',price:12000},{vol:'Up to 1,000',price:22000},{vol:'Up to 2,500',price:45000},{vol:'Up to 5,000',price:78000},{vol:'Up to 10,000',price:125000}],unit:'Prep Events'},
   cna:{name:'Contract Negotiation',color:'red',icon:'📄',desc:'Analyzes contracts at scale, identifies key terms, risks, and renegotiation opportunities with automated follow-ups.',features:['Bulk contract analysis (1000+)','Risk identification','Actionable follow-ups','Email handling','Coupa integration','Content-group based intake'],tiers:[{vol:'Up to 250',price:15000},{vol:'Up to 500',price:26000},{vol:'Up to 1,000',price:45500},{vol:'Up to 5,000',price:80000},{vol:'Up to 10,000',price:135000}],unit:'Contract Negotiations'},
-  aop:{name:'Agent Builder',color:'blue',icon:'🔧',desc:'No-code platform for building and managing AI agent workflows (AOPs). Create, configure, and deploy custom procurement agents.',features:['Visual workflow builder','Import/export AOPs','Switch/case logic nodes','Email triggers & webhooks','AOP versioning','Chat configuration'],tiers:[{vol:'Up to 2,000',price:27000},{vol:'Up to 4,000',price:52000},{vol:'Up to 6,000',price:97500},{vol:'Up to 8,000',price:178500},{vol:'Up to 10,000',price:335000},{vol:'Up to 20,000',price:632500}],unit:'Agent Runs'}
+  aop:{name:'Agent Builder',color:'blue',icon:'🔧',desc:'No-code platform for building and managing AI agent workflows (AOPs). Create, configure, and deploy custom procurement agents.',features:['Visual workflow builder','Import/export AOPs','Switch/case logic nodes','Email triggers & webhooks','AOP versioning','Chat configuration'],tiers:[{vol:'Up to 2,000',price:27000},{vol:'Up to 4,000',price:52000},{vol:'Up to 6,000',price:97500},{vol:'Up to 8,000',price:178500},{vol:'Up to 10,000',price:335000},{vol:'Up to 20,000',price:632500}],unit:'Agent Runs'},
+  clm:{name:'Contract Lifecycle Management',color:'teal',icon:'📑',desc:'Monitors your entire contract portfolio in real time. Proactive alerts for renewals, budget tracking, SLA compliance, and risk detection. Multi-step approval workflows with version control and full audit trails.',features:['Real-time contract portfolio monitoring','Proactive renewal and expiry alerts','Budget tracking against framework agreements','Multi-step approval workflows','Version control and compliance tracking','Audit trail linking contracts to POs and invoices'],tiers:[{vol:'Up to 250',price:15000,eur:12500,gbp:11000},{vol:'Up to 500',price:26000,eur:22000,gbp:19000},{vol:'Up to 1,000',price:45500,eur:38000,gbp:33500},{vol:'Up to 5,000',price:80000,eur:67000,gbp:58500},{vol:'Up to 10,000',price:135000,eur:113000,gbp:99000}],unit:'Contracts Managed'}
 };
 
 let currentCurrency = 'usd';
@@ -1070,7 +1091,7 @@ function setCurrency(cur) {
     }
   });
   // Save calculator state before rebuild
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
   const savedState = {};
   mods.forEach(k => {
     const chk = document.getElementById('chk-' + k);
@@ -1141,7 +1162,8 @@ function buildCalc() {
     { label: 'P2P — Procure to Pay', keys: ['gb2po','ntpo','aa','oc','gr','inv'] },
     { label: 'S2P — Source to Pay', keys: ['sm','sa','na'] },
     { label: 'Intelligence & Assistants', keys: ['liox','pia','npa','cna'] },
-    { label: 'Platform', keys: ['aop'] }
+    { label: 'Platform', keys: ['aop'] },
+    { label: 'Modules', keys: ['clm'] }
   ];
   let html = '';
   categories.forEach(cat => {
@@ -1166,7 +1188,7 @@ function buildCalc() {
 
 let calcGrandTotal = 0;
 function calcUpdate() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
   let total = 0, count = 0, lines = '', hasSM = false;
   mods.forEach(k => {
     const on = document.getElementById('chk-' + k).checked;
@@ -1395,7 +1417,7 @@ function updateAdvancedROI() {
 
 // PDF Download
 function openQuoteModal() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
   const anyChecked = mods.some(m => document.getElementById('chk-' + m).checked);
   if (!anyChecked) { alert('Please select at least one module first.'); return; }
   const modal = document.getElementById('quote-modal');
@@ -1408,7 +1430,7 @@ function openQuoteModal() {
   // Populate additional agents (modules not in the quote)
   const additionalContainer = document.getElementById('quote-additional-agents');
   if (additionalContainer) {
-    const allModKeys = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+    const allModKeys = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
     const selectedKeys = [];
     allModKeys.forEach(m => {
       const cb = document.getElementById('chk-' + m);
@@ -1445,7 +1467,7 @@ function closeQuoteModal() {
 function selectBundle(index) {
   const bundle = bundleDefs[index];
   if (!bundle) return;
-  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
   allMods.forEach(m => { document.getElementById('chk-' + m).checked = false; });
   bundle.modules.forEach(m => { const cb = document.getElementById('chk-' + m); if (cb) cb.checked = true; });
   calcUpdate();
@@ -1457,7 +1479,7 @@ const bundleDefs = [
   { name: 'Intelligence Suite', discount: 6, modules: ['liox','pia','npa'] },
   { name: 'Source to Pay', discount: 8, modules: ['sm','sa','npa','cna'] },
   { name: 'P2P Complete', discount: 10, modules: ['gb2po','ntpo','aa','oc','gr','inv'] },
-  { name: 'Enterprise \u2013 Total Procurement AI', discount: 15, modules: ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'] }
+  { name: 'Enterprise \u2013 Total Procurement AI', discount: 15, modules: ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'] }
 ];
 
 function detectBundle(selectedKeys) {
@@ -1473,7 +1495,7 @@ function detectBundle(selectedKeys) {
 const discountMode = {};
 
 function populateQuotePricing() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
   const tbody = document.getElementById('quote-pricing-lines');
   const selectedKeys = [];
   tbody.innerHTML = '';
@@ -1536,7 +1558,7 @@ function applyManualPrice(key) {
 
 function applyGlobalDiscount() {
   const globalPct = parseFloat(document.getElementById('quote-exc-value')?.value) || 0;
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
   mods.forEach(key => {
     const pctInput = document.getElementById('qd-' + key);
     const priceInput = document.getElementById('qf-' + key);
@@ -1548,7 +1570,7 @@ function applyGlobalDiscount() {
 
 
 function updateQuotePricing() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
   const selectedKeys = mods.filter(m => document.getElementById('chk-' + m)?.checked);
   const bundle = detectBundle(selectedKeys);
   const bundleApply = document.getElementById('quote-bundle-apply')?.checked && bundle;
@@ -1600,7 +1622,7 @@ function updateQuotePricing() {
 }
 
 function generateQuoteData() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
   const sel = [];
   let totalSaas = 0, hasSM = false;
   mods.forEach(k => {
@@ -2076,7 +2098,7 @@ function loadQuote(id) {
   if (entry.currency && typeof setCurrency === 'function') setCurrency(entry.currency);
 
   // Select modules in calculator
-  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop'];
+  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
   allMods.forEach(m => {
     const cb = document.getElementById('chk-' + m);
     if (cb) cb.checked = fs.selectedModules.includes(m);
