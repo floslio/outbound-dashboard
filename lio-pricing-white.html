@@ -1210,10 +1210,12 @@ function calcUpdate() {
     const on = document.getElementById('chk-' + k).checked;
     document.getElementById('co-' + k).classList.toggle('hidden', !on);
     if (on) {
-      const p = parseInt(document.getElementById('ct-' + k).value);
+      const usdP = parseInt(document.getElementById('ct-' + k).value);
+      const tierObj = modules[k]?.tiers?.find(t => t.price === usdP) || { price: usdP };
+      const p = getTierPriceRaw(tierObj);
       total += p; count++;
-      document.getElementById('cp-' + k).textContent = fmt(p);
-      lines += `<div class="flex justify-between text-sm"><span class="text-slate-500">${k === 'sm' ? 'SRM' : modules[k].name}</span><span class="font-medium">${fmt(p)}</span></div>`;
+      document.getElementById('cp-' + k).textContent = fmtRaw(p);
+      lines += `<div class="flex justify-between text-sm"><span class="text-slate-500">${k === 'sm' ? 'SRM' : modules[k].name}</span><span class="font-medium">${fmtRaw(p)}</span></div>`;
       if (k === 'sm') hasSM = true;
     } else { document.getElementById('cp-' + k).textContent = fmtZero(); }
   });
@@ -1221,7 +1223,7 @@ function calcUpdate() {
   document.getElementById('calc-summary').classList.remove('hidden');
   document.getElementById('calc-empty').classList.add('hidden');
   document.getElementById('calc-lines').innerHTML = lines;
-  document.getElementById('c-saas').textContent = fmt(total);
+  document.getElementById('c-saas').textContent = fmtRaw(total);
 
   // Bundle discount in summary
   const checkedMods = mods.filter(m => document.getElementById('chk-' + m).checked);
@@ -1232,8 +1234,8 @@ function calcUpdate() {
     const savings = Math.round(total * calcBundle.discount / 100);
     netSaas = total - savings;
     document.getElementById('c-bundle-name').textContent = 'Bundle: ' + calcBundle.name + ' (-' + calcBundle.discount + '%)';
-    document.getElementById('c-bundle-savings').textContent = '-' + fmt(savings);
-    document.getElementById('c-net-saas').textContent = fmt(netSaas);
+    document.getElementById('c-bundle-savings').textContent = '-' + fmtRaw(savings);
+    document.getElementById('c-net-saas').textContent = fmtRaw(netSaas);
     bundleDiscRow.classList.remove('hidden');
   } else {
     bundleDiscRow.classList.add('hidden');
@@ -1241,12 +1243,12 @@ function calcUpdate() {
 
   const impl = Math.round(netSaas * 0.15), cs = Math.round(netSaas * 0.10);
   calcGrandTotal = netSaas + impl + cs;
-  document.getElementById('c-impl').textContent = fmt(impl);
-  document.getElementById('c-cs').textContent = fmt(cs);
-  document.getElementById('c-total').textContent = fmt(calcGrandTotal);
+  document.getElementById('c-impl').textContent = fmtRaw(impl);
+  document.getElementById('c-cs').textContent = fmtRaw(cs);
+  document.getElementById('c-total').textContent = fmtRaw(calcGrandTotal);
   const recurringAnnual = netSaas + cs;
-  document.getElementById('c-recurring').textContent = fmt(recurringAnnual);
-  document.getElementById('c-monthly').textContent = fmt(Math.round(recurringAnnual / 12)) + '/mo';
+  document.getElementById('c-recurring').textContent = fmtRaw(recurringAnnual);
+  document.getElementById('c-monthly').textContent = fmtRaw(Math.round(recurringAnnual / 12)) + '/mo';
   calcROI();
 }
 

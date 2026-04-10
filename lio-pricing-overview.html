@@ -2371,12 +2371,14 @@ function calcUpdate() {
     const opts = document.getElementById('calc-' + mod + '-opts');
     if (checked) {
       opts.classList.remove('hidden');
-      const price = parseInt(document.getElementById('calc-' + mod + '-tier').value);
+      const usdPrice = parseInt(document.getElementById('calc-' + mod + '-tier').value);
+      const tierObj = modules[mod]?.tiers?.find(t => t.price === usdPrice) || { price: usdPrice };
+      const price = getTierPriceRaw(tierObj);
       totalSaas += price;
       count++;
-      document.getElementById('calc-' + mod + '-price').textContent = fmt(price);
+      document.getElementById('calc-' + mod + '-price').textContent = fmtRaw(price);
       const modName = mod === 'sm' ? 'SRM' : (modules[mod]?.name || 'SRM');
-      lineItems += `<div class="flex justify-between text-sm"><span class="text-slate-400">${modName}</span><span>${fmt(price)}</span></div>`;
+      lineItems += `<div class="flex justify-between text-sm"><span class="text-slate-400">${modName}</span><span>${fmtRaw(price)}</span></div>`;
       if (mod === 'sm') hasSM = true;
     } else {
       opts.classList.add('hidden');
@@ -2395,7 +2397,7 @@ function calcUpdate() {
   document.getElementById('calc-summary').classList.remove('hidden');
   document.getElementById('calc-summary-empty').classList.add('hidden');
   document.getElementById('calc-line-items').innerHTML = lineItems;
-  document.getElementById('calc-saas-total').textContent = fmt(totalSaas);
+  document.getElementById('calc-saas-total').textContent = fmtRaw(totalSaas);
 
   // Bundle discount in summary
   const checkedMods = mods.filter(m => document.getElementById('check-' + m).checked);
@@ -2406,8 +2408,8 @@ function calcUpdate() {
     const savings = Math.round(totalSaas * calcBundle.discount / 100);
     netSaas = totalSaas - savings;
     document.getElementById('calc-bundle-name').textContent = 'Bundle: ' + calcBundle.name + ' (-' + calcBundle.discount + '%)';
-    document.getElementById('calc-bundle-savings').textContent = '-' + fmt(savings);
-    document.getElementById('calc-net-saas').textContent = fmt(netSaas);
+    document.getElementById('calc-bundle-savings').textContent = '-' + fmtRaw(savings);
+    document.getElementById('calc-net-saas').textContent = fmtRaw(netSaas);
     bundleDiscRow.classList.remove('hidden');
   } else {
     bundleDiscRow.classList.add('hidden');
@@ -2417,12 +2419,12 @@ function calcUpdate() {
   const csB = Math.round(netSaas * 0.10);
   const grandTotalB = netSaas + implB + csB;
 
-  document.getElementById('calc-impl-fee').textContent = fmt(implB);
-  document.getElementById('calc-cs-fee').textContent = fmt(csB);
-  document.getElementById('calc-grand-total').textContent = fmt(grandTotalB);
+  document.getElementById('calc-impl-fee').textContent = fmtRaw(implB);
+  document.getElementById('calc-cs-fee').textContent = fmtRaw(csB);
+  document.getElementById('calc-grand-total').textContent = fmtRaw(grandTotalB);
   const recurringAnnual = netSaas + csB;
-  document.getElementById('calc-recurring').textContent = fmt(recurringAnnual);
-  document.getElementById('calc-monthly').textContent = fmt(Math.round(recurringAnnual / 12)) + '/mo';
+  document.getElementById('calc-recurring').textContent = fmtRaw(recurringAnnual);
+  document.getElementById('calc-monthly').textContent = fmtRaw(Math.round(recurringAnnual / 12)) + '/mo';
   document.getElementById('calc-mod-count').textContent = count;
 
 
