@@ -3028,6 +3028,7 @@ function generateQuoteData() {
       name: mod === 'sm' ? 'Supplier Relationship Management (SRM)' : (modules[mod]?.name || 'SRM'),
       price: customPrice,
       listPrice: listPrice,
+      tierUsdPrice: tierPrice,
       discountPct: discPct,
       discountMode: discountMode[mod] || 'manual',
       tier: tierText,
@@ -3141,8 +3142,8 @@ function generateQuoteData() {
   const moduleDetails_pdf = selectedMods.map(m => {
     const allTiers = modules[m.key]?.tiers || [];
     const tierRows = allTiers.map(t => {
-      const isSelected = t.vol === m.tier;
-      return `<tr style="border-bottom:1px solid #f1f5f9;${isSelected ? 'background:#f0fdf4;font-weight:600;' : ''}"><td style="padding:3px 8px;font-size:10px;color:#1e293b;">${isSelected ? '&#9654; ' : ''}${t.vol}</td><td style="padding:3px 8px;font-size:10px;text-align:right;color:#1e293b;">${fmtTierPrice(t)}/yr</td></tr>`;
+      const isSelected = t.price === m.tierUsdPrice;
+      return `<tr style="border-bottom:1px solid #f1f5f9;${isSelected ? 'background:#f0fdf4;font-weight:600;' : ''}"><td style="padding:3px 8px;font-size:10px;color:#1e293b;">${isSelected ? '&#9654; ' : ''}${fmtVol(m.key, t.vol)}</td><td style="padding:3px 8px;font-size:10px;text-align:right;color:#1e293b;">${fmtTierPrice(t)}/yr</td></tr>`;
     }).join('');
     return `<div style="margin-bottom:24px;page-break-inside:avoid;">
       <h3 style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 6px 0;">${m.name}</h3>
