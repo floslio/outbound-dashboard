@@ -1409,9 +1409,11 @@ input[type="checkbox"] { accent-color: #6366f1; }
             <thead>
               <tr class="bg-slate-800/50 text-slate-400 text-xs uppercase">
                 <th class="text-left p-2 pl-3">Module</th>
+                <th class="text-left p-2" style="width:130px">Tier</th>
                 <th class="text-right p-2">List Price</th>
-                <th class="text-center p-2" style="width:70px">Discount %</th>
+                <th class="text-center p-2" style="width:70px">Disc %</th>
                 <th class="text-right p-2 pr-3">Your Price</th>
+                <th class="text-center p-2" style="width:30px" title="Exclude from quote"></th>
               </tr>
             </thead>
             <tbody id="quote-pricing-lines"></tbody>
@@ -2786,12 +2788,20 @@ function populateQuotePricing() {
   mods.forEach(mod => {
     if (!document.getElementById('check-' + mod).checked) return;
     selectedKeys.push(mod);
-    const price = parseInt(document.getElementById('calc-' + mod + '-tier').value);
-    const rawPrice = getTierPriceRaw(modules[mod].tiers.find(t => t.price === price) || { price: price });
-    const modName = mod === 'sm' ? 'SRM' : (modules[mod]?.name || 'SRM');
+    const tierEl = document.getElementById('calc-' + mod + '-tier');
+    const price = parseInt(tierEl.value);
+    const tierObj = modules[mod].tiers.find(t => t.price === price) || { price: price };
+    const rawPrice = getTierPriceRaw(tierObj);
+    const modName = mod === 'sm' ? 'Supplier Relationship Management (SRM)' : (modules[mod]?.name || mod);
     discountMode[mod] = discountMode[mod] || 'manual';
-    tbody.innerHTML += '<tr class="border-t border-slate-700/30" data-mod="' + mod + '">'
+    // Build tier options for this module
+    const tierOpts = modules[mod].tiers.map(t => {
+      const sel = t.price === price ? ' selected' : '';
+      return '<option value="' + t.price + '"' + sel + '>' + t.vol + '</option>';
+    }).join('');
+    tbody.innerHTML += '<tr class="border-t border-slate-700/30" data-mod="' + mod + '" id="qrow-' + mod + '">'
       + '<td class="p-2 pl-3 text-slate-300">' + modName + '</td>'
+      + '<td class="p-2"><select id="qt-' + mod + '" onchange="changeQuoteTier(\'' + mod + '\')" class="w-full bg-slate-800/50 border border-slate-600 rounded p-1 text-xs text-white outline-none">' + tierOpts + '</select></td>'
       + '<td class="p-2 text-right text-slate-400" data-list-price="' + rawPrice + '">' + fmtRaw(rawPrice) + '</td>'
       + '<td class="p-2 text-center">'
       + '<input type="number" id="qd-' + mod + '" value="" min="0" max="100" step="1" placeholder="%" onchange="applyDiscountPct(\'' + mod + '\')" oninput="applyDiscountPct(\'' + mod + '\')" class="w-16 bg-slate-800/50 border border-slate-600 rounded p-1 text-sm text-white text-center outline-none">'
@@ -2799,6 +2809,7 @@ function populateQuotePricing() {
       + '<td class="p-2 pr-3 text-right">'
       + '<input type="number" id="qf-' + mod + '" value="' + rawPrice + '" min="0" step="100" onchange="applyManualPrice(\'' + mod + '\')" oninput="applyManualPrice(\'' + mod + '\')" class="w-28 bg-slate-800/50 border border-slate-600 rounded p-1 text-sm text-white text-right outline-none font-semibold">'
       + '</td>'
+      + '<td class="p-2 text-center"><button onclick="toggleExcludeModule(\'' + mod + '\')" id="qx-' + mod + '" class="text-slate-500 hover:text-red-400 text-lg transition" title="Exclude from quote">×</button></td>'
       + '</tr>';
   });
 
@@ -2843,6 +2854,52 @@ function applyManualPrice(key) {
   updateQuotePricing();
 }
 
+function changeQuoteTier(key) {
+  const tierSel = document.getElementById('qt-' + key);
+  if (!tierSel) return;
+  const newUsdPrice = parseInt(tierSel.value);
+  const tierObj = modules[key].tiers.find(t => t.price === newUsdPrice) || { price: newUsdPrice };
+  const newPrice = getTierPriceRaw(tierObj);
+  // Update list price cell
+  const listCell = document.querySelector('tr[data-mod="' + key + '"] td[data-list-price]');
+  if (listCell) { listCell.setAttribute('data-list-price', newPrice); listCell.textContent = fmtRaw(newPrice); }
+  // Update Your Price input
+  const qf = document.getElementById('qf-' + key);
+  if (qf) qf.value = newPrice;
+  // Clear discount
+  const qd = document.getElementById('qd-' + key);
+  if (qd) qd.value = '';
+  discountMode[key] = 'manual';
+  // Sync calculator tier dropdown
+  const calcTier = document.getElementById('calc-' + key + '-tier');
+  if (calcTier) calcTier.value = newUsdPrice;
+  calcUpdate();
+  updateQuotePricing();
+}
+
+const excludedModules = {};
+function toggleExcludeModule(key) {
+  const row = document.getElementById('qrow-' + key);
+  const btn = document.getElementById('qx-' + key);
+  if (!row) return;
+  if (excludedModules[key]) {
+    // Re-include
+    delete excludedModules[key];
+    row.style.opacity = '1';
+    row.style.textDecoration = 'none';
+    row.querySelectorAll('input, select').forEach(el => el.disabled = false);
+    if (btn) { btn.textContent = '×'; btn.title = 'Exclude from quote'; btn.className = 'text-slate-500 hover:text-red-400 text-lg transition'; }
+  } else {
+    // Exclude
+    excludedModules[key] = true;
+    row.style.opacity = '0.35';
+    row.style.textDecoration = 'line-through';
+    row.querySelectorAll('input, select').forEach(el => el.disabled = true);
+    if (btn) { btn.disabled = false; btn.textContent = '↩'; btn.title = 'Re-include in quote'; btn.className = 'text-emerald-400 hover:text-emerald-300 text-lg transition'; }
+  }
+  updateQuotePricing();
+}
+
 function applyGlobalDiscount() {
   const globalPct = parseFloat(document.getElementById('quote-exc-value')?.value) || 0;
   const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
@@ -2863,9 +2920,10 @@ function updateQuotePricing() {
   const bundleApply = document.getElementById('quote-bundle-apply')?.checked && bundle;
   const bundlePct = bundleApply ? bundle.discount : 0;
 
-  // Sum Your Prices (from qf-{key} inputs) - NO bundle discount applied here
+  // Sum Your Prices (from qf-{key} inputs) - skip excluded modules
   let saasSubtotal = 0;
   selectedKeys.forEach(mod => {
+    if (excludedModules[mod]) return;
     const el = document.getElementById('qf-' + mod);
     if (el) saasSubtotal += Math.max(0, parseFloat(el.value) || 0);
   });
@@ -2919,6 +2977,7 @@ function generateQuoteData() {
 
   mods.forEach(mod => {
     if (!document.getElementById('check-' + mod)?.checked) return;
+    if (excludedModules[mod]) return;
     const tierEl = document.getElementById('calc-' + mod + '-tier');
     if (!tierEl) return;
     const tierText = tierEl.selectedOptions[0]?.text?.split(' — ')[0] || '';
