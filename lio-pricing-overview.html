@@ -1495,35 +1495,70 @@ input[type="checkbox"] { accent-color: #6366f1; }
       <!-- Inputs -->
       <div class="space-y-6">
         <div class="glass rounded-2xl p-6">
-          <h3 class="font-bold mb-4">Your Current State</h3>
+          <h3 class="font-bold mb-4 text-lio-400">Guided Buying Inputs</h3>
           <div class="space-y-4">
             <div>
               <label class="text-sm text-slate-400">Annual Indirect Spend (<span class="cur-sym">$</span>M)</label>
-              <input type="number" id="roi-spend" value="250" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+              <input type="number" id="r-spend" value="250" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+            </div>
+            <div>
+              <label class="text-sm text-slate-400">Maverick Spend Reduction (%)</label>
+              <input type="number" id="r-maverick" value="0.5" step="0.1" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+            </div>
+            <div>
+              <label class="text-sm text-slate-400">Freitext-to-Catalog Conversion Rate (%)</label>
+              <input type="number" id="r-conversion" value="25" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
             </div>
             <div>
               <label class="text-sm text-slate-400">POs per Year</label>
-              <input type="number" id="roi-pos" value="20000" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+              <input type="number" id="r-pos" value="20000" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
             </div>
             <div>
               <label class="text-sm text-slate-400">Avg. Cost per Manual PO (<span class="cur-sym">$</span>)</label>
-              <input type="number" id="roi-po-cost" value="15" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+              <input type="number" id="r-pocost" value="15" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+            </div>
+          </div>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <h3 class="font-bold mb-4 text-emerald-400">PR Review Agent Inputs</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="text-sm text-slate-400">PRs per Year</label>
+              <input type="number" id="r-prs" value="23000" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
             </div>
             <div>
-              <label class="text-sm text-slate-400">Negotiation Events per Year</label>
-              <input type="number" id="roi-neg" value="2000" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+              <label class="text-sm text-slate-400">PR No-Touch Rate (%)</label>
+              <input type="number" id="r-prtouch" value="35" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
             </div>
             <div>
-              <label class="text-sm text-slate-400">Avg. Savings per Negotiation (<span class="cur-sym">$</span>)</label>
-              <input type="number" id="roi-neg-save" value="500" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+              <label class="text-sm text-slate-400">Avg Time per PR Review (min)</label>
+              <input type="number" id="r-prtime" value="3" step="0.5" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+            </div>
+          </div>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <h3 class="font-bold mb-4 text-violet-400">Order Confirmations Agent Inputs</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="text-sm text-slate-400">OCs per Year</label>
+              <input type="number" id="r-ocs" value="75000" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
             </div>
             <div>
-              <label class="text-sm text-slate-400">FTE Cost Procurement (<span class="cur-sym">$</span>K/year)</label>
-              <input type="number" id="roi-fte" value="75" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+              <label class="text-sm text-slate-400">Avg Time per OC (min)</label>
+              <input type="number" id="r-octime" value="5" step="0.5" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
             </div>
             <div>
-              <label class="text-sm text-slate-400">FTEs Freed by Automation</label>
-              <input type="number" id="roi-fte-freed" value="3" step="0.5" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+              <label class="text-sm text-slate-400">OC Automation Rate (%)</label>
+              <input type="number" id="r-ocauto" value="60" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+            </div>
+          </div>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <h3 class="font-bold mb-4 text-amber-400">General</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="text-sm text-slate-400">FTE Hourly Cost (<span class="cur-sym">$</span>)</label>
+              <input type="number" id="r-ftecost" value="80" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
             </div>
           </div>
         </div>
@@ -1531,34 +1566,35 @@ input[type="checkbox"] { accent-color: #6366f1; }
 
       <!-- Results -->
       <div class="space-y-6">
-        <div class="glass rounded-2xl p-6 glow-strong">
-          <h3 class="font-bold mb-4">Impact Summary</h3>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="glass rounded-xl p-4 text-center">
-              <div class="text-xs text-slate-500">Annual Lio Investment</div>
-              <div class="text-2xl font-bold text-lio-400 mt-1" id="roi-investment">$0</div>
-            </div>
-            <div class="glass rounded-xl p-4 text-center">
-              <div class="text-xs text-slate-500">Annual Savings</div>
-              <div class="text-2xl font-bold text-emerald-400 mt-1" id="roi-savings">$0</div>
-            </div>
-            <div class="glass rounded-xl p-4 text-center">
-              <div class="text-xs text-slate-500">Net Annual Benefit</div>
-              <div class="text-2xl font-bold text-cyan-400 mt-1" id="roi-net">$0</div>
-            </div>
-            <div class="glass rounded-xl p-4 text-center">
-              <div class="text-xs text-slate-500">ROI</div>
-              <div class="text-2xl font-bold text-amber-400 mt-1" id="roi-pct">0%</div>
-            </div>
+        <!-- Big ROI Hero -->
+        <div class="glass rounded-2xl p-8 glow-strong text-center">
+          <div class="text-5xl font-extrabold gradient-text" id="roi-x">-</div>
+          <div class="text-sm text-slate-400 mt-2">Return on Investment (<span id="roi-pct-small">-</span>)</div>
+        </div>
+
+        <!-- 4-column summary grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div class="glass rounded-xl p-4 text-center">
+            <div class="text-xs text-slate-500">Lio Investment</div>
+            <div class="text-xl font-bold text-lio-400 mt-1" id="roi-inv">-</div>
+          </div>
+          <div class="glass rounded-xl p-4 text-center">
+            <div class="text-xs text-slate-500">Annual Savings</div>
+            <div class="text-xl font-bold text-emerald-400 mt-1" id="roi-sav">-</div>
+          </div>
+          <div class="glass rounded-xl p-4 text-center">
+            <div class="text-xs text-slate-500">Net Benefit</div>
+            <div class="text-xl font-bold text-cyan-400 mt-1" id="roi-net">-</div>
+          </div>
+          <div class="glass rounded-xl p-4 text-center">
+            <div class="text-xs text-slate-500">Payback</div>
+            <div class="text-xl font-bold text-amber-400 mt-1"><span id="roi-months">-</span> <span class="text-sm font-normal text-slate-500">months</span></div>
           </div>
         </div>
 
+        <!-- Payback bar -->
         <div class="glass rounded-2xl p-6">
-          <h3 class="font-bold mb-4">Payback Timeline</h3>
-          <div class="flex items-center gap-4 mb-4">
-            <div class="text-4xl font-extrabold gradient-text" id="roi-payback-months">0</div>
-            <div class="text-sm text-slate-400">months to<br>full payback</div>
-          </div>
+          <h3 class="font-bold mb-3">Payback Timeline</h3>
           <div class="w-full bg-dark-700 rounded-full h-3 mb-2">
             <div class="h-3 rounded-full bg-gradient-to-r from-lio-600 to-cyan-400 transition-all duration-500" id="roi-bar" style="width:0%"></div>
           </div>
@@ -1567,31 +1603,37 @@ input[type="checkbox"] { accent-color: #6366f1; }
           </div>
         </div>
 
+        <!-- Savings Breakdown -->
         <div class="glass rounded-2xl p-6">
           <h3 class="font-bold mb-4">Savings Breakdown</h3>
-          <div class="space-y-3" id="roi-breakdown">
+          <div class="space-y-3">
+            <div class="flex justify-between text-sm"><span class="text-slate-400">Guided Buying Savings</span><span class="text-emerald-400 font-semibold" id="roi-gb-savings">-</span></div>
+            <div class="flex justify-between text-sm"><span class="text-slate-400">PR Review Savings</span><span class="text-emerald-400 font-semibold" id="roi-pr-savings">-</span></div>
+            <div class="flex justify-between text-sm"><span class="text-slate-400">OC Automation Savings</span><span class="text-emerald-400 font-semibold" id="roi-oc-savings">-</span></div>
+            <div class="border-t border-slate-700/50 pt-2 flex justify-between text-sm font-semibold"><span>Total Annual Savings</span><span class="text-emerald-400" id="roi-total-line">-</span></div>
           </div>
         </div>
 
+        <!-- 3-Year Projection -->
         <div class="glass rounded-2xl p-6">
           <h3 class="font-bold mb-4">3-Year Projection</h3>
           <div class="grid grid-cols-3 gap-4">
             <div class="text-center">
               <div class="text-xs text-slate-500">Year 1</div>
-              <div class="text-lg font-bold text-emerald-400" id="roi-y1">$0</div>
+              <div class="text-lg font-bold text-emerald-400" id="roi-y1">-</div>
             </div>
             <div class="text-center">
               <div class="text-xs text-slate-500">Year 2</div>
-              <div class="text-lg font-bold text-emerald-400" id="roi-y2">$0</div>
+              <div class="text-lg font-bold text-emerald-400" id="roi-y2">-</div>
             </div>
             <div class="text-center">
               <div class="text-xs text-slate-500">Year 3</div>
-              <div class="text-lg font-bold text-emerald-400" id="roi-y3">$0</div>
+              <div class="text-lg font-bold text-emerald-400" id="roi-y3">-</div>
             </div>
           </div>
           <div class="mt-4 pt-4 border-t border-slate-700/50 text-center">
             <div class="text-xs text-slate-500">3-Year Cumulative Net Benefit</div>
-            <div class="text-2xl font-bold gradient-text" id="roi-3yr-total">$0</div>
+            <div class="text-2xl font-bold gradient-text" id="roi-3yr-total">-</div>
           </div>
         </div>
       </div>
@@ -2456,69 +2498,76 @@ function calcUpdate() {
 let cachedCalcGrandTotal = 0; // updated by calcUpdate()
 
 function calcROI() {
-  const pos = parseFloat(document.getElementById('roi-pos').value) || 0;
-  const poCost = parseFloat(document.getElementById('roi-po-cost').value) || 0;
-  const neg = parseFloat(document.getElementById('roi-neg').value) || 0;
-  const negSave = parseFloat(document.getElementById('roi-neg-save').value) || 0;
-  const fteCost = parseFloat(document.getElementById('roi-fte').value) || 0;
-  const fteFreed = parseFloat(document.getElementById('roi-fte-freed').value) || 0;
-  const spend = parseFloat(document.getElementById('roi-spend').value) || 0;
+  // Read inputs
+  const spend = parseFloat(document.getElementById('r-spend')?.value) || 0;
+  const maverick = parseFloat(document.getElementById('r-maverick')?.value) || 0;
+  const conversion = parseFloat(document.getElementById('r-conversion')?.value) || 0;
+  const pos = parseFloat(document.getElementById('r-pos')?.value) || 0;
+  const pocost = parseFloat(document.getElementById('r-pocost')?.value) || 0;
+  const ftecost = parseFloat(document.getElementById('r-ftecost')?.value) || 80;
+  const prs = parseFloat(document.getElementById('r-prs')?.value) || 0;
+  const prtouch = parseFloat(document.getElementById('r-prtouch')?.value) || 0;
+  const prtime = parseFloat(document.getElementById('r-prtime')?.value) || 0;
+  const ocs = parseFloat(document.getElementById('r-ocs')?.value) || 0;
+  const octime = parseFloat(document.getElementById('r-octime')?.value) || 0;
+  const ocauto = parseFloat(document.getElementById('r-ocauto')?.value) || 0;
 
-  // Use the calculator's Total Annual as investment (dynamically linked)
-  const lioTotal = cachedCalcGrandTotal || 0;
+  // Get Lio investment from calculator
+  const inv = cachedCalcGrandTotal || 0;
 
-  if (lioTotal === 0) {
-    document.getElementById('roi-investment').textContent = fmtZero();
-    document.getElementById('roi-investment').closest('.glass').querySelector('.text-xs').textContent = 'Configure your Agent Stack above';
-    document.getElementById('roi-savings').textContent = '-';
-    document.getElementById('roi-net').textContent = '-';
-    document.getElementById('roi-pct').textContent = '-';
-    document.getElementById('roi-payback-months').textContent = '-';
+  const emptyIds = ['roi-x','roi-pct-small','roi-inv','roi-sav','roi-net','roi-months','roi-gb-savings','roi-pr-savings','roi-oc-savings','roi-total-line','roi-y1','roi-y2','roi-y3','roi-3yr-total'];
+  if (!inv) {
+    emptyIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '-'; });
     document.getElementById('roi-bar').style.width = '0%';
-    document.getElementById('roi-breakdown').innerHTML = '<div class="text-sm text-slate-500 text-center py-4">Select modules in the Agent Stack calculator above to see ROI projections.</div>';
-    document.getElementById('roi-y1').textContent = '-';
-    document.getElementById('roi-y2').textContent = '-';
-    document.getElementById('roi-y3').textContent = '-';
-    document.getElementById('roi-3yr-total').textContent = '-';
     return;
   }
 
-  // Savings
-  const poSavings = Math.round(pos * poCost * 0.70);
-  const negSavings = Math.round(neg * negSave);
-  const fteSavings = Math.round(fteFreed * fteCost * 1000);
-  const complianceSavings = Math.round(spend * 1000000 * 0.001);
-  const totalSavings = poSavings + negSavings + fteSavings + complianceSavings;
+  // Guided Buying savings
+  const gbSavings = Math.round(spend * 1000000 * (maverick / 100));
+  const freitextPOs = pos * 0.25;
+  const convertedPOs = freitextPOs * (conversion / 100);
+  const gbConversionSavings = Math.round(convertedPOs * pocost * 0.3);
+  const totalGBSavings = gbSavings + gbConversionSavings;
 
-  const net = totalSavings - lioTotal;
-  const roi = lioTotal > 0 ? Math.round((net / lioTotal) * 100) : 0;
-  const paybackMonths = totalSavings > 0 ? Math.max(1, Math.round((lioTotal / totalSavings) * 12)) : 99;
+  // PR Review savings
+  const prAutomated = prs * (prtouch / 100);
+  const prHoursSaved = prAutomated * prtime / 60;
+  const totalPRSavings = Math.round(prHoursSaved * ftecost);
 
-  document.getElementById('roi-investment').textContent = fmt(lioTotal);
-  document.getElementById('roi-investment').closest('.glass').querySelector('.text-xs').textContent = 'Annual Lio Investment';
-  document.getElementById('roi-savings').textContent = fmt(totalSavings);
-  document.getElementById('roi-net').textContent = fmt(net);
-  document.getElementById('roi-pct').textContent = roi + '%';
-  document.getElementById('roi-payback-months').textContent = paybackMonths;
+  // OC Automation savings
+  const ocAutomated = ocs * (ocauto / 100);
+  const ocHoursSaved = ocAutomated * octime / 60;
+  const totalOCSavings = Math.round(ocHoursSaved * ftecost);
+
+  const totalSavings = totalGBSavings + totalPRSavings + totalOCSavings;
+  const netBenefit = totalSavings - inv;
+  const roiX = inv > 0 ? (totalSavings / inv) : 0;
+  const roiPct = inv > 0 ? Math.round((totalSavings / inv - 1) * 100) : 0;
+  const paybackMonths = totalSavings > 0 ? Math.max(1, Math.round(inv / totalSavings * 12)) : 99;
+
+  // Display results
+  document.getElementById('roi-x').textContent = roiX.toFixed(1) + 'x';
+  document.getElementById('roi-pct-small').textContent = roiPct + '%';
+  document.getElementById('roi-inv').textContent = fmtRaw(inv);
+  document.getElementById('roi-sav').textContent = fmtRaw(totalSavings);
+  document.getElementById('roi-net').textContent = fmtRaw(netBenefit);
+  document.getElementById('roi-months').textContent = paybackMonths;
 
   const barWidth = Math.min(100, Math.max(5, (12 - paybackMonths) / 12 * 100 + 50));
   document.getElementById('roi-bar').style.width = barWidth + '%';
 
-  document.getElementById('roi-breakdown').innerHTML = `
-    <div class="flex justify-between text-sm"><span class="text-slate-400">PO Automation (70% touch-free)</span><span class="text-emerald-400">+${fmt(poSavings)}</span></div>
-    <div class="flex justify-between text-sm"><span class="text-slate-400">Negotiation Savings</span><span class="text-emerald-400">+${fmt(negSavings)}</span></div>
-    <div class="flex justify-between text-sm"><span class="text-slate-400">FTE Reallocation (${fteFreed} FTEs)</span><span class="text-emerald-400">+${fmt(fteSavings)}</span></div>
-    <div class="flex justify-between text-sm"><span class="text-slate-400">Compliance & Maverick Spend</span><span class="text-emerald-400">+${fmt(complianceSavings)}</span></div>
-    <div class="border-t border-slate-700/50 pt-2 flex justify-between text-sm font-semibold"><span>Total Annual Savings</span><span class="text-emerald-400">${fmt(totalSavings)}</span></div>
-  `;
+  document.getElementById('roi-gb-savings').textContent = '+' + fmtRaw(totalGBSavings);
+  document.getElementById('roi-pr-savings').textContent = '+' + fmtRaw(totalPRSavings);
+  document.getElementById('roi-oc-savings').textContent = '+' + fmtRaw(totalOCSavings);
+  document.getElementById('roi-total-line').textContent = fmtRaw(totalSavings);
 
-  const y1 = net;
-  const y2 = Math.round(totalSavings * 1.1) - lioTotal;
-  const y3 = Math.round(totalSavings * 1.21) - lioTotal;
-  document.getElementById('roi-y1').textContent = fmt(y1);
-  document.getElementById('roi-y2').textContent = fmt(y2);
-  document.getElementById('roi-y3').textContent = fmt(y3);
-  document.getElementById('roi-3yr-total').textContent = fmt(y1 + y2 + y3);
+  const y1 = netBenefit;
+  const y2 = Math.round(totalSavings * 1.1) - inv;
+  const y3 = Math.round(totalSavings * 1.21) - inv;
+  document.getElementById('roi-y1').textContent = fmtRaw(y1);
+  document.getElementById('roi-y2').textContent = fmtRaw(y2);
+  document.getElementById('roi-y3').textContent = fmtRaw(y3);
+  document.getElementById('roi-3yr-total').textContent = fmtRaw(y1 + y2 + y3);
 }
 
 // ============================
@@ -3169,25 +3218,52 @@ function generateQuoteData() {
     </div>`;
   }).join('');
 
-  // ROI data for PDF (if included)
+  // ROI data for PDF (if included) - calculate fresh from current inputs
   let roiSection = '';
   if (includeROI) {
-    const roiInv = document.getElementById('roi-investment')?.textContent || '$0';
-    const roiSav = document.getElementById('roi-savings')?.textContent || '$0';
-    const roiNet = document.getElementById('roi-net')?.textContent || '$0';
-    const roiPct = document.getElementById('roi-pct')?.textContent || '-';
-    const roiMonths = document.getElementById('roi-payback-months')?.textContent || '-';
+    const rSpend = parseFloat(document.getElementById('r-spend')?.value) || 0;
+    const rMaverick = parseFloat(document.getElementById('r-maverick')?.value) || 0;
+    const rConversion = parseFloat(document.getElementById('r-conversion')?.value) || 0;
+    const rPos = parseFloat(document.getElementById('r-pos')?.value) || 0;
+    const rPocost = parseFloat(document.getElementById('r-pocost')?.value) || 0;
+    const rFtecost = parseFloat(document.getElementById('r-ftecost')?.value) || 80;
+    const rPrs = parseFloat(document.getElementById('r-prs')?.value) || 0;
+    const rPrtouch = parseFloat(document.getElementById('r-prtouch')?.value) || 0;
+    const rPrtime = parseFloat(document.getElementById('r-prtime')?.value) || 0;
+    const rOcs = parseFloat(document.getElementById('r-ocs')?.value) || 0;
+    const rOctime = parseFloat(document.getElementById('r-octime')?.value) || 0;
+    const rOcauto = parseFloat(document.getElementById('r-ocauto')?.value) || 0;
+    const rInv = cachedCalcGrandTotal || 0;
+
+    const pdfGBSav = Math.round(rSpend * 1000000 * (rMaverick / 100)) + Math.round(rPos * 0.25 * (rConversion / 100) * rPocost * 0.3);
+    const pdfPRSav = Math.round(rPrs * (rPrtouch / 100) * rPrtime / 60 * rFtecost);
+    const pdfOCSav = Math.round(rOcs * (rOcauto / 100) * rOctime / 60 * rFtecost);
+    const pdfTotalSav = pdfGBSav + pdfPRSav + pdfOCSav;
+    const pdfNet = pdfTotalSav - rInv;
+    const pdfRoiX = rInv > 0 ? (pdfTotalSav / rInv).toFixed(1) : '0.0';
+    const pdfRoiPct = rInv > 0 ? Math.round((pdfTotalSav / rInv - 1) * 100) : 0;
+    const pdfPayback = pdfTotalSav > 0 ? Math.max(1, Math.round(rInv / pdfTotalSav * 12)) : 99;
+
     roiSection = `
     <div style="margin-top:32px;page-break-inside:avoid;">
       <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;color:#1e293b;">Expected Impact Summary</h2>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
-        <div style="background:#f8f8f8;border-radius:10px;padding:16px;text-align:center;"><div style="font-size:11px;color:#1e293b;">Lio Investment</div><div style="font-size:20px;font-weight:800;color:#1e293b;margin-top:4px;">${roiInv}</div></div>
-        <div style="background:#f8f8f8;border-radius:10px;padding:16px;text-align:center;"><div style="font-size:11px;color:#1e293b;">Annual Savings</div><div style="font-size:20px;font-weight:800;color:#1e293b;margin-top:4px;">${roiSav}</div></div>
-        <div style="background:#f8f8f8;border-radius:10px;padding:16px;text-align:center;"><div style="font-size:11px;color:#1e293b;">Net Benefit</div><div style="font-size:20px;font-weight:800;color:#1e293b;margin-top:4px;">${roiNet}</div></div>
-        <div style="background:#f8f8f8;border-radius:10px;padding:16px;text-align:center;"><div style="font-size:11px;color:#1e293b;">ROI</div><div style="font-size:20px;font-weight:800;color:#1e293b;margin-top:4px;">${roiPct}</div></div>
+      <div style="text-align:center;margin-bottom:16px;">
+        <div style="font-size:36px;font-weight:800;color:#1e293b;">${pdfRoiX}x</div>
+        <div style="font-size:12px;color:#64748b;">Return on Investment (${pdfRoiPct}%)</div>
       </div>
-      <div style="font-size:12px;color:#1e293b;text-align:center;">Estimated payback period: <strong style="color:#1e293b;">${roiMonths} months</strong></div>
-      <div style="font-size:9px;color:#1e293b;text-align:center;margin-top:8px;font-style:italic;">Projections are estimates based on typical industry benchmarks and may vary depending on actual usage and conditions.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div style="background:#f8f8f8;border-radius:10px;padding:16px;text-align:center;"><div style="font-size:11px;color:#64748b;">Lio Investment</div><div style="font-size:18px;font-weight:800;color:#1e293b;margin-top:4px;">${fmtRaw(rInv)}</div></div>
+        <div style="background:#f0fdf4;border-radius:10px;padding:16px;text-align:center;"><div style="font-size:11px;color:#64748b;">Annual Savings</div><div style="font-size:18px;font-weight:800;color:#16a34a;margin-top:4px;">${fmtRaw(pdfTotalSav)}</div></div>
+        <div style="background:#ecfeff;border-radius:10px;padding:16px;text-align:center;"><div style="font-size:11px;color:#64748b;">Net Benefit</div><div style="font-size:18px;font-weight:800;color:#0891b2;margin-top:4px;">${fmtRaw(pdfNet)}</div></div>
+        <div style="background:#fffbeb;border-radius:10px;padding:16px;text-align:center;"><div style="font-size:11px;color:#64748b;">Payback</div><div style="font-size:18px;font-weight:800;color:#d97706;margin-top:4px;">${pdfPayback} months</div></div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Savings Breakdown</div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f1f5f9;"><span style="color:#475569;">Guided Buying Savings</span><span style="color:#16a34a;font-weight:600;">${fmtRaw(pdfGBSav)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f1f5f9;"><span style="color:#475569;">PR Review Savings</span><span style="color:#16a34a;font-weight:600;">${fmtRaw(pdfPRSav)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;"><span style="color:#475569;">OC Automation Savings</span><span style="color:#16a34a;font-weight:600;">${fmtRaw(pdfOCSav)}</span></div>
+      </div>
+      <div style="font-size:9px;color:#94a3b8;text-align:center;margin-top:12px;font-style:italic;">Projections are estimates based on typical industry benchmarks and may vary depending on actual usage and conditions.</div>
     </div>`;
   }
 

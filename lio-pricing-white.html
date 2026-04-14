@@ -768,37 +768,77 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
       <p class="text-slate-500">Investment is linked to your Agent Stack above.</p>
     </div>
     <div class="grid lg:grid-cols-2 gap-8">
-      <div class="card p-6 bg-white">
-        <h3 class="font-bold text-slate-900 mb-4">Your Current State</h3>
-        <div class="space-y-4">
-          <div><label class="text-sm text-slate-500 font-medium">Annual Indirect Spend (<span class="cur-sym">$</span>M)</label><input type="number" id="r-spend" value="250" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
-          <div><label class="text-sm text-slate-500 font-medium">POs per Year</label><input type="number" id="r-pos" value="20000" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
-          <div><label class="text-sm text-slate-500 font-medium">Avg. Cost per Manual PO (<span class="cur-sym">$</span>)</label><input type="number" id="r-pocost" value="15" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
-          <div><label class="text-sm text-slate-500 font-medium">Negotiation Events / Year</label><input type="number" id="r-neg" value="2000" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
-          <div><label class="text-sm text-slate-500 font-medium">Avg. Savings per Negotiation (<span class="cur-sym">$</span>)</label><input type="number" id="r-negsave" value="500" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
-          <div><label class="text-sm text-slate-500 font-medium">FTE Cost (<span class="cur-sym">$</span>K/year)</label><input type="number" id="r-fte" value="75" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
-          <div><label class="text-sm text-slate-500 font-medium">FTEs Freed</label><input type="number" id="r-freed" value="3" step="0.5" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
-        </div>
-      </div>
+      <!-- Inputs -->
       <div class="space-y-5">
         <div class="card p-6 bg-white">
-          <h3 class="font-bold text-slate-900 mb-4">Impact Summary</h3>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="bg-lio-50 rounded-xl p-4 text-center"><div class="text-xs text-slate-500">Lio Investment</div><div class="text-2xl font-extrabold text-lio-700 mt-1" id="roi-inv">$0</div></div>
-            <div class="bg-emerald-50 rounded-xl p-4 text-center"><div class="text-xs text-slate-500">Annual Savings</div><div class="text-2xl font-extrabold text-emerald-700 mt-1" id="roi-sav">$0</div></div>
-            <div class="bg-cyan-50 rounded-xl p-4 text-center"><div class="text-xs text-slate-500">Net Benefit</div><div class="text-2xl font-extrabold text-cyan-700 mt-1" id="roi-net">$0</div></div>
-            <div class="bg-amber-50 rounded-xl p-4 text-center"><div class="text-xs text-slate-500">ROI</div><div class="text-2xl font-extrabold text-amber-700 mt-1" id="roi-pct">-</div></div>
+          <h3 class="font-bold text-slate-900 mb-4" style="color:#7c3aed;">Guided Buying Inputs</h3>
+          <div class="space-y-4">
+            <div><label class="text-sm text-slate-500 font-medium">Annual Indirect Spend (<span class="cur-sym">$</span>M)</label><input type="number" id="r-spend" value="250" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
+            <div><label class="text-sm text-slate-500 font-medium">Maverick Spend Reduction (%)</label><input type="number" id="r-maverick" value="0.5" step="0.1" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
+            <div><label class="text-sm text-slate-500 font-medium">Freitext-to-Catalog Conversion Rate (%)</label><input type="number" id="r-conversion" value="25" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
+            <div><label class="text-sm text-slate-500 font-medium">POs per Year</label><input type="number" id="r-pos" value="20000" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
+            <div><label class="text-sm text-slate-500 font-medium">Avg. Cost per Manual PO (<span class="cur-sym">$</span>)</label><input type="number" id="r-pocost" value="15" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
           </div>
         </div>
         <div class="card p-6 bg-white">
-          <h3 class="font-bold text-slate-900 mb-3">Payback</h3>
-          <div class="flex items-center gap-3 mb-3">
-            <div class="text-4xl font-extrabold accent-text" id="roi-months">-</div>
-            <div class="text-sm text-slate-500">months to<br>full payback</div>
+          <h3 class="font-bold text-slate-900 mb-4" style="color:#059669;">PR Review Agent Inputs</h3>
+          <div class="space-y-4">
+            <div><label class="text-sm text-slate-500 font-medium">PRs per Year</label><input type="number" id="r-prs" value="23000" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
+            <div><label class="text-sm text-slate-500 font-medium">PR No-Touch Rate (%)</label><input type="number" id="r-prtouch" value="35" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
+            <div><label class="text-sm text-slate-500 font-medium">Avg Time per PR Review (min)</label><input type="number" id="r-prtime" value="3" step="0.5" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
           </div>
+        </div>
+        <div class="card p-6 bg-white">
+          <h3 class="font-bold text-slate-900 mb-4" style="color:#7c3aed;">Order Confirmations Agent Inputs</h3>
+          <div class="space-y-4">
+            <div><label class="text-sm text-slate-500 font-medium">OCs per Year</label><input type="number" id="r-ocs" value="75000" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
+            <div><label class="text-sm text-slate-500 font-medium">Avg Time per OC (min)</label><input type="number" id="r-octime" value="5" step="0.5" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
+            <div><label class="text-sm text-slate-500 font-medium">OC Automation Rate (%)</label><input type="number" id="r-ocauto" value="60" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
+          </div>
+        </div>
+        <div class="card p-6 bg-white">
+          <h3 class="font-bold text-slate-900 mb-4" style="color:#d97706;">General</h3>
+          <div class="space-y-4">
+            <div><label class="text-sm text-slate-500 font-medium">FTE Hourly Cost (<span class="cur-sym">$</span>)</label><input type="number" id="r-ftecost" value="80" class="w-full mt-1 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" oninput="calcROI()"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="space-y-5">
+        <!-- Big ROI Hero -->
+        <div class="card p-8 bg-white text-center">
+          <div class="text-5xl font-extrabold accent-text" id="roi-x">-</div>
+          <div class="text-sm text-slate-500 mt-2">Return on Investment (<span id="roi-pct-small">-</span>)</div>
+        </div>
+
+        <!-- 4-column summary grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="bg-lio-50 rounded-xl p-4 text-center"><div class="text-xs text-slate-500">Lio Investment</div><div class="text-lg font-extrabold text-lio-700 mt-1" id="roi-inv">-</div></div>
+          <div class="bg-emerald-50 rounded-xl p-4 text-center"><div class="text-xs text-slate-500">Annual Savings</div><div class="text-lg font-extrabold text-emerald-700 mt-1" id="roi-sav">-</div></div>
+          <div class="bg-cyan-50 rounded-xl p-4 text-center"><div class="text-xs text-slate-500">Net Benefit</div><div class="text-lg font-extrabold text-cyan-700 mt-1" id="roi-net">-</div></div>
+          <div class="bg-amber-50 rounded-xl p-4 text-center"><div class="text-xs text-slate-500">Payback</div><div class="text-lg font-extrabold text-amber-700 mt-1"><span id="roi-months">-</span> <span class="text-xs font-normal text-slate-400">months</span></div></div>
+        </div>
+
+        <!-- Payback bar -->
+        <div class="card p-6 bg-white">
+          <h3 class="font-bold text-slate-900 mb-3">Payback Timeline</h3>
           <div class="w-full bg-slate-100 rounded-full h-2.5"><div class="h-2.5 rounded-full accent-gradient transition-all" id="roi-bar" style="width:0%"></div></div>
           <div class="flex justify-between text-xs text-slate-400 mt-1"><span>0</span><span>6</span><span>12 months</span></div>
         </div>
+
+        <!-- Savings Breakdown -->
+        <div class="card p-6 bg-white">
+          <h3 class="font-bold text-slate-900 mb-4">Savings Breakdown</h3>
+          <div class="space-y-3">
+            <div class="flex justify-between text-sm"><span class="text-slate-500">Guided Buying Savings</span><span class="text-emerald-700 font-semibold" id="roi-gb-savings">-</span></div>
+            <div class="flex justify-between text-sm"><span class="text-slate-500">PR Review Savings</span><span class="text-emerald-700 font-semibold" id="roi-pr-savings">-</span></div>
+            <div class="flex justify-between text-sm"><span class="text-slate-500">OC Automation Savings</span><span class="text-emerald-700 font-semibold" id="roi-oc-savings">-</span></div>
+            <div class="border-t border-slate-100 pt-2 flex justify-between text-sm font-semibold"><span class="text-slate-700">Total Annual Savings</span><span class="text-emerald-700" id="roi-total-line">-</span></div>
+          </div>
+        </div>
+
+        <!-- 3-Year Projection -->
         <div class="card p-6 bg-white">
           <h3 class="font-bold text-slate-900 mb-3">3-Year Projection</h3>
           <div class="grid grid-cols-3 gap-4 text-center">
@@ -1255,26 +1295,76 @@ function calcUpdate() {
 
 // ROI
 function calcROI() {
+  // Read inputs
+  const spend = parseFloat(document.getElementById('r-spend')?.value) || 0;
+  const maverick = parseFloat(document.getElementById('r-maverick')?.value) || 0;
+  const conversion = parseFloat(document.getElementById('r-conversion')?.value) || 0;
+  const pos = parseFloat(document.getElementById('r-pos')?.value) || 0;
+  const pocost = parseFloat(document.getElementById('r-pocost')?.value) || 0;
+  const ftecost = parseFloat(document.getElementById('r-ftecost')?.value) || 80;
+  const prs = parseFloat(document.getElementById('r-prs')?.value) || 0;
+  const prtouch = parseFloat(document.getElementById('r-prtouch')?.value) || 0;
+  const prtime = parseFloat(document.getElementById('r-prtime')?.value) || 0;
+  const ocs = parseFloat(document.getElementById('r-ocs')?.value) || 0;
+  const octime = parseFloat(document.getElementById('r-octime')?.value) || 0;
+  const ocauto = parseFloat(document.getElementById('r-ocauto')?.value) || 0;
+
+  // Get Lio investment from calculator
   const inv = calcGrandTotal;
-  if (!inv) { ['roi-inv','roi-sav','roi-net','roi-pct','roi-months','roi-y1','roi-y2','roi-y3','roi-3yr'].forEach(id => document.getElementById(id).textContent = '-'); document.getElementById('roi-bar').style.width = '0%'; return; }
-  const pos = +document.getElementById('r-pos').value||0, pocost = +document.getElementById('r-pocost').value||0;
-  const neg = +document.getElementById('r-neg').value||0, negsave = +document.getElementById('r-negsave').value||0;
-  const fte = +document.getElementById('r-fte').value||0, freed = +document.getElementById('r-freed').value||0;
-  const spend = +document.getElementById('r-spend').value||0;
-  const savings = Math.round(pos*pocost*0.7) + Math.round(neg*negsave) + Math.round(freed*fte*1000) + Math.round(spend*1000000*0.001);
-  const net = savings - inv, roi = Math.round((net/inv)*100);
-  const months = savings > 0 ? Math.max(1, Math.round((inv/savings)*12)) : 99;
-  document.getElementById('roi-inv').textContent = fmt(inv);
-  document.getElementById('roi-sav').textContent = fmt(savings);
-  document.getElementById('roi-net').textContent = fmt(net);
-  document.getElementById('roi-pct').textContent = roi + '%';
-  document.getElementById('roi-months').textContent = months;
-  document.getElementById('roi-bar').style.width = Math.min(100, Math.max(5, (12-months)/12*100+50)) + '%';
-  const y1 = net, y2 = Math.round(savings*1.1)-inv, y3 = Math.round(savings*1.21)-inv;
-  document.getElementById('roi-y1').textContent = fmt(y1);
-  document.getElementById('roi-y2').textContent = fmt(y2);
-  document.getElementById('roi-y3').textContent = fmt(y3);
-  document.getElementById('roi-3yr').textContent = fmt(y1+y2+y3);
+
+  const emptyIds = ['roi-x','roi-pct-small','roi-inv','roi-sav','roi-net','roi-months','roi-gb-savings','roi-pr-savings','roi-oc-savings','roi-total-line','roi-y1','roi-y2','roi-y3','roi-3yr'];
+  if (!inv) {
+    emptyIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '-'; });
+    document.getElementById('roi-bar').style.width = '0%';
+    return;
+  }
+
+  // Guided Buying savings
+  const gbSavings = Math.round(spend * 1000000 * (maverick / 100));
+  const freitextPOs = pos * 0.25;
+  const convertedPOs = freitextPOs * (conversion / 100);
+  const gbConversionSavings = Math.round(convertedPOs * pocost * 0.3);
+  const totalGBSavings = gbSavings + gbConversionSavings;
+
+  // PR Review savings
+  const prAutomated = prs * (prtouch / 100);
+  const prHoursSaved = prAutomated * prtime / 60;
+  const totalPRSavings = Math.round(prHoursSaved * ftecost);
+
+  // OC Automation savings
+  const ocAutomated = ocs * (ocauto / 100);
+  const ocHoursSaved = ocAutomated * octime / 60;
+  const totalOCSavings = Math.round(ocHoursSaved * ftecost);
+
+  const totalSavings = totalGBSavings + totalPRSavings + totalOCSavings;
+  const netBenefit = totalSavings - inv;
+  const roiX = inv > 0 ? (totalSavings / inv) : 0;
+  const roiPct = inv > 0 ? Math.round((totalSavings / inv - 1) * 100) : 0;
+  const paybackMonths = totalSavings > 0 ? Math.max(1, Math.round(inv / totalSavings * 12)) : 99;
+
+  // Display results
+  document.getElementById('roi-x').textContent = roiX.toFixed(1) + 'x';
+  document.getElementById('roi-pct-small').textContent = roiPct + '%';
+  document.getElementById('roi-inv').textContent = fmtRaw(inv);
+  document.getElementById('roi-sav').textContent = fmtRaw(totalSavings);
+  document.getElementById('roi-net').textContent = fmtRaw(netBenefit);
+  document.getElementById('roi-months').textContent = paybackMonths;
+
+  const barWidth = Math.min(100, Math.max(5, (12 - paybackMonths) / 12 * 100 + 50));
+  document.getElementById('roi-bar').style.width = barWidth + '%';
+
+  document.getElementById('roi-gb-savings').textContent = '+' + fmtRaw(totalGBSavings);
+  document.getElementById('roi-pr-savings').textContent = '+' + fmtRaw(totalPRSavings);
+  document.getElementById('roi-oc-savings').textContent = '+' + fmtRaw(totalOCSavings);
+  document.getElementById('roi-total-line').textContent = fmtRaw(totalSavings);
+
+  const y1 = netBenefit;
+  const y2 = Math.round(totalSavings * 1.1) - inv;
+  const y3 = Math.round(totalSavings * 1.21) - inv;
+  document.getElementById('roi-y1').textContent = fmtRaw(y1);
+  document.getElementById('roi-y2').textContent = fmtRaw(y2);
+  document.getElementById('roi-y3').textContent = fmtRaw(y3);
+  document.getElementById('roi-3yr').textContent = fmtRaw(y1 + y2 + y3);
 }
 
 // ============================
@@ -1831,15 +1921,52 @@ function generateQuoteData() {
     return `<div style="margin-bottom:24px;page-break-inside:avoid;"><h3 style="font-size:14px;font-weight:700;margin:0 0 4px;">${m.name}</h3><p style="font-size:11px;color:#1e293b;margin:0 0 8px;line-height:1.5;">${m.desc}</p><div style="margin-bottom:10px;">${m.features.slice(0,4).map(f=>`<span style="display:inline-block;background:#f1f5f9;padding:3px 8px;border-radius:4px;font-size:10px;margin:2px 2px 2px 0;">&#10003; ${f}</span>`).join('')}</div><div style="margin-top:8px;"><div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers</div><table style="width:100%;max-width:400px;border-collapse:collapse;border:1px solid #e2e8f0;font-size:10px;"><thead><tr style="background:#f8fafc;"><th style="padding:3px 8px;text-align:left;font-size:9px;color:#64748b;text-transform:uppercase;">Volume</th><th style="padding:3px 8px;text-align:right;font-size:9px;color:#64748b;text-transform:uppercase;">Price</th></tr></thead><tbody>${tierRows}</tbody></table></div></div>`;
   }).join('');
 
-  // ROI section (conditional)
+  // ROI section (conditional) - calculate fresh from current inputs
   let roiSection = '';
   if (includeROI) {
-    const roiInv = document.getElementById('roi-inv')?.textContent || '$0';
-    const roiSav = document.getElementById('roi-sav')?.textContent || '$0';
-    const roiNet = document.getElementById('roi-net')?.textContent || '$0';
-    const roiPct = document.getElementById('roi-pct')?.textContent || '-';
-    const roiMonths = document.getElementById('roi-months')?.textContent || '-';
-    roiSection = `<div style="margin-top:28px;page-break-inside:avoid;"><h2 style="font-size:16px;font-weight:700;margin-bottom:12px;">Expected Impact Summary</h2><div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:10px;"><div style="background:#f8f8f8;border-radius:8px;padding:14px;text-align:center;"><div style="font-size:10px;color:#1e293b;">Lio Investment</div><div style="font-size:18px;font-weight:800;color:#1e293b;margin-top:3px;">${roiInv}</div></div><div style="background:#f8f8f8;border-radius:8px;padding:14px;text-align:center;"><div style="font-size:10px;color:#1e293b;">Annual Savings</div><div style="font-size:18px;font-weight:800;color:#1e293b;margin-top:3px;">${roiSav}</div></div><div style="background:#f8f8f8;border-radius:8px;padding:14px;text-align:center;"><div style="font-size:10px;color:#1e293b;">Net Benefit</div><div style="font-size:18px;font-weight:800;color:#1e293b;margin-top:3px;">${roiNet}</div></div><div style="background:#f8f8f8;border-radius:8px;padding:14px;text-align:center;"><div style="font-size:10px;color:#1e293b;">ROI</div><div style="font-size:18px;font-weight:800;color:#1e293b;margin-top:3px;">${roiPct}</div></div></div><div style="font-size:11px;color:#1e293b;text-align:center;">Estimated payback: <strong>${roiMonths} months</strong></div><div style="font-size:9px;color:#1e293b;text-align:center;margin-top:8px;font-style:italic;">Projections are estimates based on typical industry benchmarks and may vary depending on actual usage and conditions.</div></div>`;
+    const rSpend = parseFloat(document.getElementById('r-spend')?.value) || 0;
+    const rMaverick = parseFloat(document.getElementById('r-maverick')?.value) || 0;
+    const rConversion = parseFloat(document.getElementById('r-conversion')?.value) || 0;
+    const rPos = parseFloat(document.getElementById('r-pos')?.value) || 0;
+    const rPocost = parseFloat(document.getElementById('r-pocost')?.value) || 0;
+    const rFtecost = parseFloat(document.getElementById('r-ftecost')?.value) || 80;
+    const rPrs = parseFloat(document.getElementById('r-prs')?.value) || 0;
+    const rPrtouch = parseFloat(document.getElementById('r-prtouch')?.value) || 0;
+    const rPrtime = parseFloat(document.getElementById('r-prtime')?.value) || 0;
+    const rOcs = parseFloat(document.getElementById('r-ocs')?.value) || 0;
+    const rOctime = parseFloat(document.getElementById('r-octime')?.value) || 0;
+    const rOcauto = parseFloat(document.getElementById('r-ocauto')?.value) || 0;
+    const rInv = calcGrandTotal || 0;
+
+    const pdfGBSav = Math.round(rSpend * 1000000 * (rMaverick / 100)) + Math.round(rPos * 0.25 * (rConversion / 100) * rPocost * 0.3);
+    const pdfPRSav = Math.round(rPrs * (rPrtouch / 100) * rPrtime / 60 * rFtecost);
+    const pdfOCSav = Math.round(rOcs * (rOcauto / 100) * rOctime / 60 * rFtecost);
+    const pdfTotalSav = pdfGBSav + pdfPRSav + pdfOCSav;
+    const pdfNet = pdfTotalSav - rInv;
+    const pdfRoiX = rInv > 0 ? (pdfTotalSav / rInv).toFixed(1) : '0.0';
+    const pdfRoiPct = rInv > 0 ? Math.round((pdfTotalSav / rInv - 1) * 100) : 0;
+    const pdfPayback = pdfTotalSav > 0 ? Math.max(1, Math.round(rInv / pdfTotalSav * 12)) : 99;
+
+    roiSection = `<div style="margin-top:28px;page-break-inside:avoid;">
+      <h2 style="font-size:16px;font-weight:700;margin-bottom:12px;">Expected Impact Summary</h2>
+      <div style="text-align:center;margin-bottom:14px;">
+        <div style="font-size:36px;font-weight:800;color:#1e293b;">${pdfRoiX}x</div>
+        <div style="font-size:12px;color:#64748b;">Return on Investment (${pdfRoiPct}%)</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="background:#f8f8f8;border-radius:8px;padding:14px;text-align:center;"><div style="font-size:10px;color:#64748b;">Lio Investment</div><div style="font-size:16px;font-weight:800;color:#1e293b;margin-top:3px;">${fmtRaw(rInv)}</div></div>
+        <div style="background:#f0fdf4;border-radius:8px;padding:14px;text-align:center;"><div style="font-size:10px;color:#64748b;">Annual Savings</div><div style="font-size:16px;font-weight:800;color:#16a34a;margin-top:3px;">${fmtRaw(pdfTotalSav)}</div></div>
+        <div style="background:#ecfeff;border-radius:8px;padding:14px;text-align:center;"><div style="font-size:10px;color:#64748b;">Net Benefit</div><div style="font-size:16px;font-weight:800;color:#0891b2;margin-top:3px;">${fmtRaw(pdfNet)}</div></div>
+        <div style="background:#fffbeb;border-radius:8px;padding:14px;text-align:center;"><div style="font-size:10px;color:#64748b;">Payback</div><div style="font-size:16px;font-weight:800;color:#d97706;margin-top:3px;">${pdfPayback} months</div></div>
+      </div>
+      <div style="margin-bottom:10px;">
+        <div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Savings Breakdown</div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid #f1f5f9;"><span style="color:#475569;">Guided Buying Savings</span><span style="color:#16a34a;font-weight:600;">${fmtRaw(pdfGBSav)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid #f1f5f9;"><span style="color:#475569;">PR Review Savings</span><span style="color:#16a34a;font-weight:600;">${fmtRaw(pdfPRSav)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;"><span style="color:#475569;">OC Automation Savings</span><span style="color:#16a34a;font-weight:600;">${fmtRaw(pdfOCSav)}</span></div>
+      </div>
+      <div style="font-size:9px;color:#94a3b8;text-align:center;margin-top:10px;font-style:italic;">Projections are estimates based on typical industry benchmarks and may vary depending on actual usage and conditions.</div>
+    </div>`;
   }
 
   // Collect additional agents to showcase
