@@ -1819,7 +1819,7 @@ function generateQuoteData() {
     const allTiers = modules[m.key]?.tiers || [];
     const tierRows = allTiers.map(t => {
       const isSelected = t.price === m.tierUsdPrice;
-      const displayPrice = isSelected && m.price !== m.listPrice ? fmtRaw(m.price) : fmtTierPrice(t);
+      const displayPrice = isSelected ? fmtRaw(m.price) : fmtTierPrice(t);
       return `<tr style="border-bottom:1px solid #f1f5f9;${isSelected ? 'background:#f0fdf4;font-weight:600;' : ''}"><td style="padding:4px 8px;font-size:11px;">${isSelected ? '&#9654; ' : ''}${fmtVol(m.key, t.vol)}</td><td style="padding:4px 8px;font-size:11px;text-align:right;">${displayPrice}/yr</td></tr>`;
     }).join('');
     return `<div style="margin-bottom:24px;page-break-inside:avoid;"><h3 style="font-size:14px;font-weight:700;margin:0 0 4px;">${m.name}</h3><p style="font-size:11px;color:#1e293b;margin:0 0 8px;line-height:1.5;">${m.desc}</p><div style="margin-bottom:10px;">${m.features.slice(0,4).map(f=>`<span style="display:inline-block;background:#f1f5f9;padding:3px 8px;border-radius:4px;font-size:10px;margin:2px 2px 2px 0;">&#10003; ${f}</span>`).join('')}</div><div style="margin-top:8px;"><div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers</div><table style="width:100%;max-width:400px;border-collapse:collapse;border:1px solid #e2e8f0;font-size:10px;"><thead><tr style="background:#f8fafc;"><th style="padding:3px 8px;text-align:left;font-size:9px;color:#64748b;text-transform:uppercase;">Volume</th><th style="padding:3px 8px;text-align:right;font-size:9px;color:#64748b;text-transform:uppercase;">Price</th></tr></thead><tbody>${tierRows}</tbody></table></div></div>`;
