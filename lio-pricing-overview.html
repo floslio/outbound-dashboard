@@ -1664,7 +1664,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
       <div class="lg:col-span-1">
         <div class="glass rounded-2xl p-6 glow-strong lg:sticky lg:top-24 sticky-summary">
           <div class="text-center mb-6">
-            <div class="text-5xl font-extrabold gradient-text" id="roi-calc-big-roi">0.0x</div>
+            <div class="text-5xl font-extrabold gradient-text" id="roi-calc-big-roi">0.00x</div>
             <div class="text-xl text-slate-400 mt-1" id="roi-calc-big-pct">0% ROI</div>
           </div>
           <div class="space-y-3">
@@ -2546,7 +2546,7 @@ function calcROI() {
   const paybackMonths = totalSavings > 0 ? Math.max(1, Math.round(inv / totalSavings * 12)) : 99;
 
   // Display results
-  document.getElementById('roi-x').textContent = roiX.toFixed(1) + 'x';
+  document.getElementById('roi-x').textContent = roiX.toFixed(2) + 'x';
   document.getElementById('roi-pct-small').textContent = roiPct + '%';
   document.getElementById('roi-inv').textContent = fmtRaw(inv);
   document.getElementById('roi-sav').textContent = fmtRaw(totalSavings);
@@ -2737,7 +2737,7 @@ function updateAdvancedROI() {
     document.getElementById('roi-adv-gross-' + key).textContent = fmt(gross);
     document.getElementById('roi-adv-cost-' + key).textContent = fmt(cost);
     document.getElementById('roi-adv-net-' + key).textContent = fmt(net);
-    document.getElementById('roi-adv-roi-' + key).textContent = roi.toFixed(1) + 'x';
+    document.getElementById('roi-adv-roi-' + key).textContent = roi.toFixed(2) + 'x';
     document.getElementById('roi-adv-pb-' + key).textContent = pb + ' mo';
 
     totalGross += gross;
@@ -2749,7 +2749,7 @@ function updateAdvancedROI() {
   const totalPB = totalGross > 0 ? Math.max(1, Math.ceil((totalCost / totalGross) * 12)) : 0;
   const anySelected = roiKeys.some(k => document.getElementById('roi-adv-chk-' + k).checked);
 
-  document.getElementById('roi-calc-big-roi').textContent = anySelected ? totalROI.toFixed(1) + 'x' : '0.0x';
+  document.getElementById('roi-calc-big-roi').textContent = anySelected ? totalROI.toFixed(2) + 'x' : '0.00x';
   document.getElementById('roi-calc-big-pct').textContent = anySelected ? Math.round(totalROI * 100) + '% ROI' : '0% ROI';
   document.getElementById('roi-calc-gross').textContent = fmt(totalGross);
   document.getElementById('roi-calc-cost').textContent = fmt(totalCost);
@@ -3240,7 +3240,7 @@ function generateQuoteData() {
     const pdfOCSav = Math.round(rOcs * (rOcauto / 100) * rOctime / 60 * rFtecost);
     const pdfTotalSav = pdfGBSav + pdfPRSav + pdfOCSav;
     const pdfNet = pdfTotalSav - rInv;
-    const pdfRoiX = rInv > 0 ? (pdfTotalSav / rInv).toFixed(1) : '0.0';
+    const pdfRoiX = rInv > 0 ? (pdfTotalSav / rInv).toFixed(2) : '0.00';
     const pdfRoiPct = rInv > 0 ? Math.round((pdfTotalSav / rInv - 1) * 100) : 0;
     const pdfPayback = pdfTotalSav > 0 ? Math.max(1, Math.round(rInv / pdfTotalSav * 12)) : 99;
 
