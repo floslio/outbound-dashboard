@@ -1320,19 +1320,18 @@ function calcROI() {
   }
 
   // Guided Buying savings
-  const gbSavings = Math.round(spend * 1000000 * (maverick / 100));
-  const freitextPOs = pos * 0.25;
-  const convertedPOs = freitextPOs * (conversion / 100);
-  const gbConversionSavings = Math.round(convertedPOs * pocost * 0.3);
-  const totalGBSavings = gbSavings + gbConversionSavings;
+  const gbMaverickSavings = Math.round(spend * 1000000 * (maverick / 100));
+  const convertedPOs = Math.round(pos * (conversion / 100));
+  const gbConversionSavings = Math.round(convertedPOs * pocost);
+  const totalGBSavings = gbMaverickSavings + gbConversionSavings;
 
   // PR Review savings
-  const prAutomated = prs * (prtouch / 100);
+  const prAutomated = Math.round(prs * (prtouch / 100));
   const prHoursSaved = prAutomated * prtime / 60;
   const totalPRSavings = Math.round(prHoursSaved * ftecost);
 
   // OC Automation savings
-  const ocAutomated = ocs * (ocauto / 100);
+  const ocAutomated = Math.round(ocs * (ocauto / 100));
   const ocHoursSaved = ocAutomated * octime / 60;
   const totalOCSavings = Math.round(ocHoursSaved * ftecost);
 
@@ -1938,7 +1937,7 @@ function generateQuoteData() {
     const rOcauto = parseFloat(document.getElementById('r-ocauto')?.value) || 0;
     const rInv = calcGrandTotal || 0;
 
-    const pdfGBSav = Math.round(rSpend * 1000000 * (rMaverick / 100)) + Math.round(rPos * 0.25 * (rConversion / 100) * rPocost * 0.3);
+    const pdfGBSav = Math.round(rSpend * 1000000 * (rMaverick / 100)) + Math.round(rPos * (rConversion / 100) * rPocost);
     const pdfPRSav = Math.round(rPrs * (rPrtouch / 100) * rPrtime / 60 * rFtecost);
     const pdfOCSav = Math.round(rOcs * (rOcauto / 100) * rOctime / 60 * rFtecost);
     const pdfTotalSav = pdfGBSav + pdfPRSav + pdfOCSav;
