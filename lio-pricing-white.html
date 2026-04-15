@@ -851,6 +851,18 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
             <div class="text-xl font-extrabold accent-text" id="roi-3yr">-</div>
           </div>
         </div>
+
+        <!-- Download ROI PDF Button -->
+        <div class="flex gap-3">
+          <button onclick="printROIReport()" class="flex-1 py-3 accent-gradient text-white rounded-xl font-semibold transition hover:opacity-90 flex items-center justify-center gap-2 shadow-lg">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+            Print ROI Report
+          </button>
+          <button onclick="downloadROIReport()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold transition flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            Download PDF
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -1364,6 +1376,210 @@ function calcROI() {
   document.getElementById('roi-y2').textContent = fmtRaw(y2);
   document.getElementById('roi-y3').textContent = fmtRaw(y3);
   document.getElementById('roi-3yr').textContent = fmtRaw(y1 + y2 + y3);
+}
+
+// ============================
+// ROI STANDALONE PDF REPORT
+// ============================
+function buildROIPdfHtml() {
+  const spend = parseFloat(document.getElementById('r-spend')?.value) || 0;
+  const maverick = parseFloat(document.getElementById('r-maverick')?.value) || 0;
+  const conversion = parseFloat(document.getElementById('r-conversion')?.value) || 0;
+  const pos = parseFloat(document.getElementById('r-pos')?.value) || 0;
+  const pocost = parseFloat(document.getElementById('r-pocost')?.value) || 0;
+  const ftecost = parseFloat(document.getElementById('r-ftecost')?.value) || 80;
+  const prs = parseFloat(document.getElementById('r-prs')?.value) || 0;
+  const prtouch = parseFloat(document.getElementById('r-prtouch')?.value) || 0;
+  const prtime = parseFloat(document.getElementById('r-prtime')?.value) || 0;
+  const ocs = parseFloat(document.getElementById('r-ocs')?.value) || 0;
+  const octime = parseFloat(document.getElementById('r-octime')?.value) || 0;
+  const ocauto = parseFloat(document.getElementById('r-ocauto')?.value) || 0;
+  const inv = calcGrandTotal || 0;
+
+  const gbMaverick = Math.round(spend * 1000000 * (maverick / 100));
+  const convertedPOs = Math.round(pos * (conversion / 100));
+  const gbConversion = Math.round(convertedPOs * pocost);
+  const totalGB = gbMaverick + gbConversion;
+  const prAuto = Math.round(prs * (prtouch / 100));
+  const prSav = Math.round(prAuto * prtime / 60 * ftecost);
+  const ocAuto = Math.round(ocs * (ocauto / 100));
+  const ocSav = Math.round(ocAuto * octime / 60 * ftecost);
+  const totalSav = totalGB + prSav + ocSav;
+  const netBen = totalSav - inv;
+  const roiX = inv > 0 ? (totalSav / inv) : 0;
+  const roiPct = inv > 0 ? Math.round((totalSav / inv - 1) * 100) : 0;
+  const payback = totalSav > 0 ? Math.max(1, Math.round(inv / totalSav * 12)) : 99;
+  const y1 = netBen;
+  const y2 = Math.round(totalSav * 1.1) - inv;
+  const y3 = Math.round(totalSav * 1.21) - inv;
+  const threeYr = y1 + y2 + y3;
+  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const reportRef = 'LIO-ROI-' + Date.now().toString(36).toUpperCase();
+
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ROI Report ${reportRef}</title>
+<style>
+  @page { size: A4; margin: 15mm; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; color: #1e293b; line-height: 1.5; margin: 0; padding: 0; }
+  .container { max-width: 800px; margin: 0 auto; padding: 24px; }
+  h1 { font-size: 26px; font-weight: 800; color: #1e293b; margin: 0; letter-spacing: -0.5px; }
+  h2 { font-size: 16px; font-weight: 700; color: #1e293b; margin: 24px 0 12px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 20px; border-bottom: 2px solid #1e293b; margin-bottom: 24px; }
+  .ref-block { text-align: right; font-size: 11px; color: #64748b; line-height: 1.8; }
+  .hero { text-align: center; padding: 32px 20px; background: #f8fafc; border-radius: 12px; margin-bottom: 24px; }
+  .hero-roi { font-size: 64px; font-weight: 900; color: #1e293b; line-height: 1; }
+  .hero-label { font-size: 13px; color: #64748b; margin-top: 6px; letter-spacing: 0.5px; }
+  .hero-sub { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+  .kpi-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+  .kpi { background: #f8fafc; border-radius: 10px; padding: 16px; text-align: center; }
+  .kpi-label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+  .kpi-value { font-size: 20px; font-weight: 800; color: #1e293b; margin-top: 4px; }
+  .section { margin-bottom: 24px; page-break-inside: avoid; }
+  .section-title { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .input-card { background: #f8fafc; border-radius: 8px; padding: 14px; }
+  .input-card-title { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+  .input-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 11px; }
+  .input-row span:first-child { color: #64748b; }
+  .input-row span:last-child { color: #1e293b; font-weight: 600; }
+  .savings-row { display: flex; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+  .savings-row:last-child { border-bottom: none; font-weight: 700; background: #f0fdf4; border-radius: 6px; margin-top: 6px; }
+  .projection-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1.2fr; gap: 10px; }
+  .proj-card { background: #f8fafc; border-radius: 8px; padding: 14px; text-align: center; }
+  .proj-card.total { background: #1e293b; color: white; }
+  .proj-label { font-size: 10px; color: #64748b; text-transform: uppercase; }
+  .proj-card.total .proj-label { color: #cbd5e1; }
+  .proj-value { font-size: 18px; font-weight: 800; color: #1e293b; margin-top: 4px; }
+  .proj-card.total .proj-value { color: white; font-size: 20px; }
+  .green { color: #16a34a; font-weight: 600; }
+  .callout { background: #f8fafc; border-left: 4px solid #1e293b; padding: 14px 18px; margin: 20px 0; font-size: 12px; line-height: 1.6; color: #334155; border-radius: 4px; }
+  .footer { margin-top: 28px; padding-top: 16px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 10px; color: #64748b; line-height: 1.6; }
+  .disclaimer { font-size: 9px; color: #94a3b8; font-style: italic; text-align: center; margin-top: 16px; }
+</style></head><body><div class="container">
+  <div class="header">
+    <div>
+      <h1>ROI &amp; Impact Analysis</h1>
+      <div style="font-size:12px;color:#64748b;margin-top:4px;">AI Procurement Agents · Business Case Projection</div>
+    </div>
+    <div class="ref-block">
+      <div style="font-weight:700;color:#1e293b;">${reportRef}</div>
+      <div>Generated: ${today}</div>
+    </div>
+  </div>
+  <div class="hero">
+    <div class="hero-label">Projected Return on Investment</div>
+    <div class="hero-roi">${roiX.toFixed(2)}x</div>
+    <div class="hero-sub">${roiPct}% ROI · Payback in ${payback} month${payback === 1 ? '' : 's'}</div>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Lio Investment</div><div class="kpi-value">${fmtRaw(inv)}</div></div>
+    <div class="kpi"><div class="kpi-label">Annual Savings</div><div class="kpi-value">${fmtRaw(totalSav)}</div></div>
+    <div class="kpi"><div class="kpi-label">Net Benefit Y1</div><div class="kpi-value">${fmtRaw(netBen)}</div></div>
+    <div class="kpi"><div class="kpi-label">Payback</div><div class="kpi-value">${payback} mo</div></div>
+  </div>
+  <div class="section">
+    <div class="section-title">Assumptions · Your Inputs</div>
+    <div class="input-grid">
+      <div class="input-card">
+        <div class="input-card-title">Guided Buying</div>
+        <div class="input-row"><span>Annual Indirect Spend</span><span>${fmtRaw(spend * 1000000)}</span></div>
+        <div class="input-row"><span>Maverick Spend Reduction</span><span>${maverick}%</span></div>
+        <div class="input-row"><span>Freitext→Catalog Rate</span><span>${conversion}%</span></div>
+        <div class="input-row"><span>POs per Year</span><span>${pos.toLocaleString()}</span></div>
+        <div class="input-row"><span>Avg Cost per Manual PO</span><span>${fmtRaw(pocost)}</span></div>
+      </div>
+      <div class="input-card">
+        <div class="input-card-title">PR Review Agent</div>
+        <div class="input-row"><span>PRs per Year</span><span>${prs.toLocaleString()}</span></div>
+        <div class="input-row"><span>No-Touch Rate</span><span>${prtouch}%</span></div>
+        <div class="input-row"><span>Time per PR Review</span><span>${prtime} min</span></div>
+      </div>
+      <div class="input-card">
+        <div class="input-card-title">Order Confirmations Agent</div>
+        <div class="input-row"><span>OCs per Year</span><span>${ocs.toLocaleString()}</span></div>
+        <div class="input-row"><span>Automation Rate</span><span>${ocauto}%</span></div>
+        <div class="input-row"><span>Time per OC</span><span>${octime} min</span></div>
+      </div>
+      <div class="input-card">
+        <div class="input-card-title">General</div>
+        <div class="input-row"><span>FTE Hourly Cost</span><span>${fmtRaw(ftecost)}</span></div>
+        <div class="input-row"><span>Currency</span><span>${currentCurrency.toUpperCase()}</span></div>
+        <div class="input-row"><span>Lio Investment (Year 1)</span><span>${fmtRaw(inv)}</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title">Savings Breakdown</div>
+    <div style="background:#f8fafc;border-radius:10px;padding:8px 0;">
+      <div class="savings-row"><span style="color:#475569;">Guided Buying — Maverick Spend Reduction<br><span style="font-size:10px;color:#94a3b8;">${fmtRaw(spend * 1000000)} × ${maverick}%</span></span><span class="green">${fmtRaw(gbMaverick)}</span></div>
+      <div class="savings-row"><span style="color:#475569;">Guided Buying — Freitext→Catalog Conversion<br><span style="font-size:10px;color:#94a3b8;">${convertedPOs.toLocaleString()} POs × ${fmtRaw(pocost)}</span></span><span class="green">${fmtRaw(gbConversion)}</span></div>
+      <div class="savings-row"><span style="color:#475569;">PR Review Agent — Time Savings<br><span style="font-size:10px;color:#94a3b8;">${prAuto.toLocaleString()} auto PRs × ${prtime} min × ${fmtRaw(ftecost)}/h</span></span><span class="green">${fmtRaw(prSav)}</span></div>
+      <div class="savings-row"><span style="color:#475569;">Order Confirmations — Time Savings<br><span style="font-size:10px;color:#94a3b8;">${ocAuto.toLocaleString()} auto OCs × ${octime} min × ${fmtRaw(ftecost)}/h</span></span><span class="green">${fmtRaw(ocSav)}</span></div>
+      <div class="savings-row"><span>Total Annual Savings</span><span class="green">${fmtRaw(totalSav)}</span></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title">3-Year Net Benefit Projection</div>
+    <div class="projection-grid">
+      <div class="proj-card"><div class="proj-label">Year 1</div><div class="proj-value">${fmtRaw(y1)}</div></div>
+      <div class="proj-card"><div class="proj-label">Year 2 (+10%)</div><div class="proj-value">${fmtRaw(y2)}</div></div>
+      <div class="proj-card"><div class="proj-label">Year 3 (+21%)</div><div class="proj-value">${fmtRaw(y3)}</div></div>
+      <div class="proj-card total"><div class="proj-label">3-Year Cumulative</div><div class="proj-value">${fmtRaw(threeYr)}</div></div>
+    </div>
+    <div style="font-size:10px;color:#94a3b8;text-align:center;margin-top:8px;">Assumes 10% YoY savings expansion as usage scales. Investment held constant.</div>
+  </div>
+  <div class="callout">
+    <strong>Key Takeaway:</strong> With a Lio investment of <strong>${fmtRaw(inv)}</strong>, your organisation unlocks <strong>${fmtRaw(totalSav)}</strong> in annual savings — a <strong>${roiX.toFixed(2)}x return</strong>. Payback is achieved in <strong>${payback} month${payback === 1 ? '' : 's'}</strong>. Over 3 years, this translates to <strong>${fmtRaw(threeYr)}</strong> in cumulative net benefit.
+  </div>
+  <div class="footer">
+    <div>
+      <div style="font-weight:700;color:#1e293b;">Lio Technologies GmbH</div>
+      <div>Munich, Germany · VAT ID: DE 364047844</div>
+      <div>Register: HRB 286659 · Managing directors: Lukas Heinzmann, Vladimir Keil</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-weight:700;color:#1e293b;">Contact</div>
+      <div>florian.wanzeck@lio.ai</div>
+      <div>+49 15888 658437</div>
+    </div>
+  </div>
+  <div class="disclaimer">Projections are estimates based on provided assumptions and typical industry benchmarks. Actual results may vary.</div>
+</div></body></html>`;
+}
+
+function printROIReport() {
+  const inv = calcGrandTotal || 0;
+  if (!inv) { alert('Please select at least one module in the calculator above to generate a ROI report.'); return; }
+  const html = buildROIPdfHtml();
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+  setTimeout(() => w.print(), 500);
+}
+
+async function downloadROIReport() {
+  const inv = calcGrandTotal || 0;
+  if (!inv) { alert('Please select at least one module in the calculator above to generate a ROI report.'); return; }
+  const html = buildROIPdfHtml();
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;left:0;top:0;width:800px;height:1200px;z-index:99999;opacity:0;pointer-events:none;border:none;';
+  document.body.appendChild(iframe);
+  iframe.contentDocument.open();
+  iframe.contentDocument.write(html);
+  iframe.contentDocument.close();
+  await new Promise(r => setTimeout(r, 1000));
+  const filename = 'Lio_ROI_Report_' + new Date().toISOString().split('T')[0] + '.pdf';
+  try {
+    await html2pdf().set({
+      margin: [8, 8, 8, 8],
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    }).from(iframe.contentDocument.body).save();
+  } finally {
+    document.body.removeChild(iframe);
+  }
 }
 
 // ============================
