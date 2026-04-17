@@ -125,6 +125,10 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
     <div class="flex flex-wrap justify-center gap-4 mb-14 no-print">
       <button onclick="document.getElementById('overview').scrollIntoView({behavior:'smooth'})" class="px-7 py-3 accent-gradient text-white rounded-xl font-semibold transition hover:opacity-90 shadow-lg shadow-lio-500/20 shimmer-btn">Explore Pricing</button>
       <button onclick="document.getElementById('calculator').scrollIntoView({behavior:'smooth'})" class="px-7 py-3 border-2 border-slate-200 hover:border-lio-300 rounded-xl font-semibold transition text-slate-700">Build Your Stack</button>
+      <button onclick="downloadModuleOverviewPdf()" class="px-7 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold transition shadow-lg shadow-emerald-500/20 flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        Download Module Overview PDF
+      </button>
     </div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-5 max-w-3xl mx-auto">
       <div class="bg-slate-50 rounded-2xl p-5 text-center">
@@ -2069,99 +2073,121 @@ function buildModuleOverviewPdfHtml() {
     { label: 'Modules',                     keys: ['clm'] }
   ];
   const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  const curSym = currencySymbols[currentCurrency];
+  const shortDate = new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  const curUpper = currentCurrency.toUpperCase();
   const allKeys = Object.keys(modules);
+  const catalogueRef = 'LIO-CAT-' + Date.now().toString(36).toUpperCase();
 
-  const colorMap = {
-    cyan: '#06b6d4', indigo: '#6366f1', emerald: '#10b981', amber: '#f59e0b', rose: '#f43f5e',
-    violet: '#8b5cf6', slate: '#475569', teal: '#14b8a6', lime: '#84cc16', orange: '#f97316',
-    sky: '#0ea5e9', fuchsia: '#d946ef', red: '#ef4444', blue: '#3b82f6', purple: '#a855f7',
-    lio: '#6366f1'
+  const categoryOf = (key) => {
+    const c = categories.find(cat => cat.keys.includes(key));
+    return c ? c.label : 'Modules';
   };
 
-  const pageHeader = (subtitle) => `
-    <div class="pdf-header">
-      <div class="pdf-logo">${LIO_LOGO_SVG_WHITE}</div>
-      <div class="pdf-header-meta">
-        <div class="pdf-header-title">${subtitle}</div>
-        <div class="pdf-header-date">${dateStr}</div>
+  const pageHeader = (right1, right2) => `
+    <div class="header">
+      <div class="header-left">
+        <div class="logo">${LIO_LOGO_SVG_WHITE}</div>
+        <div class="header-brand">Lio · Agent &amp; Module Catalogue</div>
+      </div>
+      <div class="ref-block">
+        <div style="font-weight:700;color:#1e293b;">${right1}</div>
+        <div>${right2}</div>
+      </div>
+    </div>`;
+
+  const pageFooter = `
+    <div class="footer">
+      <div>
+        <div style="font-weight:700;color:#1e293b;">Lio Technologies GmbH</div>
+        <div>Munich, Germany · lio.ai</div>
+      </div>
+      <div style="text-align:right;">
+        <div>Pricing in ${curUpper}</div>
+        <div>${dateStr}</div>
       </div>
     </div>`;
 
   const cover = `
-    <section class="pdf-page cover">
-      ${pageHeader('Agent & Module Catalogue')}
-      <div class="cover-body">
-        <div class="cover-eyebrow">LIO TECHNOLOGIES</div>
-        <h1 class="cover-title">AI Procurement Agents</h1>
-        <div class="cover-subtitle">Complete overview of all agents, capabilities and pricing tiers</div>
-        <div class="cover-stats">
-          <div class="cover-stat"><div class="num">${allKeys.length}</div><div class="lbl">Agents & Modules</div></div>
-          <div class="cover-stat"><div class="num">${categories.length}</div><div class="lbl">Product Areas</div></div>
-          <div class="cover-stat"><div class="num">${curSym}</div><div class="lbl">Pricing in ${currentCurrency.toUpperCase()}</div></div>
-        </div>
-        <div class="cover-toc">
-          <div class="cover-toc-title">Contents</div>
-          ${categories.map(cat => {
-            const items = cat.keys.filter(k => modules[k]).map(k => `<span class="toc-pill">${modules[k].name}</span>`).join('');
-            return `<div class="cover-toc-cat"><div class="toc-cat-label">${cat.label}</div><div class="toc-cat-items">${items}</div></div>`;
-          }).join('')}
-        </div>
-      </div>
-      <div class="pdf-footer">
-        <span>lio.ai &nbsp;·&nbsp; AI Procurement Agents</span>
-        <span>Pricing in ${currentCurrency.toUpperCase()} · ${dateStr}</span>
-      </div>
-    </section>`;
+  <div class="container">
+    ${pageHeader(catalogueRef, 'Generated: ' + dateStr)}
+
+    <div class="hero">
+      <div class="hero-eyebrow">AI PROCUREMENT AGENTS</div>
+      <div class="hero-title">Agent &amp; Module Catalogue</div>
+      <div class="hero-sub">Complete overview of all Lio agents, capabilities and pricing tiers.</div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">Agents &amp; Modules</div><div class="kpi-value">${allKeys.length}</div></div>
+      <div class="kpi"><div class="kpi-label">Product Areas</div><div class="kpi-value">${categories.length}</div></div>
+      <div class="kpi"><div class="kpi-label">Currency</div><div class="kpi-value">${curUpper}</div></div>
+      <div class="kpi"><div class="kpi-label">Catalogue Date</div><div class="kpi-value" style="font-size:15px;">${shortDate}</div></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Contents</div>
+      ${categories.map(cat => {
+        const rows = cat.keys.filter(k => modules[k]).map(k => {
+          const m = modules[k];
+          const start = fmtTierPrice(m.tiers[0]);
+          return `<div class="toc-row"><span class="toc-name">${m.name}</span><span class="toc-price">starting ${start} / yr</span></div>`;
+        }).join('');
+        return `<div class="toc-cat"><div class="toc-cat-label">${cat.label}</div>${rows}</div>`;
+      }).join('')}
+    </div>
+
+    <div class="callout">
+      <strong>About this catalogue:</strong> Each page describes one Lio agent or module with its key capabilities and annual pricing tiers. All prices are in <strong>${curUpper}</strong>. Add <strong>15% one-time</strong> Implementation and <strong>10% annual</strong> Customer Success on top of listed annual fees.
+    </div>
+
+    ${pageFooter}
+  </div>`;
 
   const renderModulePage = (key) => {
     const m = modules[key];
     if (!m) return '';
-    const color = colorMap[m.color] || '#6366f1';
+    const desc = m.desc || '';
     const features = (m.features || []).map(f => `<li>${f}</li>`).join('');
-    const tiersRows = (m.tiers || []).map((t,i) => `
-      <tr>
-        <td class="tier-vol">${fmtVol(key, t.vol)}</td>
-        <td class="tier-price">${fmtTierPrice(t)}/yr</td>
-      </tr>`).join('');
-    const unit = m.unit || 'Units';
+    const unit = m.unit || 'Volume';
+    const cat = categoryOf(key);
+
+    const tiersRows = (m.tiers || []).map(t => `
+        <tr>
+          <td>${fmtVol(key, t.vol)}</td>
+          <td class="num">${fmtTierPrice(t)}</td>
+        </tr>`).join('');
 
     return `
-      <section class="pdf-page module-page">
-        ${pageHeader(m.name)}
-        <div class="mod-hero" style="background:linear-gradient(135deg, ${color}14, ${color}05);border-left:4px solid ${color};">
-          <div class="mod-hero-left">
-            <div class="mod-icon" style="background:${color}1f;color:${color};">${m.icon || '🔹'}</div>
-            <div>
-              <div class="mod-key" style="color:${color};">${key.toUpperCase()}</div>
-              <div class="mod-name">${m.name}</div>
-            </div>
-          </div>
-          <div class="mod-hero-right">
-            <div class="starting-label">Starting from</div>
-            <div class="starting-price" style="color:${color};">${fmtTierPrice(m.tiers[0])}<span style="font-size:11px;color:#64748b;font-weight:500;">/yr</span></div>
-          </div>
-        </div>
-        <div class="mod-desc">${m.desc}</div>
-        <div class="mod-grid">
-          <div class="mod-col">
-            <div class="col-title" style="color:${color};">Key Features</div>
-            <ul class="features">${features}</ul>
-          </div>
-          <div class="mod-col">
-            <div class="col-title" style="color:${color};">Pricing Tiers</div>
-            <table class="tier-table">
-              <thead><tr><th>${unit}</th><th style="text-align:right;">Annual Fee (${currentCurrency.toUpperCase()})</th></tr></thead>
-              <tbody>${tiersRows}</tbody>
-            </table>
-            <div class="tier-footer">+ 15% one-time Implementation · + 10% annual Customer Success</div>
-          </div>
-        </div>
-        <div class="pdf-footer">
-          <span>lio.ai &nbsp;·&nbsp; ${m.name}</span>
-          <span>Pricing in ${currentCurrency.toUpperCase()} · ${dateStr}</span>
-        </div>
-      </section>`;
+  <div class="container">
+    ${pageHeader(m.name, cat)}
+
+    <div class="agent-label">${cat}</div>
+    <h1 class="agent-title">${m.name}</h1>
+    <div class="agent-starting">Starting from <strong style="color:#1e293b;">${fmtTierPrice(m.tiers[0])}</strong> per year</div>
+
+    ${desc ? `<div class="section">
+      <div class="section-title">Overview</div>
+      <p class="desc">${desc}</p>
+    </div>` : ''}
+
+    ${features ? `<div class="section">
+      <div class="section-title">Key Features</div>
+      <ul class="features">${features}</ul>
+    </div>` : ''}
+
+    <div class="section">
+      <div class="section-title">Pricing Tiers</div>
+      <table>
+        <thead>
+          <tr><th>${unit}</th><th class="num">Annual Fee (${curUpper})</th></tr>
+        </thead>
+        <tbody>${tiersRows}</tbody>
+      </table>
+      <div class="callout" style="margin-top:12px;">+ 15% one-time Implementation fee · + 10% annual Customer Success fee</div>
+    </div>
+
+    ${pageFooter}
+  </div>`;
   };
 
   let modulePages = '';
@@ -2170,69 +2196,49 @@ function buildModuleOverviewPdfHtml() {
   });
   allKeys.filter(k => !categories.some(c => c.keys.includes(k))).forEach(k => { modulePages += renderModulePage(k); });
 
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Lio — Module Overview</title>
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lio — Agent &amp; Module Catalogue ${catalogueRef}</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { background: #ffffff; color: #1e293b; font-family: 'Inter', -apple-system, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-.pdf-page {
-  width: 210mm; min-height: 297mm;
-  padding: 14mm 14mm 16mm 14mm;
-  position: relative;
-  page-break-after: always;
-  background: #ffffff;
-  display: flex; flex-direction: column;
-}
-.pdf-page:last-child { page-break-after: auto; }
-.pdf-header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; margin-bottom: 14px; border-bottom: 1px solid #e2e8f0; }
-.pdf-logo { display: flex; align-items: center; }
-.pdf-header-meta { text-align: right; }
-.pdf-header-title { font-size: 12px; font-weight: 700; color: #0f172a; letter-spacing: 0.3px; }
-.pdf-header-date { font-size: 10px; color: #64748b; margin-top: 2px; }
-.pdf-footer { margin-top: auto; padding-top: 10px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 9px; color: #94a3b8; }
-
-.cover { background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); }
-.cover-body { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 0 4mm; }
-.cover-eyebrow { font-size: 11px; font-weight: 700; color: #6366f1; letter-spacing: 3px; margin-bottom: 12px; }
-.cover-title { font-size: 54px; font-weight: 900; color: #0f172a; line-height: 1.05; margin-bottom: 10px; }
-.cover-subtitle { font-size: 16px; color: #475569; font-weight: 500; margin-bottom: 32px; max-width: 140mm; }
-.cover-stats { display: flex; gap: 16px; margin-bottom: 32px; }
-.cover-stat { flex: 1; padding: 20px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
-.cover-stat .num { font-size: 36px; font-weight: 800; color: #6366f1; line-height: 1; }
-.cover-stat .lbl { font-size: 11px; color: #64748b; margin-top: 6px; font-weight: 500; }
-.cover-toc { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 22px; }
-.cover-toc-title { font-size: 13px; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: 0.3px; }
-.cover-toc-cat { padding: 7px 0; border-bottom: 1px dashed #e2e8f0; }
-.cover-toc-cat:last-child { border-bottom: none; }
-.toc-cat-label { font-size: 10px; font-weight: 700; color: #64748b; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px; }
-.toc-cat-items { display: flex; flex-wrap: wrap; gap: 6px; }
-.toc-pill { font-size: 11px; color: #334155; background: #f1f5f9; padding: 3px 10px; border-radius: 999px; font-weight: 500; }
-
-.mod-hero { display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; border-radius: 12px; margin-bottom: 14px; }
-.mod-hero-left { display: flex; align-items: center; gap: 14px; }
-.mod-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; }
-.mod-key { font-size: 10px; font-weight: 700; letter-spacing: 2px; }
-.mod-name { font-size: 24px; font-weight: 800; color: #0f172a; margin-top: 2px; }
-.mod-hero-right { text-align: right; }
-.starting-label { font-size: 10px; color: #64748b; font-weight: 500; }
-.starting-price { font-size: 26px; font-weight: 800; margin-top: 2px; }
-.mod-desc { font-size: 12px; color: #475569; line-height: 1.6; margin-bottom: 14px; padding: 0 2px; }
-.mod-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }
-.mod-col { background: #fafafa; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; }
-.col-title { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; }
-.features { list-style: none; padding: 0; }
-.features li { font-size: 11.5px; color: #334155; line-height: 1.5; padding: 5px 0 5px 16px; position: relative; }
-.features li::before { content: '✓'; position: absolute; left: 0; top: 5px; color: #10b981; font-weight: 700; }
-.tier-table { width: 100%; border-collapse: collapse; }
-.tier-table th { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #64748b; padding: 6px 0; border-bottom: 1px solid #e2e8f0; text-align: left; }
-.tier-table td { padding: 7px 0; border-bottom: 1px solid #f1f5f9; font-size: 11.5px; color: #1e293b; }
-.tier-table .tier-price { text-align: right; font-weight: 700; }
-.tier-footer { margin-top: 10px; font-size: 9.5px; color: #94a3b8; padding: 6px 0 0; border-top: 1px dashed #e2e8f0; }
-
-@media print { .pdf-page { page-break-after: always; } .pdf-page:last-child { page-break-after: auto; } }
-</style>
-</head>
-<body>
+  @page { size: A4; margin: 15mm; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; color: #1e293b; line-height: 1.5; margin: 0; padding: 0; background: #ffffff; }
+  h1 { font-size: 26px; font-weight: 800; color: #1e293b; margin: 0; letter-spacing: -0.5px; }
+  h2 { font-size: 16px; font-weight: 700; color: #1e293b; margin: 24px 0 12px; }
+  .container { max-width: 800px; margin: 0 auto; padding: 24px; page-break-after: always; }
+  .container:last-child { page-break-after: auto; }
+  .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 2px solid #1e293b; margin-bottom: 24px; }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .logo { display: flex; align-items: center; }
+  .header-brand { font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 2px; text-transform: uppercase; }
+  .ref-block { text-align: right; font-size: 11px; color: #64748b; line-height: 1.8; }
+  .hero { text-align: center; padding: 36px 20px; background: #f8fafc; border-radius: 12px; margin-bottom: 24px; }
+  .hero-eyebrow { font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 3px; margin-bottom: 10px; }
+  .hero-title { font-size: 44px; font-weight: 900; color: #1e293b; line-height: 1.05; letter-spacing: -1px; }
+  .hero-sub { font-size: 13px; color: #64748b; margin-top: 10px; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.5; }
+  .kpi-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+  .kpi { background: #f8fafc; border-radius: 10px; padding: 16px; text-align: center; }
+  .kpi-label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+  .kpi-value { font-size: 22px; font-weight: 800; color: #1e293b; margin-top: 4px; }
+  .section { margin-bottom: 24px; page-break-inside: avoid; }
+  .section-title { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .toc-cat { padding: 10px 0; border-bottom: 1px solid #e2e8f0; }
+  .toc-cat:last-child { border-bottom: none; }
+  .toc-cat-label { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
+  .toc-row { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; font-size: 12px; }
+  .toc-name { color: #1e293b; font-weight: 600; }
+  .toc-price { color: #64748b; font-variant-numeric: tabular-nums; font-size: 11px; }
+  .agent-label { font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+  .agent-title { font-size: 32px; font-weight: 900; color: #1e293b; letter-spacing: -0.5px; margin: 0; line-height: 1.1; }
+  .agent-starting { font-size: 13px; color: #64748b; margin-top: 6px; margin-bottom: 22px; }
+  .desc { font-size: 12.5px; color: #334155; line-height: 1.65; margin: 0; }
+  .features { list-style: none; padding: 0; margin: 0; }
+  .features li { font-size: 12px; color: #334155; line-height: 1.55; padding: 5px 0 5px 20px; position: relative; }
+  .features li::before { content: '✓'; position: absolute; left: 0; top: 5px; color: #1e293b; font-weight: 800; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  td, th { padding: 9px 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+  th { font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 600; letter-spacing: 0.5px; background: #f8fafc; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+  .callout { background: #f8fafc; border-left: 4px solid #1e293b; padding: 12px 16px; font-size: 11px; line-height: 1.6; color: #334155; border-radius: 4px; }
+  .footer { margin-top: 28px; padding-top: 14px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 10px; color: #64748b; line-height: 1.6; }
+</style></head><body>
 ${cover}
 ${modulePages}
 </body></html>`;
@@ -2246,17 +2252,20 @@ async function downloadModuleOverviewPdf() {
   iframe.contentDocument.open();
   iframe.contentDocument.write(html);
   iframe.contentDocument.close();
-  await new Promise(r => setTimeout(r, 1200));
+  await new Promise(r => setTimeout(r, 1000));
   const filename = 'Lio_Module_Overview_' + new Date().toISOString().split('T')[0] + '.pdf';
   try {
     await html2pdf().set({
-      margin: 0,
+      margin: [8, 8, 8, 8],
       filename: filename,
       image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0, windowWidth: 800 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0, backgroundColor: '#ffffff' },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['css', 'legacy'], before: '.pdf-page', avoid: ['.mod-col','.cover-toc-cat'] }
+      pagebreak: { mode: ['css', 'legacy'], before: '.container', avoid: ['.section', '.kpi', '.toc-cat'] }
     }).from(iframe.contentDocument.body).save();
+  } catch (e) {
+    console.error('PDF generation failed', e);
+    alert('PDF generation failed: ' + e.message);
   } finally {
     document.body.removeChild(iframe);
   }
