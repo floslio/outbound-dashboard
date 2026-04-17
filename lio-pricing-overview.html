@@ -518,6 +518,36 @@ input[type="checkbox"] { accent-color: #6366f1; }
 
       </div>
 
+      <!-- Strategic Sourcing -->
+      <h3 class="text-lg font-bold text-slate-200 mb-4 mt-8 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-purple-400"></span> Strategic Sourcing</h3>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- SH Card -->
+        <div class="glass rounded-2xl p-6 hover-glow card-glass-header transition-all duration-300 cursor-pointer hover:border-purple-500/30" onclick="showModulePage('sh')">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 text-lg">🏗️</div>
+            <div>
+              <h3 class="font-bold">Sourcing Hub</h3>
+              <p class="text-xs text-slate-500">SH · Complex Sourcing</p>
+            </div>
+          </div>
+          <p class="text-sm text-slate-400 mb-4">Strategic sourcing suite — RFX, supplier scouting, awarding & contracting AI agents in one hub.</p>
+          <div class="flex items-end justify-between">
+            <div>
+              <span class="text-xs text-slate-500">From</span>
+              <div class="text-2xl font-bold text-purple-400 mp" data-usd="75000" data-eur="70000" data-gbp="62000">$75,000</div>
+              <span class="text-xs text-slate-500">/year</span>
+            </div>
+            <div class="text-xs text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20 self-end">Flat Rate</div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-slate-700/50 flex items-center justify-between">
+            <span class="text-xs text-slate-500">Flat Rate · 2 tiers</span>
+            <span class="text-xs text-purple-400 font-medium arrow-slide">View details <span class="arrow-icon">→</span></span>
+          </div>
+        </div>
+
+      </div>
+
       <!-- Platform -->
       <h3 class="text-lg font-bold text-slate-200 mb-4 mt-8 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-400"></span> Platform</h3>
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -657,6 +687,17 @@ input[type="checkbox"] { accent-color: #6366f1; }
                 <td class="p-4 text-right text-slate-400 mp" data-usd="125000" data-eur="109000" data-gbp="99000">$125,000</td>
                 <td class="p-4 text-center"><span class="text-xs px-2 py-1 bg-slate-500/10 text-slate-400 rounded">Flat</span></td>
                 <td class="p-4 text-right text-slate-400 text-xs">→</td>
+              </tr>
+              <tr class="bg-slate-800/30"><td colspan="8" class="p-3 text-xs text-slate-500 font-bold uppercase tracking-wider">Strategic Sourcing</td></tr>
+              <tr class="hover:bg-slate-800/30 transition cursor-pointer" onclick="showModulePage('sh')">
+                <td class="p-4 font-medium"><span class="text-purple-400">●</span> Sourcing Hub</td>
+                <td class="p-4 text-slate-400">Complex sourcing suite</td>
+                <td class="p-4 text-right font-semibold mp" data-usd="75000" data-eur="70000" data-gbp="62000">$75,000</td>
+                <td class="p-4 text-right text-slate-400">Flat Rate</td>
+                <td class="p-4 text-right text-slate-400">—</td>
+                <td class="p-4 text-right text-slate-400 mp" data-usd="75000" data-eur="70000" data-gbp="62000">$75,000</td>
+                <td class="p-4 text-center"><span class="text-xs px-2 py-1 bg-purple-500/10 text-purple-400 rounded">Flat Rate</span></td>
+                <td class="p-4 text-right text-purple-400 text-xs">→</td>
               </tr>
               <tr class="bg-slate-800/30"><td colspan="8" class="p-3 text-xs text-slate-500 font-bold uppercase tracking-wider">Modules</td></tr>
               <tr class="hover:bg-slate-800/30 transition cursor-pointer" onclick="showModulePage('clm')">
@@ -1185,6 +1226,25 @@ input[type="checkbox"] { accent-color: #6366f1; }
           </div>
         </div>
 
+        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-4 mb-2 px-2">Strategic</div>
+
+        <!-- SH -->
+        <div class="glass rounded-xl p-5 transition-all duration-300" id="calc-sh">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="check-sh" class="w-5 h-5 rounded" onchange="calcUpdate()">
+              <label for="check-sh" class="font-semibold cursor-pointer">Sourcing Hub (SH)</label>
+            </div>
+            <span class="text-sm text-purple-400 font-semibold" id="calc-sh-price">$0</span>
+          </div>
+          <div class="ml-8 hidden" id="calc-sh-opts">
+            <label class="text-xs text-slate-500">Pricing Tier</label>
+            <select id="calc-sh-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="75000">Flat Rate — $75,000/yr</option>
+            </select>
+          </div>
+        </div>
+
         <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-4 mb-2 px-2">Platform</div>
 
         <!-- AOP -->
@@ -1499,23 +1559,23 @@ input[type="checkbox"] { accent-color: #6366f1; }
           <div class="space-y-4">
             <div>
               <label class="text-sm text-slate-400">Annual Indirect Spend (<span class="cur-sym">$</span>M)</label>
-              <input type="number" id="r-spend" value="250" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+              <input type="number" id="r-spend" placeholder="e.g. 250" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm placeholder-slate-500" oninput="calcROI()">
             </div>
             <div>
               <label class="text-sm text-slate-400">Maverick Spend Reduction (%)</label>
-              <input type="number" id="r-maverick" value="0.5" step="0.1" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+              <input type="number" id="r-maverick" placeholder="e.g. 0.5" step="0.1" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm placeholder-slate-500" oninput="calcROI()">
             </div>
             <div>
-              <label class="text-sm text-slate-400">Freitext-to-Catalog Conversion Rate (%)</label>
-              <input type="number" id="r-conversion" value="25" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+              <label class="text-sm text-slate-400">Free-text-order-to-Catalog Conversion Rate (%)</label>
+              <input type="number" id="r-conversion" placeholder="e.g. 25" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm placeholder-slate-500" oninput="calcROI()">
             </div>
             <div>
               <label class="text-sm text-slate-400">POs per Year</label>
-              <input type="number" id="r-pos" value="20000" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+              <input type="number" id="r-pos" placeholder="e.g. 20,000" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm placeholder-slate-500" oninput="calcROI()">
             </div>
             <div>
               <label class="text-sm text-slate-400">Avg. Cost per Manual PO (<span class="cur-sym">$</span>)</label>
-              <input type="number" id="r-pocost" value="15" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+              <input type="number" id="r-pocost" placeholder="e.g. 15" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm placeholder-slate-500" oninput="calcROI()">
             </div>
           </div>
         </div>
@@ -1524,15 +1584,15 @@ input[type="checkbox"] { accent-color: #6366f1; }
           <div class="space-y-4">
             <div>
               <label class="text-sm text-slate-400">PRs per Year</label>
-              <input type="number" id="r-prs" value="23000" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+              <input type="number" id="r-prs" placeholder="e.g. 23,000" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm placeholder-slate-500" oninput="calcROI()">
             </div>
             <div>
               <label class="text-sm text-slate-400">PR No-Touch Rate (%)</label>
-              <input type="number" id="r-prtouch" value="35" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+              <input type="number" id="r-prtouch" placeholder="e.g. 35" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm placeholder-slate-500" oninput="calcROI()">
             </div>
             <div>
               <label class="text-sm text-slate-400">Avg Time per PR Review (min)</label>
-              <input type="number" id="r-prtime" value="3" step="0.5" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+              <input type="number" id="r-prtime" placeholder="e.g. 3" step="0.5" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm placeholder-slate-500" oninput="calcROI()">
             </div>
           </div>
         </div>
@@ -1541,15 +1601,15 @@ input[type="checkbox"] { accent-color: #6366f1; }
           <div class="space-y-4">
             <div>
               <label class="text-sm text-slate-400">OCs per Year</label>
-              <input type="number" id="r-ocs" value="75000" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+              <input type="number" id="r-ocs" placeholder="e.g. 75,000" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm placeholder-slate-500" oninput="calcROI()">
             </div>
             <div>
               <label class="text-sm text-slate-400">Avg Time per OC (min)</label>
-              <input type="number" id="r-octime" value="5" step="0.5" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+              <input type="number" id="r-octime" placeholder="e.g. 5" step="0.5" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm placeholder-slate-500" oninput="calcROI()">
             </div>
             <div>
               <label class="text-sm text-slate-400">OC Automation Rate (%)</label>
-              <input type="number" id="r-ocauto" value="60" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+              <input type="number" id="r-ocauto" placeholder="e.g. 60" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm placeholder-slate-500" oninput="calcROI()">
             </div>
           </div>
         </div>
@@ -1558,7 +1618,33 @@ input[type="checkbox"] { accent-color: #6366f1; }
           <div class="space-y-4">
             <div>
               <label class="text-sm text-slate-400">FTE Hourly Cost (<span class="cur-sym">$</span>)</label>
-              <input type="number" id="r-ftecost" value="80" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm" oninput="calcROI()">
+              <input type="number" id="r-ftecost" placeholder="e.g. 80" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm placeholder-slate-500" oninput="calcROI()">
+            </div>
+            <div>
+              <label class="text-sm text-slate-400">Customer Company</label>
+              <input type="text" id="r-company" placeholder="e.g. Siemens AG" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm">
+            </div>
+            <div>
+              <label class="text-sm text-slate-400">Customer Contact Person</label>
+              <input type="text" id="r-contact" placeholder="e.g. Jane Doe" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm">
+            </div>
+            <div>
+              <label class="text-sm text-slate-400">Lio Contact Person (PDF footer)</label>
+              <select id="r-lio-contact" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-3 text-sm">
+                <option value="florian">Florian Wanzeck</option>
+                <option value="michael">Michael Schmid</option>
+                <option value="vincent">Vincent Nussmaier</option>
+                <option value="tobias">Tobias Rohringer</option>
+                <option value="edmond">Edmond Clemens</option>
+                <option value="romeo">Romeo Vogt</option>
+                <option value="patricia">Patricia Hoelscher</option>
+                <option value="olivia">Olivia Pavoni</option>
+                <option value="julius">Julius Kaiser</option>
+                <option value="vladimir">Vladimir Keil</option>
+                <option value="till">Till Wagner</option>
+                <option value="lukas">Lukas Heinzmann</option>
+                <option value="temoc">Temoc Chavero</option>
+              </select>
             </div>
           </div>
         </div>
@@ -1566,6 +1652,10 @@ input[type="checkbox"] { accent-color: #6366f1; }
 
       <!-- Results -->
       <div class="space-y-6">
+        <!-- Empty-state hint -->
+        <div id="roi-empty-hint" class="rounded-2xl p-4 border border-amber-500/30 bg-amber-500/10 text-amber-200 text-sm text-center" style="display:none;">
+          Enter your organisation's numbers on the left to calculate the ROI.
+        </div>
         <!-- Big ROI Hero -->
         <div class="glass rounded-2xl p-8 glow-strong text-center">
           <div class="text-5xl font-extrabold gradient-text" id="roi-x">-</div>
@@ -1588,7 +1678,9 @@ input[type="checkbox"] { accent-color: #6366f1; }
           </div>
           <div class="glass rounded-xl p-4 text-center">
             <div class="text-xs text-slate-500">Payback</div>
-            <div class="text-xl font-bold text-amber-400 mt-1"><span id="roi-months">-</span> <span class="text-sm font-normal text-slate-500">months</span></div>
+            <div class="text-xl font-bold text-amber-400 mt-1" id="roi-months">-</div>
+            <div class="text-[10px] text-slate-400 mt-0.5" id="roi-days">-</div>
+            <div class="text-[9px] text-slate-600 mt-1 leading-tight" title="Simple payback formula: Lio Investment ÷ Annual Savings × 12">Inv ÷ Savings × 12</div>
           </div>
         </div>
 
@@ -1637,6 +1729,24 @@ input[type="checkbox"] { accent-color: #6366f1; }
           </div>
         </div>
 
+        <!-- ROI editing state badge -->
+        <div id="roi-current-ref" class="hidden text-xs text-lio-300 bg-lio-600/10 border border-lio-600/30 rounded-lg px-3 py-2"></div>
+
+        <!-- Save / Load Row -->
+        <div class="flex gap-3">
+          <button onclick="saveROICalc()" class="flex-1 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-semibold transition flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+            Save
+          </button>
+          <button onclick="openLoadROIModal()" class="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-lio-600 hover:from-indigo-500 hover:to-lio-500 rounded-xl font-semibold transition flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            My ROI Calculations
+          </button>
+          <button onclick="newROICalc()" class="py-3 px-4 bg-slate-700 hover:bg-slate-600 rounded-xl font-semibold transition" title="Start a new ROI calculation">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+          </button>
+        </div>
+
         <!-- Download ROI PDF Button -->
         <div class="flex gap-3">
           <button onclick="printROIReport()" class="flex-1 py-3 bg-lio-600 hover:bg-lio-500 rounded-xl font-semibold transition flex items-center justify-center gap-2 glow">
@@ -1647,6 +1757,26 @@ input[type="checkbox"] { accent-color: #6366f1; }
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
             Download PDF
           </button>
+        </div>
+
+        <!-- ROI Load Modal -->
+        <div id="roi-load-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div class="glass rounded-2xl p-6 max-w-4xl w-full max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-start mb-1">
+              <div>
+                <h3 class="font-bold text-xl">My ROI Calculations</h3>
+                <p class="text-xs text-slate-400 mt-1">Reopen a saved calculation or download the PDF directly.</p>
+              </div>
+              <button onclick="closeLoadROIModal()" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+            <div class="flex items-center gap-2 mt-3 mb-4">
+              <input id="roi-load-search" type="text" placeholder="Search by company, contact or reference…"
+                     oninput="renderROIList()"
+                     class="flex-1 bg-dark-800 border border-dark-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-lio-500"/>
+              <span id="roi-load-count" class="text-xs text-slate-500"></span>
+            </div>
+            <div id="roi-load-list" class="space-y-2"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1896,6 +2026,336 @@ async function sbDeleteQuote(quoteRef) {
 }
 
 // ============================
+// ROI CALCULATIONS · SUPABASE + LOCALSTORAGE
+// ============================
+let currentRoiRef = null;
+
+function getROIInputs() {
+  return {
+    company: document.getElementById('r-company')?.value || '',
+    contact: document.getElementById('r-contact')?.value || '',
+    lioContact: document.getElementById('r-lio-contact')?.value || 'florian',
+    spend: parseFloat(document.getElementById('r-spend')?.value) || 0,
+    maverick: parseFloat(document.getElementById('r-maverick')?.value) || 0,
+    conversion: parseFloat(document.getElementById('r-conversion')?.value) || 0,
+    pos: parseFloat(document.getElementById('r-pos')?.value) || 0,
+    pocost: parseFloat(document.getElementById('r-pocost')?.value) || 0,
+    prs: parseFloat(document.getElementById('r-prs')?.value) || 0,
+    prtouch: parseFloat(document.getElementById('r-prtouch')?.value) || 0,
+    prtime: parseFloat(document.getElementById('r-prtime')?.value) || 0,
+    ocs: parseFloat(document.getElementById('r-ocs')?.value) || 0,
+    octime: parseFloat(document.getElementById('r-octime')?.value) || 0,
+    ocauto: parseFloat(document.getElementById('r-ocauto')?.value) || 0,
+    ftecost: parseFloat(document.getElementById('r-ftecost')?.value) || 80,
+    currency: currentCurrency
+  };
+}
+
+function setROIInputs(data) {
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined && val !== null) el.value = val; };
+  set('r-company', data.company);
+  set('r-contact', data.contact);
+  set('r-lio-contact', data.lioContact || 'florian');
+  set('r-spend', data.spend);
+  set('r-maverick', data.maverick);
+  set('r-conversion', data.conversion);
+  set('r-pos', data.pos);
+  set('r-pocost', data.pocost);
+  set('r-prs', data.prs);
+  set('r-prtouch', data.prtouch);
+  set('r-prtime', data.prtime);
+  set('r-ocs', data.ocs);
+  set('r-octime', data.octime);
+  set('r-ocauto', data.ocauto);
+  set('r-ftecost', data.ftecost);
+  if (data.currency && typeof setCurrency === 'function' && data.currency !== currentCurrency) {
+    setCurrency(data.currency);
+  }
+  if (typeof calcROI === 'function') calcROI();
+}
+
+async function sbSaveROI(entry) {
+  try {
+    const payload = {
+      roi_ref: entry.ref,
+      company: entry.company || null,
+      contact_name: entry.contact || null,
+      lio_contact: entry.lioContact || 'florian',
+      currency: entry.currency || 'usd',
+      inputs: entry.inputs || {},
+      lio_investment: entry.investment || 0,
+      annual_savings: entry.savings || 0,
+      roi_x: entry.roiX || 0,
+      payback_months: entry.payback || 0,
+      created_at: entry.createdAt || new Date().toISOString(),
+      last_edited_at: new Date().toISOString()
+    };
+    const resp = await fetch(SB_URL + '/rest/v1/roi_calculations', {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'return=representation,resolution=merge-duplicates' },
+      body: JSON.stringify(payload)
+    });
+    if (!resp.ok) throw new Error('Save failed: ' + resp.status);
+    return await resp.json();
+  } catch(e) { return null; }
+}
+
+async function sbUpdateROI(ref, entry) {
+  try {
+    const payload = {
+      company: entry.company || null,
+      contact_name: entry.contact || null,
+      lio_contact: entry.lioContact || 'florian',
+      currency: entry.currency || 'usd',
+      inputs: entry.inputs || {},
+      lio_investment: entry.investment || 0,
+      annual_savings: entry.savings || 0,
+      roi_x: entry.roiX || 0,
+      payback_months: entry.payback || 0,
+      last_edited_at: new Date().toISOString()
+    };
+    const resp = await fetch(SB_URL + '/rest/v1/roi_calculations?roi_ref=eq.' + encodeURIComponent(ref), {
+      method: 'PATCH', headers: SB_HEADERS, body: JSON.stringify(payload)
+    });
+    if (!resp.ok) throw new Error('Update failed: ' + resp.status);
+    return true;
+  } catch(e) { return false; }
+}
+
+async function sbLoadROIs() {
+  try {
+    const resp = await fetch(SB_URL + '/rest/v1/roi_calculations?select=*&order=last_edited_at.desc&limit=100', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    if (!resp.ok) throw new Error('Load failed: ' + resp.status);
+    return await resp.json();
+  } catch(e) { return null; }
+}
+
+async function sbDeleteROI(ref) {
+  try {
+    await fetch(SB_URL + '/rest/v1/roi_calculations?roi_ref=eq.' + encodeURIComponent(ref), {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+  } catch(e) {}
+}
+
+function computeROITotals(inputs, inv) {
+  const gbMav = Math.round(inputs.spend * 1000000 * (inputs.maverick / 100));
+  const gbConv = Math.round(inputs.pos * (inputs.conversion / 100) * inputs.pocost);
+  const prSav = Math.round(inputs.prs * (inputs.prtouch / 100) * inputs.prtime / 60 * inputs.ftecost);
+  const ocSav = Math.round(inputs.ocs * (inputs.ocauto / 100) * inputs.octime / 60 * inputs.ftecost);
+  const totalSav = gbMav + gbConv + prSav + ocSav;
+  const roiX = inv > 0 ? (totalSav / inv) : 0;
+  const payback = totalSav > 0 ? Math.max(1, Math.round(inv / totalSav * 12)) : 99;
+  return { totalSav, roiX, payback };
+}
+
+async function saveROICalc() {
+  const inputs = getROIInputs();
+  if (!inputs.company) {
+    const c = prompt('Enter a customer company name for this ROI calculation:');
+    if (!c) return;
+    document.getElementById('r-company').value = c;
+    inputs.company = c;
+  }
+  const inv = (typeof cachedCalcGrandTotal !== 'undefined' ? cachedCalcGrandTotal : (typeof calcGrandTotal !== 'undefined' ? calcGrandTotal : 0)) || 0;
+  const { totalSav, roiX, payback } = computeROITotals(inputs, inv);
+
+  const isUpdate = !!currentRoiRef;
+  const ref = currentRoiRef || 'ROI-' + Date.now().toString(36).toUpperCase();
+  const entry = {
+    ref, company: inputs.company, contact: inputs.contact, lioContact: inputs.lioContact,
+    currency: inputs.currency, inputs,
+    investment: inv, savings: totalSav, roiX, payback,
+    createdAt: new Date().toISOString()
+  };
+  let sbOk = false;
+  if (isUpdate) sbOk = !!(await sbUpdateROI(ref, entry));
+  else sbOk = !!(await sbSaveROI(entry));
+
+  // localStorage mirror (always)
+  try {
+    const store = JSON.parse(localStorage.getItem('lio_roi_saves') || '[]');
+    const idx = store.findIndex(s => s.ref === ref);
+    if (idx >= 0) store[idx] = entry; else store.unshift(entry);
+    localStorage.setItem('lio_roi_saves', JSON.stringify(store.slice(0, 100)));
+  } catch(e) {}
+
+  currentRoiRef = ref;
+  const badge = document.getElementById('roi-current-ref');
+  if (badge) {
+    badge.textContent = 'Editing: ' + ref + (inputs.company ? ' · ' + inputs.company : '') + (sbOk ? ' · saved to cloud' : ' · saved locally');
+    badge.classList.remove('hidden');
+  }
+  alert((isUpdate ? 'Updated' : 'Saved') + ': ' + ref + (inputs.company ? '\n' + inputs.company : '') + (sbOk ? '\n(synced to Supabase)' : '\n(local only — Supabase save failed. Ensure table "roi_calculations" exists)'));
+}
+
+async function openLoadROIModal() {
+  let saves = await sbLoadROIs();
+  window._roiSavesFromCloud = !!saves;
+  if (!saves) {
+    try { saves = JSON.parse(localStorage.getItem('lio_roi_saves') || '[]'); } catch(e) { saves = []; }
+  }
+  window._roiSavesCache = saves;
+  const search = document.getElementById('roi-load-search');
+  if (search) search.value = '';
+  renderROIList();
+  document.getElementById('roi-load-modal').classList.remove('hidden');
+}
+
+function renderROIList() {
+  const saves = window._roiSavesCache || [];
+  const fromCloud = !!window._roiSavesFromCloud;
+  const q = (document.getElementById('roi-load-search')?.value || '').trim().toLowerCase();
+  const list = document.getElementById('roi-load-list');
+  const countEl = document.getElementById('roi-load-count');
+  if (!list) return;
+  const source = fromCloud
+    ? '<div class="text-xs text-slate-500 mb-3 flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Synced with Supabase</div>'
+    : '<div class="text-xs text-amber-400 mb-3 flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-400"></span>Local browser (cloud unavailable)</div>';
+  const filtered = saves.filter(s => {
+    if (!q) return true;
+    const hay = [s.company, s.contact_name, s.contact, s.roi_ref, s.ref].filter(Boolean).join(' ').toLowerCase();
+    return hay.indexOf(q) >= 0;
+  });
+  if (countEl) countEl.textContent = saves.length === 0 ? '' : (filtered.length + ' of ' + saves.length);
+  if (saves.length === 0) {
+    list.innerHTML = source + '<div class="text-center text-slate-500 py-10">No saved ROI calculations yet.<br/><span class="text-xs">Fill the inputs and click "Save" to build your history.</span></div>';
+    return;
+  }
+  if (filtered.length === 0) {
+    list.innerHTML = source + '<div class="text-center text-slate-500 py-10">No results for "' + q.replace(/"/g,'') + '".</div>';
+    return;
+  }
+  list.innerHTML = source + filtered.map(s => {
+    const company = s.company || 'No company';
+    const contact = s.contact_name || s.contact || '';
+    const inv = Number(s.lio_investment || s.investment || 0);
+    const sav = Number(s.annual_savings || s.savings || 0);
+    const roiX = Number(s.roi_x || s.roiX || 0);
+    const payback = Number(s.payback_months || s.paybackMonths || 0);
+    const ref = s.roi_ref || s.ref;
+    const cur = (s.currency || s.inputs?.currency || 'usd').toLowerCase();
+    const curSym = cur === 'eur' ? '€' : cur === 'gbp' ? '£' : '$';
+    const date = new Date(s.last_edited_at || s.createdAt || Date.now()).toLocaleDateString();
+    const isCurrent = currentRoiRef === ref;
+    return `<div class="p-3 ${isCurrent ? 'bg-lio-600/15 border border-lio-500/40' : 'bg-dark-700 hover:bg-dark-600'} rounded-lg transition">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-white truncate flex items-center gap-2">
+            ${company}
+            ${contact ? '<span class="text-slate-400 font-normal text-sm">· ' + contact + '</span>' : ''}
+            ${isCurrent ? '<span class="text-[10px] bg-lio-500/20 text-lio-300 border border-lio-500/40 px-1.5 py-0.5 rounded-full">current</span>' : ''}
+          </div>
+          <div class="text-xs text-slate-500 truncate mt-0.5">
+            <span class="font-mono">${ref}</span> · ${date}
+          </div>
+          <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs mt-1.5">
+            <span class="text-slate-400">ROI <span class="text-lio-300 font-semibold">${roiX.toFixed(2)}x</span></span>
+            <span class="text-slate-400">Payback <span class="text-amber-300 font-semibold">${payback > 0 ? (payback < 10 ? payback.toFixed(1) : Math.round(payback)) + ' mo' : '–'}</span></span>
+            <span class="text-slate-400">Savings <span class="text-emerald-300 font-semibold">${curSym}${sav.toLocaleString()}</span></span>
+            <span class="text-slate-400">Investment <span class="text-slate-200 font-semibold">${curSym}${inv.toLocaleString()}</span></span>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1.5 flex-shrink-0">
+          <button onclick="loadROICalc('${ref}')" class="px-3 py-1.5 bg-lio-600 hover:bg-lio-500 rounded text-xs font-semibold whitespace-nowrap" title="Open this calculation in the form">Load</button>
+          <button onclick="downloadROICalcPdf('${ref}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 rounded text-xs font-semibold whitespace-nowrap flex items-center justify-center gap-1" title="Download PDF based on these saved inputs">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            PDF
+          </button>
+          <button onclick="deleteROICalc('${ref}')" class="px-3 py-1.5 bg-red-600/60 hover:bg-red-500 rounded text-xs whitespace-nowrap" title="Delete">×</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Quick PDF download from the My-ROI-Calculations list — loads inputs then downloads.
+async function downloadROICalcPdf(ref) {
+  const saves = window._roiSavesCache || [];
+  const s = saves.find(x => (x.roi_ref || x.ref) === ref);
+  if (!s) return;
+  const inputs = s.inputs || s;
+  setROIInputs({
+    company: s.company || inputs.company,
+    contact: s.contact_name || s.contact || inputs.contact,
+    lioContact: s.lio_contact || inputs.lioContact,
+    spend: inputs.spend, maverick: inputs.maverick, conversion: inputs.conversion,
+    pos: inputs.pos, pocost: inputs.pocost,
+    prs: inputs.prs, prtouch: inputs.prtouch, prtime: inputs.prtime,
+    ocs: inputs.ocs, octime: inputs.octime, ocauto: inputs.ocauto,
+    ftecost: inputs.ftecost, currency: s.currency || inputs.currency
+  });
+  currentRoiRef = ref;
+  const badge = document.getElementById('roi-current-ref');
+  if (badge) { badge.textContent = 'Editing: ' + ref + (s.company ? ' · ' + s.company : ''); badge.classList.remove('hidden'); }
+  closeLoadROIModal();
+  // Wait one tick so calcROI + setCurrency apply before PDF is generated
+  await new Promise(r => setTimeout(r, 80));
+  await downloadROIReport();
+}
+
+function closeLoadROIModal() {
+  document.getElementById('roi-load-modal').classList.add('hidden');
+}
+
+function loadROICalc(ref) {
+  const saves = window._roiSavesCache || [];
+  const s = saves.find(x => (x.roi_ref || x.ref) === ref);
+  if (!s) return;
+  const inputs = s.inputs || s;
+  setROIInputs({
+    company: s.company || inputs.company,
+    contact: s.contact_name || s.contact || inputs.contact,
+    lioContact: s.lio_contact || inputs.lioContact,
+    spend: inputs.spend,
+    maverick: inputs.maverick,
+    conversion: inputs.conversion,
+    pos: inputs.pos,
+    pocost: inputs.pocost,
+    prs: inputs.prs,
+    prtouch: inputs.prtouch,
+    prtime: inputs.prtime,
+    ocs: inputs.ocs,
+    octime: inputs.octime,
+    ocauto: inputs.ocauto,
+    ftecost: inputs.ftecost,
+    currency: s.currency || inputs.currency
+  });
+  currentRoiRef = ref;
+  closeLoadROIModal();
+  const badge = document.getElementById('roi-current-ref');
+  if (badge) {
+    badge.textContent = 'Editing: ' + ref + (s.company ? ' · ' + s.company : '');
+    badge.classList.remove('hidden');
+  }
+}
+
+async function deleteROICalc(ref) {
+  if (!confirm('Delete this saved ROI calculation?')) return;
+  await sbDeleteROI(ref);
+  try {
+    const store = JSON.parse(localStorage.getItem('lio_roi_saves') || '[]');
+    localStorage.setItem('lio_roi_saves', JSON.stringify(store.filter(s => s.ref !== ref)));
+  } catch(e) {}
+  if (currentRoiRef === ref) {
+    currentRoiRef = null;
+    const badge = document.getElementById('roi-current-ref');
+    if (badge) badge.classList.add('hidden');
+  }
+  openLoadROIModal();
+}
+
+function newROICalc() {
+  if (currentRoiRef && !confirm('Start a new ROI calculation? Click Save first if you want to keep the current one.')) return;
+  currentRoiRef = null;
+  const badge = document.getElementById('roi-current-ref');
+  if (badge) badge.classList.add('hidden');
+}
+
+// ============================
 // DATA
 // ============================
 const modules = {
@@ -1973,7 +2433,15 @@ const modules = {
     { vol: 'Up to 6,000', price: 97500 }, { vol: 'Up to 8,000', price: 178500 },
     { vol: 'Up to 10,000', price: 335000 }, { vol: 'Up to 20,000', price: 632500 }
   ]},
-  clm:{name:'Contract Lifecycle Management',color:'teal',icon:'📑',desc:'Monitors your entire contract portfolio in real time. Proactive alerts for renewals, budget tracking, SLA compliance, and risk detection. Multi-step approval workflows with version control and full audit trails.',features:['Real-time contract portfolio monitoring','Proactive renewal and expiry alerts','Budget tracking against framework agreements','Multi-step approval workflows','Version control and compliance tracking','Audit trail linking contracts to POs and invoices'],tiers:[{vol:'Up to 250',price:15000,eur:12500,gbp:11000},{vol:'Up to 500',price:26000,eur:22000,gbp:19000},{vol:'Up to 1,000',price:45500,eur:38000,gbp:33500},{vol:'Up to 5,000',price:80000,eur:67000,gbp:58500},{vol:'Up to 10,000',price:135000,eur:113000,gbp:99000}],unit:'Contracts Managed'}
+  clm:{name:'Contract Lifecycle Management',color:'teal',icon:'📑',desc:'Monitors your entire contract portfolio in real time. Proactive alerts for renewals, budget tracking, SLA compliance, and risk detection. Multi-step approval workflows with version control and full audit trails.',features:['Real-time contract portfolio monitoring','Proactive renewal and expiry alerts','Budget tracking against framework agreements','Multi-step approval workflows','Version control and compliance tracking','Audit trail linking contracts to POs and invoices'],tiers:[{vol:'Up to 250',price:15000,eur:12500,gbp:11000},{vol:'Up to 500',price:26000,eur:22000,gbp:19000},{vol:'Up to 1,000',price:45500,eur:38000,gbp:33500},{vol:'Up to 5,000',price:80000,eur:67000,gbp:58500},{vol:'Up to 10,000',price:135000,eur:113000,gbp:99000}],unit:'Contracts Managed'},
+  sh: { name: 'Sourcing Hub', color: 'purple', icon: '🏗️',
+    desc: 'The strategic sourcing suite of Lio — a hub of AI agents that orchestrates the full complex sourcing lifecycle. From supplier scouting and RFX management to evaluation, awarding, and contracting. Addresses the sourcing complexity that goes beyond tactical buying.',
+    features: ['RFX Document Agent — automated RFX creation & distribution', 'Supplier Scouting Agent — AI-powered supplier discovery', 'RFX Agent — multi-supplier event orchestration', 'Strategic Negotiation Agent — AI-guided negotiation preparation', 'Awarding Agent — data-driven bid evaluation & decision', 'Contracting Agent — automated contract generation'],
+    tiers: [
+      { vol: 'Flat Rate', price: 75000, eur: 70000, gbp: 62000 }
+    ],
+    unit: 'Flat Rate'
+  }
 };
 
 let currentCurrency = 'usd';
@@ -2346,6 +2814,21 @@ const moduleDetails = {
     ],
     tiers: modules.clm.tiers,
     unit: 'Contracts Managed'
+  },
+  sh: {
+    title: 'Sourcing Hub',
+    subtitle: 'SH',
+    color: 'purple',
+    icon: '🏗️',
+    desc: 'The strategic sourcing suite of Lio — a hub of AI agents that orchestrates the full complex sourcing lifecycle. From supplier scouting and RFX management to bid evaluation, awarding, and contracting. Addresses sourcing complexity that goes beyond tactical buying, giving procurement teams a single AI-powered command centre for all strategic events.',
+    features: ['RFX Document Agent — automated RFX creation & distribution', 'Supplier Scouting Agent — AI-powered supplier discovery', 'RFX Agent — multi-supplier event orchestration', 'Strategic Negotiation Agent — AI-guided negotiation & strategy', 'Awarding Agent — data-driven bid evaluation & award decision', 'Contracting Agent — automated contract generation & sign-off'],
+    metrics: [
+      { label: 'Sourcing Cycle Time', value: '-60%' },
+      { label: 'Supplier Coverage', value: '3× wider' },
+      { label: 'Cost Avoidance', value: '8–15%' }
+    ],
+    tiers: modules.sh.tiers,
+    unit: 'Annual Flat Rate'
   }
 };
 
@@ -2415,7 +2898,7 @@ function hideModulePage() {
 // CALCULATOR
 // ============================
 function calcUpdate() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
   let totalSaas = 0;
   let count = 0;
   let lineItems = '';
@@ -2510,34 +2993,43 @@ function calcUpdate() {
 let cachedCalcGrandTotal = 0; // updated by calcUpdate()
 
 function calcROI() {
-  // Read inputs
-  const spend = parseFloat(document.getElementById('r-spend')?.value) || 0;
-  const maverick = parseFloat(document.getElementById('r-maverick')?.value) || 0;
-  const conversion = parseFloat(document.getElementById('r-conversion')?.value) || 0;
-  const pos = parseFloat(document.getElementById('r-pos')?.value) || 0;
-  const pocost = parseFloat(document.getElementById('r-pocost')?.value) || 0;
-  const ftecost = parseFloat(document.getElementById('r-ftecost')?.value) || 80;
-  const prs = parseFloat(document.getElementById('r-prs')?.value) || 0;
-  const prtouch = parseFloat(document.getElementById('r-prtouch')?.value) || 0;
-  const prtime = parseFloat(document.getElementById('r-prtime')?.value) || 0;
-  const ocs = parseFloat(document.getElementById('r-ocs')?.value) || 0;
-  const octime = parseFloat(document.getElementById('r-octime')?.value) || 0;
-  const ocauto = parseFloat(document.getElementById('r-ocauto')?.value) || 0;
+  // Read raw input strings — distinguishes "0" (entered) from "" (empty/placeholder)
+  const roiInputIds = ['r-spend','r-maverick','r-conversion','r-pos','r-pocost','r-prs','r-prtouch','r-prtime','r-ocs','r-octime','r-ocauto','r-ftecost'];
+  const rawVals = roiInputIds.map(id => (document.getElementById(id)?.value ?? '').trim());
+  const hasAnyInput = rawVals.some(v => v !== '');
+
+  const spend = parseFloat(rawVals[0]) || 0;
+  const maverick = parseFloat(rawVals[1]) || 0;
+  const conversion = parseFloat(rawVals[2]) || 0;
+  const pos = parseFloat(rawVals[3]) || 0;
+  const pocost = parseFloat(rawVals[4]) || 0;
+  const prs = parseFloat(rawVals[5]) || 0;
+  const prtouch = parseFloat(rawVals[6]) || 0;
+  const prtime = parseFloat(rawVals[7]) || 0;
+  const ocs = parseFloat(rawVals[8]) || 0;
+  const octime = parseFloat(rawVals[9]) || 0;
+  const ocauto = parseFloat(rawVals[10]) || 0;
+  const ftecost = parseFloat(rawVals[11]) || 80;
 
   // Get Lio investment from calculator
   const inv = cachedCalcGrandTotal || 0;
 
-  const emptyIds = ['roi-x','roi-pct-small','roi-inv','roi-sav','roi-net','roi-months','roi-gb-savings','roi-pr-savings','roi-oc-savings','roi-total-line','roi-y1','roi-y2','roi-y3','roi-3yr-total'];
-  if (!inv) {
+  const emptyIds = ['roi-x','roi-pct-small','roi-inv','roi-sav','roi-net','roi-months','roi-days','roi-gb-savings','roi-pr-savings','roi-oc-savings','roi-total-line','roi-y1','roi-y2','roi-y3','roi-3yr-total'];
+  // Show empty state if no Lio investment OR user hasn't entered any ROI inputs yet
+  if (!inv || !hasAnyInput) {
     emptyIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '-'; });
-    document.getElementById('roi-bar').style.width = '0%';
+    const bar = document.getElementById('roi-bar'); if (bar) bar.style.width = '0%';
+    const hintEl = document.getElementById('roi-empty-hint');
+    if (hintEl) hintEl.style.display = !hasAnyInput ? 'block' : 'none';
     return;
   }
+  const hintEl = document.getElementById('roi-empty-hint');
+  if (hintEl) hintEl.style.display = 'none';
 
   // Guided Buying savings
   // Maverick spend reduction: spend × maverick%
   const gbMaverickSavings = Math.round(spend * 1000000 * (maverick / 100));
-  // Freitext-to-catalog: conversion% of POs get converted, saving pocost per converted PO
+  // Free-text-order-to-catalog: conversion% of POs get converted, saving pocost per converted PO
   const convertedPOs = Math.round(pos * (conversion / 100));
   const gbConversionSavings = Math.round(convertedPOs * pocost);
   const totalGBSavings = gbMaverickSavings + gbConversionSavings;
@@ -2556,7 +3048,10 @@ function calcROI() {
   const netBenefit = totalSavings - inv;
   const roiX = inv > 0 ? (totalSavings / inv) : 0;
   const roiPct = inv > 0 ? Math.round((totalSavings / inv - 1) * 100) : 0;
-  const paybackMonths = totalSavings > 0 ? Math.max(1, Math.round(inv / totalSavings * 12)) : 99;
+  const paybackMonthsNum = totalSavings > 0 ? (inv / totalSavings) * 12 : 99;
+  const paybackDays = totalSavings > 0 ? Math.round((inv / totalSavings) * 365) : 99;
+  const paybackStr = totalSavings <= 0 ? '–' : (paybackMonthsNum < 1 ? paybackMonthsNum.toFixed(2) + ' months' : paybackMonthsNum < 10 ? paybackMonthsNum.toFixed(1) + ' months' : Math.round(paybackMonthsNum) + ' months');
+  const paybackDaysStr = totalSavings <= 0 ? '' : '≈ ' + paybackDays.toLocaleString() + ' days';
 
   // Display results
   document.getElementById('roi-x').textContent = roiX.toFixed(2) + 'x';
@@ -2564,9 +3059,11 @@ function calcROI() {
   document.getElementById('roi-inv').textContent = fmtRaw(inv);
   document.getElementById('roi-sav').textContent = fmtRaw(totalSavings);
   document.getElementById('roi-net').textContent = fmtRaw(netBenefit);
-  document.getElementById('roi-months').textContent = paybackMonths;
+  document.getElementById('roi-months').textContent = paybackStr;
+  const daysEl = document.getElementById('roi-days');
+  if (daysEl) daysEl.textContent = paybackDaysStr;
 
-  const barWidth = Math.min(100, Math.max(5, (12 - paybackMonths) / 12 * 100 + 50));
+  const barWidth = Math.min(100, Math.max(5, (12 - paybackMonthsNum) / 12 * 100 + 50));
   document.getElementById('roi-bar').style.width = barWidth + '%';
 
   document.getElementById('roi-gb-savings').textContent = '+' + fmtRaw(totalGBSavings);
@@ -2600,6 +3097,25 @@ function buildROIPdfHtml() {
   const octime = parseFloat(document.getElementById('r-octime')?.value) || 0;
   const ocauto = parseFloat(document.getElementById('r-ocauto')?.value) || 0;
   const inv = cachedCalcGrandTotal || 0;
+  const company = document.getElementById('r-company')?.value?.trim() || '';
+  const contact = document.getElementById('r-contact')?.value?.trim() || '';
+  const lioContactKey = document.getElementById('r-lio-contact')?.value || 'florian';
+  const lioContactsMap = {
+    florian: { name: 'Florian Wanzeck', email: 'florian.wanzeck@lio.ai', phone: '+49 15888 658437' },
+    michael: { name: 'Michael Schmid', email: 'michael.schmid@lio.ai', phone: '' },
+    vincent: { name: 'Vincent Nussmaier', email: 'vincent.nussmaier@lio.ai', phone: '' },
+    tobias: { name: 'Tobias Rohringer', email: 'tobias.rohringer@lio.ai', phone: '' },
+    edmond: { name: 'Edmond Clemens', email: 'edmond.clemens@lio.ai', phone: '' },
+    romeo: { name: 'Romeo Vogt', email: 'romeo.vogt@lio.ai', phone: '' },
+    patricia: { name: 'Patricia Hoelscher', email: 'patricia.hoelscher@lio.ai', phone: '' },
+    olivia: { name: 'Olivia Pavoni', email: 'olivia.pavoni@lio.ai', phone: '' },
+    julius: { name: 'Julius Kaiser', email: 'julius.kaiser@lio.ai', phone: '' },
+    vladimir: { name: 'Vladimir Keil', email: 'vladimir.keil@lio.ai', phone: '' },
+    till: { name: 'Till Wagner', email: 'till.wagner@lio.ai', phone: '' },
+    lukas: { name: 'Lukas Heinzmann', email: 'lukas.heinzmann@lio.ai', phone: '' },
+    temoc: { name: 'Temoc Chavero', email: 'temoc.chavero@lio.ai', phone: '' }
+  };
+  const lioSender = lioContactsMap[lioContactKey] || lioContactsMap.florian;
 
   const gbMaverick = Math.round(spend * 1000000 * (maverick / 100));
   const convertedPOs = Math.round(pos * (conversion / 100));
@@ -2613,7 +3129,11 @@ function buildROIPdfHtml() {
   const netBen = totalSav - inv;
   const roiX = inv > 0 ? (totalSav / inv) : 0;
   const roiPct = inv > 0 ? Math.round((totalSav / inv - 1) * 100) : 0;
-  const payback = totalSav > 0 ? Math.max(1, Math.round(inv / totalSav * 12)) : 99;
+  const paybackMonthsNum = totalSav > 0 ? (inv / totalSav) * 12 : 99;
+  const paybackDays = totalSav > 0 ? Math.round((inv / totalSav) * 365) : 99;
+  const paybackStr = totalSav <= 0 ? '–' : (paybackMonthsNum < 1 ? paybackMonthsNum.toFixed(2) + ' months' : paybackMonthsNum < 10 ? paybackMonthsNum.toFixed(1) + ' months' : Math.round(paybackMonthsNum) + ' months');
+  const paybackDaysStr = totalSav <= 0 ? '' : '≈ ' + paybackDays.toLocaleString() + ' days';
+  const payback = Math.max(1, Math.round(paybackMonthsNum));
   const y1 = netBen;
   const y2 = Math.round(totalSav * 1.1) - inv;
   const y3 = Math.round(totalSav * 1.21) - inv;
@@ -2668,6 +3188,7 @@ function buildROIPdfHtml() {
     <div>
       <h1>ROI &amp; Impact Analysis</h1>
       <div style="font-size:12px;color:#64748b;margin-top:4px;">AI Procurement Agents · Business Case Projection</div>
+      ${company ? `<div style="font-size:12px;color:#1e293b;margin-top:8px;"><strong>Prepared for:</strong> ${company}${contact ? ' · Attn: ' + contact : ''}</div>` : ''}
     </div>
     <div class="ref-block">
       <div style="font-weight:700;color:#1e293b;">${reportRef}</div>
@@ -2678,14 +3199,19 @@ function buildROIPdfHtml() {
   <div class="hero">
     <div class="hero-label">Projected Return on Investment</div>
     <div class="hero-roi">${roiX.toFixed(2)}x</div>
-    <div class="hero-sub">${roiPct}% ROI · Payback in ${payback} month${payback === 1 ? '' : 's'}</div>
+    <div class="hero-sub">${roiPct}% ROI · Payback in ${paybackStr}${paybackDaysStr ? ' (' + paybackDaysStr.replace('≈ ', '') + ')' : ''}</div>
   </div>
 
   <div class="kpi-grid">
     <div class="kpi"><div class="kpi-label">Lio Investment</div><div class="kpi-value">${fmtRaw(inv)}</div></div>
     <div class="kpi"><div class="kpi-label">Annual Savings</div><div class="kpi-value">${fmtRaw(totalSav)}</div></div>
     <div class="kpi"><div class="kpi-label">Net Benefit Y1</div><div class="kpi-value">${fmtRaw(netBen)}</div></div>
-    <div class="kpi"><div class="kpi-label">Payback</div><div class="kpi-value">${payback} mo</div></div>
+    <div class="kpi">
+      <div class="kpi-label">Payback</div>
+      <div class="kpi-value">${paybackStr}</div>
+      <div style="font-size:9px;color:#94a3b8;margin-top:2px;">${paybackDaysStr}</div>
+      <div style="font-size:8px;color:#cbd5e1;margin-top:3px;letter-spacing:0.3px;">Inv ÷ Savings × 12</div>
+    </div>
   </div>
 
   <div class="section">
@@ -2695,7 +3221,7 @@ function buildROIPdfHtml() {
         <div class="input-card-title">Guided Buying</div>
         <div class="input-row"><span>Annual Indirect Spend</span><span>${fmtRaw(spend * 1000000)}</span></div>
         <div class="input-row"><span>Maverick Spend Reduction</span><span>${maverick}%</span></div>
-        <div class="input-row"><span>Freitext→Catalog Rate</span><span>${conversion}%</span></div>
+        <div class="input-row"><span>Free-text-order→Catalog Rate</span><span>${conversion}%</span></div>
         <div class="input-row"><span>POs per Year</span><span>${pos.toLocaleString()}</span></div>
         <div class="input-row"><span>Avg Cost per Manual PO</span><span>${fmtRaw(pocost)}</span></div>
       </div>
@@ -2724,7 +3250,7 @@ function buildROIPdfHtml() {
     <div class="section-title">Savings Breakdown</div>
     <div style="background:#f8fafc;border-radius:10px;padding:8px 0;">
       <div class="savings-row"><span style="color:#475569;">Guided Buying — Maverick Spend Reduction<br><span style="font-size:10px;color:#94a3b8;">${fmtRaw(spend * 1000000)} × ${maverick}%</span></span><span class="green">${fmtRaw(gbMaverick)}</span></div>
-      <div class="savings-row"><span style="color:#475569;">Guided Buying — Freitext→Catalog Conversion<br><span style="font-size:10px;color:#94a3b8;">${convertedPOs.toLocaleString()} POs × ${fmtRaw(pocost)}</span></span><span class="green">${fmtRaw(gbConversion)}</span></div>
+      <div class="savings-row"><span style="color:#475569;">Guided Buying — Free-text-order→Catalog Conversion<br><span style="font-size:10px;color:#94a3b8;">${convertedPOs.toLocaleString()} POs × ${fmtRaw(pocost)}</span></span><span class="green">${fmtRaw(gbConversion)}</span></div>
       <div class="savings-row"><span style="color:#475569;">PR Review Agent — Time Savings<br><span style="font-size:10px;color:#94a3b8;">${prAuto.toLocaleString()} auto PRs × ${prtime} min × ${fmtRaw(ftecost)}/h</span></span><span class="green">${fmtRaw(prSav)}</span></div>
       <div class="savings-row"><span style="color:#475569;">Order Confirmations — Time Savings<br><span style="font-size:10px;color:#94a3b8;">${ocAuto.toLocaleString()} auto OCs × ${octime} min × ${fmtRaw(ftecost)}/h</span></span><span class="green">${fmtRaw(ocSav)}</span></div>
       <div class="savings-row"><span>Total Annual Savings</span><span class="green">${fmtRaw(totalSav)}</span></div>
@@ -2743,7 +3269,7 @@ function buildROIPdfHtml() {
   </div>
 
   <div class="callout">
-    <strong>Key Takeaway:</strong> With a Lio investment of <strong>${fmtRaw(inv)}</strong>, your organisation unlocks <strong>${fmtRaw(totalSav)}</strong> in annual savings — a <strong>${roiX.toFixed(2)}x return</strong>. Payback is achieved in <strong>${payback} month${payback === 1 ? '' : 's'}</strong>. Over 3 years, this translates to <strong>${fmtRaw(threeYr)}</strong> in cumulative net benefit.
+    <strong>Key Takeaway:</strong> With a Lio investment of <strong>${fmtRaw(inv)}</strong>, your organisation unlocks <strong>${fmtRaw(totalSav)}</strong> in annual savings — a <strong>${roiX.toFixed(2)}x return</strong>. Payback is achieved in <strong>${paybackStr}</strong>${paybackDaysStr ? ' <span style="color:#64748b;">(' + paybackDaysStr.replace('≈ ', '') + ')</span>' : ''}. Over 3 years, this translates to <strong>${fmtRaw(threeYr)}</strong> in cumulative net benefit.
   </div>
 
   <div class="footer">
@@ -2754,17 +3280,24 @@ function buildROIPdfHtml() {
     </div>
     <div style="text-align:right;">
       <div style="font-weight:700;color:#1e293b;">Contact</div>
-      <div>florian.wanzeck@lio.ai</div>
-      <div>+49 15888 658437</div>
+      <div>${lioSender.name}</div>
+      <div>${lioSender.email}</div>
+      ${lioSender.phone ? `<div>${lioSender.phone}</div>` : ''}
     </div>
   </div>
   <div class="disclaimer">Projections are estimates based on provided assumptions and typical industry benchmarks. Actual results may vary.</div>
 </div></body></html>`;
 }
 
+function roiHasAnyInput() {
+  const ids = ['r-spend','r-maverick','r-conversion','r-pos','r-pocost','r-prs','r-prtouch','r-prtime','r-ocs','r-octime','r-ocauto','r-ftecost'];
+  return ids.some(id => (document.getElementById(id)?.value ?? '').trim() !== '');
+}
+
 function printROIReport() {
   const inv = cachedCalcGrandTotal || 0;
   if (!inv) { alert('Please select at least one module in the calculator above to generate a ROI report.'); return; }
+  if (!roiHasAnyInput()) { alert('Please enter at least one ROI input (e.g. Annual Indirect Spend, POs per Year, …) before generating a ROI report.'); return; }
   const html = buildROIPdfHtml();
   const w = window.open('', '_blank');
   w.document.write(html);
@@ -2775,6 +3308,7 @@ function printROIReport() {
 async function downloadROIReport() {
   const inv = cachedCalcGrandTotal || 0;
   if (!inv) { alert('Please select at least one module in the calculator above to generate a ROI report.'); return; }
+  if (!roiHasAnyInput()) { alert('Please enter at least one ROI input (e.g. Annual Indirect Spend, POs per Year, …) before generating a ROI report.'); return; }
   const html = buildROIPdfHtml();
   const iframe = document.createElement('iframe');
   iframe.style.cssText = 'position:fixed;left:0;top:0;width:800px;height:1200px;z-index:99999;opacity:0;pointer-events:none;border:none;';
@@ -2995,7 +3529,7 @@ function updateAdvancedROI() {
 }
 
 function openQuoteModal() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
   const anyChecked = mods.some(m => document.getElementById('check-' + m).checked);
   if (!anyChecked) { alert('Please select at least one module first.'); return; }
   const modal = document.getElementById('quote-modal');
@@ -3079,7 +3613,7 @@ function detectBundle(selectedKeys) {
 const discountMode = {};
 
 function populateQuotePricing() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
   const tbody = document.getElementById('quote-pricing-lines');
   const selectedKeys = [];
   tbody.innerHTML = '';
@@ -3201,7 +3735,7 @@ function toggleExcludeModule(key) {
 
 function applyGlobalDiscount() {
   const globalPct = parseFloat(document.getElementById('quote-exc-value')?.value) || 0;
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
   mods.forEach(key => {
     const pctInput = document.getElementById('qd-' + key);
     const priceInput = document.getElementById('qf-' + key);
@@ -3213,7 +3747,7 @@ function applyGlobalDiscount() {
 
 
 function updateQuotePricing() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
   const selectedKeys = mods.filter(m => document.getElementById('check-' + m)?.checked);
   const bundle = detectBundle(selectedKeys);
   const bundleApply = document.getElementById('quote-bundle-apply')?.checked && bundle;
@@ -3269,7 +3803,7 @@ function updateQuotePricing() {
 // PDF QUOTE DOWNLOAD
 // ============================
 function generateQuoteData() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
   const selectedMods = [];
   let totalSaas = 0;
   let hasSM = false;
