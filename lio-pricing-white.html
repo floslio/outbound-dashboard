@@ -2217,23 +2217,21 @@ function buildModuleOverviewPdfHtml(selectedKeys) {
     </div>`;
   };
 
-  // Layout: 2 agents per page with a constant 16mm gap between them.
+  // Layout: 2 agents per page, wrapped in a pair container.
+  // page-break-before:always on each pair (except first) is the ONLY html2pdf-reliable
+  // way to force a hard canvas cut — page-break-after is ignored by legacy mode.
+  // page-break-inside:avoid on the wrapper keeps the pair together on one page.
   // Agent 1 of each pair: margin-bottom:16mm (consistent gap to Agent 2).
-  // Agent 2 of each pair: page-break-after:always (forces next pair to a new page).
-  // Last agent: no gap, no break. Simple block flow → deterministic, professional spacing.
   let pagesHtml = '';
-  for (let i = 0; i < selectedKeys.length; i++) {
-    const isFirstInPair = (i % 2) === 0;
-    const isLast = i === selectedKeys.length - 1;
-    const hasPartner = isFirstInPair && (i + 1 < selectedKeys.length);
-
-    let extra = '';
-    if (hasPartner) {
-      extra = 'margin-bottom:16mm;';
-    } else if (!isFirstInPair && !isLast) {
-      extra = 'page-break-after:always;';
-    }
-    pagesHtml += renderAgent(selectedKeys[i], extra);
+  for (let i = 0; i < selectedKeys.length; i += 2) {
+    const k1 = selectedKeys[i];
+    const k2 = selectedKeys[i + 1];
+    const isFirstPair = i === 0;
+    const wrapStyle = (isFirstPair ? '' : 'page-break-before:always;') + 'page-break-inside:avoid;';
+    const inner = k2
+      ? `${renderAgent(k1, 'margin-bottom:16mm;')}${renderAgent(k2)}`
+      : renderAgent(k1);
+    pagesHtml += `<div style="${wrapStyle}">${inner}</div>`;
   }
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Available Agentic Modules</title>
