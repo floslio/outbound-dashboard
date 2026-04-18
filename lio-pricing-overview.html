@@ -3503,14 +3503,23 @@ function buildModuleOverviewPdfHtml(selectedKeys) {
     </div>`;
   };
 
-  // ONE AGENT PER PAGE — guaranteed no cut-offs, bulletproof layout.
-  // Each agent gets its own A4 page with ~242mm of breathing room.
-  // page-break-before:always is the ONLY html2pdf-reliable hard canvas cut.
+  // Layout: 2 agents per A4 page. Each pair is wrapped in a container with
+  // page-break-before:always (except the first pair). This is the ONLY CSS hint
+  // html2pdf treats as a hard canvas cut — NOT a soft avoid-hint that causes
+  // duplicate rendering across page boundaries.
+  // Agent 1 of each pair: margin-bottom:16mm (consistent gap to Agent 2).
+  // Bleed-through into margin zones is masked by white rectangles drawn in the
+  // per-page overlay callback in renderModuleOverviewPdf().
   let pagesHtml = '';
-  for (let i = 0; i < selectedKeys.length; i++) {
-    const isFirst = i === 0;
-    const pageBreak = isFirst ? '' : 'page-break-before:always;';
-    pagesHtml += renderAgent(selectedKeys[i], pageBreak);
+  for (let i = 0; i < selectedKeys.length; i += 2) {
+    const k1 = selectedKeys[i];
+    const k2 = selectedKeys[i + 1];
+    const isFirstPair = i === 0;
+    const wrapStyle = isFirstPair ? '' : 'page-break-before:always;';
+    const inner = k2
+      ? `${renderAgent(k1, 'margin-bottom:16mm;')}${renderAgent(k2)}`
+      : renderAgent(k1);
+    pagesHtml += `<div style="${wrapStyle}">${inner}</div>`;
   }
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Available Agentic Modules</title>
@@ -3552,29 +3561,39 @@ async function renderModuleOverviewPdf(selectedKeys) {
     // Top margin 35mm (logo at y=10 + 12mm tall = bottom 22, ~13mm breathing space before content)
     // Bottom 20mm for footer. These are consistent on every page → same start point everywhere.
     const worker = html2pdf().set({
-      margin: [35, 15, 20, 15],
+      // Top 45mm: logo zone (10-22mm) + 23mm breathing room before content starts at y=45.
+      // Bottom 22mm: footer zone.
+      // Content area per page: 297 - 45 - 22 = 230mm.
+      margin: [45, 15, 22, 15],
       filename: filename,
       image: { type: 'jpeg', quality: 0.95 },
       html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0, backgroundColor: '#ffffff' },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      // css mode: respects page-break-before:always on pair containers (the reliable hard-cut).
-      // legacy mode: fallback for older page-break hints.
-      // Hard breaks are enforced by page-break-before:always on each pair wrapper in buildModuleOverviewPdfHtml().
       pagebreak: { mode: ['css', 'legacy'] }
     }).from(iframe.contentDocument.body).toPdf();
 
-    // Add logo (top-left) + footer on every page
+    // Per-page overlay: white masks over margin zones (prevents canvas bleed-through),
+    // then draw logo (top) + footer (bottom) ON TOP of the masks.
     await worker.get('pdf').then(pdf => {
       const total = pdf.internal.getNumberOfPages();
       const pw = pdf.internal.pageSize.getWidth();   // 210mm
       const ph = pdf.internal.pageSize.getHeight();  // 297mm
       for (let i = 1; i <= total; i++) {
         pdf.setPage(i);
-        // Logo top-left (aspect 2:1 → 24mm × 12mm)
+
+        // 1. White mask — top margin (0 to 45mm). Covers any canvas bleed above content area.
+        pdf.setFillColor(255, 255, 255);
+        pdf.rect(0, 0, pw, 45, 'F');
+
+        // 2. White mask — bottom margin (y=275 to 297). Covers canvas bleed below content area.
+        pdf.rect(0, ph - 22, pw, 22, 'F');
+
+        // 3. Logo top-left (aspect 2:1 → 24mm × 12mm, y=10 to 22)
         if (logoPng) {
           pdf.addImage(logoPng, 'PNG', 15, 10, 24, 12);
         }
-        // Footer: separator line + brand + page number
+
+        // 4. Footer: separator line + brand + page number
         pdf.setDrawColor(226, 232, 240);
         pdf.setLineWidth(0.2);
         pdf.line(15, ph - 15, pw - 15, ph - 15);
