@@ -2200,11 +2200,14 @@ function buildModuleOverviewPdfHtml(selectedKeys) {
       `<span style="display:inline-block;background:#f4f4f5;color:#1e293b;padding:3px 9px;border-radius:6px;font-size:10.5px;margin:0 5px 5px 0;">&#10003; ${f}</span>`
     ).join('');
 
-    return `<div class="mod" style="page-break-inside:avoid;${extraStyle}">
-      <h3 style="font-size:14.5px;font-weight:700;color:#1e293b;margin:0 0 7px 0;line-height:1.25;page-break-after:avoid;">${name}</h3>
-      <p style="font-size:12px;color:#1e293b;margin:0 0 11px 0;line-height:1.55;page-break-after:avoid;">${desc}</p>
-      <div style="margin-bottom:10px;page-break-after:avoid;">${featureChips}</div>
-      <div style="page-break-inside:avoid;">
+    // NO page-break-*:avoid rules anywhere — html2pdf legacy mode misinterprets them
+    // as "render partially on current page AND fully on next page" (duplicate rendering bug).
+    // Only page-break-before:always (on pair wrapper) is used for page transitions.
+    return `<div class="mod" style="${extraStyle}">
+      <h3 style="font-size:14.5px;font-weight:700;color:#1e293b;margin:0 0 7px 0;line-height:1.25;">${name}</h3>
+      <p style="font-size:12px;color:#1e293b;margin:0 0 11px 0;line-height:1.55;">${desc}</p>
+      <div style="margin-bottom:10px;">${featureChips}</div>
+      <div>
         <div style="font-size:9.5px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Available Tiers${unit && unit !== 'Volume' ? ' — ' + unit : ''}</div>
         <table style="width:100%;max-width:480px;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
           <thead><tr style="background:#f8fafc;">
@@ -2217,21 +2220,14 @@ function buildModuleOverviewPdfHtml(selectedKeys) {
     </div>`;
   };
 
-  // Layout: 2 agents per page, wrapped in a pair container.
-  // page-break-before:always on each pair (except first) is the ONLY html2pdf-reliable
-  // way to force a hard canvas cut — page-break-after is ignored by legacy mode.
-  // page-break-inside:avoid on the wrapper keeps the pair together on one page.
-  // Agent 1 of each pair: margin-bottom:16mm (consistent gap to Agent 2).
+  // ONE AGENT PER PAGE — guaranteed no cut-offs, bulletproof layout.
+  // Each agent gets its own A4 page with ~242mm of breathing room.
+  // page-break-before:always is the ONLY html2pdf-reliable hard canvas cut.
   let pagesHtml = '';
-  for (let i = 0; i < selectedKeys.length; i += 2) {
-    const k1 = selectedKeys[i];
-    const k2 = selectedKeys[i + 1];
-    const isFirstPair = i === 0;
-    const wrapStyle = (isFirstPair ? '' : 'page-break-before:always;') + 'page-break-inside:avoid;';
-    const inner = k2
-      ? `${renderAgent(k1, 'margin-bottom:16mm;')}${renderAgent(k2)}`
-      : renderAgent(k1);
-    pagesHtml += `<div style="${wrapStyle}">${inner}</div>`;
+  for (let i = 0; i < selectedKeys.length; i++) {
+    const isFirst = i === 0;
+    const pageBreak = isFirst ? '' : 'page-break-before:always;';
+    pagesHtml += renderAgent(selectedKeys[i], pageBreak);
   }
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Available Agentic Modules</title>
