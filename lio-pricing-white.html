@@ -2176,10 +2176,13 @@ async function runOverviewPdfGeneration() {
 
 // Build content-only HTML for the "Available Agentic Modules" PDF.
 // The Lio logo (top-left) and footer are drawn on every page via jsPDF in renderModuleOverviewPdf().
+// Layout: 2 agents per page, consistent top-start after the logo on every page.
 function buildModuleOverviewPdfHtml(selectedKeys) {
   const curUpper = currentCurrency.toUpperCase();
 
-  const modulesHtml = selectedKeys.map(key => {
+  // Render a single agent card — always in the order: Name → Description → Features → Tiers table.
+  // extraStyle lets the layout loop add a gap (margin-bottom) or a page-break after the card.
+  const renderAgent = (key, extraStyle = '') => {
     const m = modules[key];
     if (!m) return '';
     const name = m.name;
@@ -2189,45 +2192,58 @@ function buildModuleOverviewPdfHtml(selectedKeys) {
 
     const tierRows = (m.tiers || []).map(t => `
       <tr style="border-bottom:1px solid #f1f5f9;">
-        <td style="padding:6px 10px;font-size:11px;color:#1e293b;">${fmtVol(key, t.vol)}</td>
-        <td style="padding:6px 10px;font-size:11px;text-align:right;color:#1e293b;">${fmtTierPrice(t)}/yr</td>
+        <td style="padding:4px 10px;font-size:10.5px;color:#1e293b;">${fmtVol(key, t.vol)}</td>
+        <td style="padding:4px 10px;font-size:10.5px;text-align:right;color:#1e293b;">${fmtTierPrice(t)}/yr</td>
       </tr>`).join('');
 
     const featureChips = features.slice(0, 6).map(f =>
-      `<span style="display:inline-block;background:#f4f4f5;color:#1e293b;padding:4px 10px;border-radius:6px;font-size:10.5px;margin:0 6px 6px 0;">&#10003; ${f}</span>`
+      `<span style="display:inline-block;background:#f4f4f5;color:#1e293b;padding:3px 9px;border-radius:6px;font-size:10.5px;margin:0 5px 5px 0;">&#10003; ${f}</span>`
     ).join('');
 
-    return `<div style="margin-bottom:28px;page-break-inside:avoid;">
-      <h3 style="font-size:15px;font-weight:700;color:#1e293b;margin:0 0 8px 0;">${name}</h3>
-      <p style="font-size:12px;color:#1e293b;margin:0 0 12px 0;line-height:1.55;">${desc}</p>
-      <div style="margin-bottom:14px;">${featureChips}</div>
-      <div style="margin-top:8px;">
-        <div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Available Tiers${unit && unit !== 'Volume' ? ' — ' + unit : ''}</div>
+    return `<div class="mod" style="page-break-inside:avoid;${extraStyle}">
+      <h3 style="font-size:14.5px;font-weight:700;color:#1e293b;margin:0 0 7px 0;line-height:1.25;page-break-after:avoid;">${name}</h3>
+      <p style="font-size:12px;color:#1e293b;margin:0 0 11px 0;line-height:1.55;page-break-after:avoid;">${desc}</p>
+      <div style="margin-bottom:10px;page-break-after:avoid;">${featureChips}</div>
+      <div style="page-break-inside:avoid;">
+        <div style="font-size:9.5px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Available Tiers${unit && unit !== 'Volume' ? ' — ' + unit : ''}</div>
         <table style="width:100%;max-width:480px;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
           <thead><tr style="background:#f8fafc;">
-            <th style="padding:6px 10px;text-align:left;font-size:9.5px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Volume</th>
-            <th style="padding:6px 10px;text-align:right;font-size:9.5px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Price (${curUpper})</th>
+            <th style="padding:5px 10px;text-align:left;font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Volume</th>
+            <th style="padding:5px 10px;text-align:right;font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Price (${curUpper})</th>
           </tr></thead>
           <tbody>${tierRows}</tbody>
         </table>
       </div>
     </div>`;
-  }).join('');
+  };
+
+  // Layout: 2 agents per page with a constant 16mm gap between them.
+  // Agent 1 of each pair: margin-bottom:16mm (consistent gap to Agent 2).
+  // Agent 2 of each pair: page-break-after:always (forces next pair to a new page).
+  // Last agent: no gap, no break. Simple block flow → deterministic, professional spacing.
+  let pagesHtml = '';
+  for (let i = 0; i < selectedKeys.length; i++) {
+    const isFirstInPair = (i % 2) === 0;
+    const isLast = i === selectedKeys.length - 1;
+    const hasPartner = isFirstInPair && (i + 1 < selectedKeys.length);
+
+    let extra = '';
+    if (hasPartner) {
+      extra = 'margin-bottom:16mm;';
+    } else if (!isFirstInPair && !isLast) {
+      extra = 'page-break-after:always;';
+    }
+    pagesHtml += renderAgent(selectedKeys[i], extra);
+  }
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Available Agentic Modules</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; color:#1e293b; background:#ffffff; line-height:1.5; }
-  .wrap { max-width: 800px; margin: 0 auto; padding: 18px 24px 24px; }
-  h2 { font-size: 20px; font-weight: 800; color: #1e293b; letter-spacing: -0.3px; margin: 0 0 6px 0; }
-  .sub { font-size: 12px; color: #64748b; margin-bottom: 16px; line-height: 1.5; }
-  .hr { border-bottom: 2px solid #1e293b; margin-bottom: 22px; }
+  .wrap { max-width: 800px; margin: 0 auto; padding: 0 24px; }
 </style></head><body>
 <div class="wrap">
-  <h2>Available Agentic Modules</h2>
-  <div class="sub">Overview of Lio agents — capabilities, key features and available pricing tiers in ${curUpper}. Add 15% one-time Implementation and 10% annual Customer Success on top of listed annual fees.</div>
-  <div class="hr"></div>
-  ${modulesHtml}
+  ${pagesHtml}
 </div>
 </body></html>`;
 }
@@ -2239,9 +2255,7 @@ async function downloadModuleOverviewPdf() {
 
 // Core renderer: takes selected module keys, generates PDF with Lio logo + footer on every page.
 async function renderModuleOverviewPdf(selectedKeys) {
-  const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const curUpper = currentCurrency.toUpperCase();
-  const catalogueRef = 'LIO-CAT-' + Date.now().toString(36).toUpperCase();
 
   let logoPng;
   try { logoPng = await _getLioLogoPng(); }
@@ -2258,9 +2272,10 @@ async function renderModuleOverviewPdf(selectedKeys) {
 
   const filename = 'Lio_Available_Agents_' + new Date().toISOString().split('T')[0] + '.pdf';
   try {
-    // Top margin 26mm (space for logo), bottom 20mm (space for footer)
+    // Top margin 35mm (logo at y=10 + 12mm tall = bottom 22, ~13mm breathing space before content)
+    // Bottom 20mm for footer. These are consistent on every page → same start point everywhere.
     const worker = html2pdf().set({
-      margin: [26, 15, 20, 15],
+      margin: [35, 15, 20, 15],
       filename: filename,
       image: { type: 'jpeg', quality: 0.95 },
       html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0, backgroundColor: '#ffffff' },
@@ -2279,12 +2294,6 @@ async function renderModuleOverviewPdf(selectedKeys) {
         if (logoPng) {
           pdf.addImage(logoPng, 'PNG', 15, 10, 24, 12);
         }
-        // Header right: reference + date (small, subtle)
-        pdf.setFontSize(9);
-        pdf.setTextColor(148, 163, 184);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text(catalogueRef, pw - 15, 14, { align: 'right' });
-        pdf.text(dateStr, pw - 15, 19, { align: 'right' });
         // Footer: separator line + brand + page number
         pdf.setDrawColor(226, 232, 240);
         pdf.setLineWidth(0.2);
