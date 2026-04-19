@@ -3458,67 +3458,40 @@ async function runOverviewPdfGeneration() {
 
 // Build content-only HTML for the "Available Agentic Modules" PDF.
 // The Lio logo (top-left) and footer are drawn on every page via jsPDF in renderModuleOverviewPdf().
-// Layout: 2 agents per page, consistent top-start after the logo on every page.
+// Pattern MIRRORS the working Quote-PDF moduleDetails_pdf pattern: simple sequential module cards
+// with page-break-inside:avoid — combined with html2pdf pagebreak.mode ['avoid-all', 'css', 'legacy'],
+// this guarantees no headline is EVER cut across a page boundary.
 function buildModuleOverviewPdfHtml(selectedKeys) {
   const curUpper = currentCurrency.toUpperCase();
 
-  // Render a single agent card — always in the order: Name → Description → Features → Tiers table.
-  // extraStyle lets the layout loop add a gap (margin-bottom) or a page-break after the card.
-  const renderAgent = (key, extraStyle = '') => {
+  const modulesHtml = selectedKeys.map(key => {
     const m = modules[key];
     if (!m) return '';
     const d = (typeof moduleDetails !== 'undefined' && moduleDetails[key]) ? moduleDetails[key] : null;
     const name = (d && d.title) || m.name;
     const desc = (d && d.desc) || m.desc || '';
     const features = (d && d.features) || m.features || [];
-    const unit = m.unit || (d && d.unit) || 'Volume';
 
-    // Tighter tier table padding (3px) to reduce row height → more reserve in pair.
-    const tierRows = (m.tiers || []).map(t => `
-      <tr style="border-bottom:1px solid #f1f5f9;">
-        <td style="padding:3px 10px;font-size:10.5px;color:#1e293b;">${fmtVol(key, t.vol)}</td>
-        <td style="padding:3px 10px;font-size:10.5px;text-align:right;color:#1e293b;">${fmtTierPrice(t)}/yr</td>
-      </tr>`).join('');
-
-    // Max 5 feature chips (was 6) to guarantee agent fits under 95mm.
-    const featureChips = features.slice(0, 5).map(f =>
-      `<span style="display:inline-block;background:#f4f4f5;color:#1e293b;padding:3px 9px;border-radius:6px;font-size:10.5px;margin:0 5px 5px 0;">&#10003; ${f}</span>`
+    const tierRows = (m.tiers || []).map(t =>
+      `<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:3px 8px;font-size:10px;color:#1e293b;">${fmtVol(key, t.vol)}</td><td style="padding:3px 8px;font-size:10px;text-align:right;color:#1e293b;">${fmtTierPrice(t)}/yr</td></tr>`
     ).join('');
 
-    // NO page-break-*:avoid rules — legacy mode misinterprets them as duplicate-render triggers.
-    return `<div class="mod" style="${extraStyle}">
-      <h3 style="font-size:14.5px;font-weight:700;color:#1e293b;margin:0 0 6px 0;line-height:1.25;">${name}</h3>
-      <p style="font-size:12px;color:#1e293b;margin:0 0 10px 0;line-height:1.5;">${desc}</p>
-      <div style="margin-bottom:8px;">${featureChips}</div>
-      <div>
-        <div style="font-size:9.5px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers${unit && unit !== 'Volume' ? ' — ' + unit : ''}</div>
-        <table style="width:100%;max-width:480px;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
-          <thead><tr style="background:#f8fafc;">
-            <th style="padding:4px 10px;text-align:left;font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Volume</th>
-            <th style="padding:4px 10px;text-align:right;font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Price (${curUpper})</th>
-          </tr></thead>
+    // Exact Quote-PDF module card pattern (proven to page-break cleanly with avoid-all mode).
+    return `<div style="margin-bottom:24px;page-break-inside:avoid;">
+      <h3 style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 6px 0;">${name}</h3>
+      <p style="font-size:11px;color:#1e293b;margin:0 0 10px 0;line-height:1.5;">${desc}</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+        ${features.slice(0, 4).map(f => `<span style="display:inline-block;background:#f0f0f0;color:#1e293b;padding:3px 8px;border-radius:6px;font-size:10px;">&#10003; ${f}</span>`).join('')}
+      </div>
+      <div style="margin-top:8px;">
+        <div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers</div>
+        <table style="width:100%;max-width:400px;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;font-size:10px;">
+          <thead><tr style="background:#f8fafc;"><th style="padding:3px 8px;text-align:left;font-size:9px;color:#64748b;text-transform:uppercase;">Volume</th><th style="padding:3px 8px;text-align:right;font-size:9px;color:#64748b;text-transform:uppercase;">Price (${curUpper})</th></tr></thead>
           <tbody>${tierRows}</tbody>
         </table>
       </div>
     </div>`;
-  };
-
-  // FIXED-HEIGHT pair wrappers: each pair is EXACTLY 230mm tall (= content area height).
-  // This forces html2pdf's canvas slicing to align PERFECTLY with pair boundaries — no
-  // cumulative drift, no overflow, no duplicate rendering. Even if a pair's content is
-  // slightly over/under 230mm, the wrapper pins it to exactly one page slot.
-  // overflow:hidden on the wrapper clips any content that would bleed into the next pair's zone.
-  let pagesHtml = '';
-  for (let i = 0; i < selectedKeys.length; i += 2) {
-    const k1 = selectedKeys[i];
-    const k2 = selectedKeys[i + 1];
-    const isFirstPair = i === 0;
-    const wrapStyle = (isFirstPair ? '' : 'page-break-before:always;') + 'height:230mm;overflow:hidden;';
-    const inner = k2
-      ? `${renderAgent(k1, 'margin-bottom:16mm;')}${renderAgent(k2)}`
-      : renderAgent(k1);
-    pagesHtml += `<div style="${wrapStyle}">${inner}</div>`;
-  }
+  }).join('');
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Available Agentic Modules</title>
 <style>
@@ -3527,7 +3500,7 @@ function buildModuleOverviewPdfHtml(selectedKeys) {
   .wrap { max-width: 800px; margin: 0 auto; padding: 0 24px; }
 </style></head><body>
 <div class="wrap">
-  ${pagesHtml}
+  ${modulesHtml}
 </div>
 </body></html>`;
 }
@@ -3567,7 +3540,7 @@ async function renderModuleOverviewPdf(selectedKeys) {
       image: { type: 'jpeg', quality: 0.95 },
       html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0, backgroundColor: '#ffffff' },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['css', 'legacy'] }
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     }).from(iframe.contentDocument.body).toPdf();
 
     // Per-page overlay: white masks over margin zones (prevents canvas bleed-through),
