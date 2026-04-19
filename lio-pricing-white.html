@@ -2190,29 +2190,29 @@ function buildModuleOverviewPdfHtml(selectedKeys) {
     const features = m.features || [];
     const unit = m.unit || 'Volume';
 
+    // Tighter tier table padding (3px) to reduce row height → more reserve in pair.
     const tierRows = (m.tiers || []).map(t => `
       <tr style="border-bottom:1px solid #f1f5f9;">
-        <td style="padding:4px 10px;font-size:10.5px;color:#1e293b;">${fmtVol(key, t.vol)}</td>
-        <td style="padding:4px 10px;font-size:10.5px;text-align:right;color:#1e293b;">${fmtTierPrice(t)}/yr</td>
+        <td style="padding:3px 10px;font-size:10.5px;color:#1e293b;">${fmtVol(key, t.vol)}</td>
+        <td style="padding:3px 10px;font-size:10.5px;text-align:right;color:#1e293b;">${fmtTierPrice(t)}/yr</td>
       </tr>`).join('');
 
-    const featureChips = features.slice(0, 6).map(f =>
+    // Max 5 feature chips (was 6) to guarantee agent fits under 95mm.
+    const featureChips = features.slice(0, 5).map(f =>
       `<span style="display:inline-block;background:#f4f4f5;color:#1e293b;padding:3px 9px;border-radius:6px;font-size:10.5px;margin:0 5px 5px 0;">&#10003; ${f}</span>`
     ).join('');
 
-    // NO page-break-*:avoid rules anywhere — html2pdf legacy mode misinterprets them
-    // as "render partially on current page AND fully on next page" (duplicate rendering bug).
-    // Only page-break-before:always (on pair wrapper) is used for page transitions.
+    // NO page-break-*:avoid rules — legacy mode misinterprets them as duplicate-render triggers.
     return `<div class="mod" style="${extraStyle}">
-      <h3 style="font-size:14.5px;font-weight:700;color:#1e293b;margin:0 0 7px 0;line-height:1.25;">${name}</h3>
-      <p style="font-size:12px;color:#1e293b;margin:0 0 11px 0;line-height:1.55;">${desc}</p>
-      <div style="margin-bottom:10px;">${featureChips}</div>
+      <h3 style="font-size:14.5px;font-weight:700;color:#1e293b;margin:0 0 6px 0;line-height:1.25;">${name}</h3>
+      <p style="font-size:12px;color:#1e293b;margin:0 0 10px 0;line-height:1.5;">${desc}</p>
+      <div style="margin-bottom:8px;">${featureChips}</div>
       <div>
-        <div style="font-size:9.5px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Available Tiers${unit && unit !== 'Volume' ? ' — ' + unit : ''}</div>
+        <div style="font-size:9.5px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers${unit && unit !== 'Volume' ? ' — ' + unit : ''}</div>
         <table style="width:100%;max-width:480px;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
           <thead><tr style="background:#f8fafc;">
-            <th style="padding:5px 10px;text-align:left;font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Volume</th>
-            <th style="padding:5px 10px;text-align:right;font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Price (${curUpper})</th>
+            <th style="padding:4px 10px;text-align:left;font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Volume</th>
+            <th style="padding:4px 10px;text-align:right;font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Price (${curUpper})</th>
           </tr></thead>
           <tbody>${tierRows}</tbody>
         </table>
@@ -2220,19 +2220,17 @@ function buildModuleOverviewPdfHtml(selectedKeys) {
     </div>`;
   };
 
-  // Layout: 2 agents per A4 page. Each pair is wrapped in a container with
-  // page-break-before:always (except the first pair). This is the ONLY CSS hint
-  // html2pdf treats as a hard canvas cut — NOT a soft avoid-hint that causes
-  // duplicate rendering across page boundaries.
-  // Agent 1 of each pair: margin-bottom:16mm (consistent gap to Agent 2).
-  // Bleed-through into margin zones is masked by white rectangles drawn in the
-  // per-page overlay callback in renderModuleOverviewPdf().
+  // FIXED-HEIGHT pair wrappers: each pair is EXACTLY 230mm tall (= content area height).
+  // This forces html2pdf's canvas slicing to align PERFECTLY with pair boundaries — no
+  // cumulative drift, no overflow, no duplicate rendering. Even if a pair's content is
+  // slightly over/under 230mm, the wrapper pins it to exactly one page slot.
+  // overflow:hidden on the wrapper clips any content that would bleed into the next pair's zone.
   let pagesHtml = '';
   for (let i = 0; i < selectedKeys.length; i += 2) {
     const k1 = selectedKeys[i];
     const k2 = selectedKeys[i + 1];
     const isFirstPair = i === 0;
-    const wrapStyle = isFirstPair ? '' : 'page-break-before:always;';
+    const wrapStyle = (isFirstPair ? '' : 'page-break-before:always;') + 'height:230mm;overflow:hidden;';
     const inner = k2
       ? `${renderAgent(k1, 'margin-bottom:16mm;')}${renderAgent(k2)}`
       : renderAgent(k1);
