@@ -74,6 +74,50 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
 </head>
 <body class="bg-white text-slate-800 min-h-screen">
 
+<!-- =========================================================
+     Password Gate (client-side obscurity — NOT real auth).
+     Hashed compare + localStorage unlock flag.
+     ========================================================= -->
+<div id="lio-gate" style="position:fixed;inset:0;background:#f8fafc;display:flex;align-items:center;justify-content:center;z-index:2147483647;font-family:Inter,-apple-system,sans-serif;">
+  <form id="lio-gate-form" style="background:#ffffff;padding:40px;border-radius:16px;border:1px solid #e2e8f0;min-width:340px;box-shadow:0 20px 60px rgba(15,23,42,0.08);">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="color:#1e293b;font-size:32px;font-weight:800;letter-spacing:-0.5px;background:linear-gradient(135deg,#6366f1,#4f46e5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Lio</div>
+      <div style="color:#64748b;font-size:12px;margin-top:4px;letter-spacing:0.5px;text-transform:uppercase;">Pricing · Team Access</div>
+    </div>
+    <input id="lio-gate-input" type="password" placeholder="Password" autocomplete="current-password" style="width:100%;padding:12px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#1e293b;font-size:14px;outline:none;box-sizing:border-box;" autofocus>
+    <button type="submit" style="width:100%;margin-top:12px;padding:12px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:white;border:none;border-radius:10px;font-weight:600;cursor:pointer;font-size:14px;">Unlock</button>
+    <div id="lio-gate-error" style="color:#ef4444;text-align:center;margin-top:12px;font-size:12px;height:16px;"></div>
+  </form>
+</div>
+<script>
+(function() {
+  const HASH = 'cba1bcb3a85512d90d657afe420d3a65a18ede16957eceea4ca7f641da29d410';
+  const KEY = 'lio_pricing_unlocked_v1';
+  async function sha256(s){const b=new TextEncoder().encode(s);const h=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');}
+  function unlock(){const g=document.getElementById('lio-gate');if(g)g.remove();}
+  if (localStorage.getItem(KEY) === HASH) {
+    if (document.readyState !== 'loading') unlock();
+    else document.addEventListener('DOMContentLoaded', unlock);
+    return;
+  }
+  const bind = () => {
+    const form=document.getElementById('lio-gate-form');
+    const input=document.getElementById('lio-gate-input');
+    const err=document.getElementById('lio-gate-error');
+    if(!form) return;
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const h=await sha256(input.value);
+      if(h===HASH){localStorage.setItem(KEY,HASH);unlock();}
+      else{err.textContent='Wrong password';input.value='';input.focus();}
+    });
+    input.focus();
+  };
+  if (document.readyState !== 'loading') bind();
+  else document.addEventListener('DOMContentLoaded', bind);
+})();
+</script>
+
 <!-- Navigation -->
 <nav class="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-xl border-b border-slate-100 shadow-sm">
   <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
