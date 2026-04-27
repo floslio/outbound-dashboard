@@ -1430,7 +1430,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
 <div id="quote-history-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
   <div class="bg-[#12132a] border border-slate-700/50 rounded-2xl p-4 sm:p-8 w-full max-w-6xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
     <div class="flex justify-between items-center mb-6">
-      <h3 class="text-xl font-bold text-white">Quote Management<span id="sb-sync-status" class="text-xs text-slate-500 ml-2"></span></h3>
+      <h3 class="text-xl font-bold text-white">Quote Management<span id="sb-sync-status" class="text-xs text-slate-500 ml-2"></span><span class="text-[10px] text-slate-600 ml-2 font-mono">build 2026-04-27</span></h3>
       <button onclick="closeQuoteHistory()" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
     </div>
     <div id="quote-history-list" class="space-y-3"></div>
@@ -2065,12 +2065,17 @@ async function sbUpdateQuote(quoteRef, entry) {
 }
 
 async function sbLoadQuotes() {
+  window._sbLastLoadError = null;
   try {
     const resp = await fetch(SB_URL + '/rest/v1/quotes?select=*&order=created_at.desc&limit=100', {
       headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
     });
-    if (!resp.ok) throw new Error('Load failed: ' + resp.status);
+    if (!resp.ok) {
+      const body = await resp.text().catch(() => '');
+      throw new Error('HTTP ' + resp.status + ': ' + body.slice(0, 200));
+    }
     const data = await resp.json();
+    console.log('[sbLoadQuotes] OK — loaded ' + data.length + ' quotes from Supabase');
     return data.map(q => ({
       id: q.id,
       ref: q.quote_ref,
@@ -2087,7 +2092,8 @@ async function sbLoadQuotes() {
       _sbId: q.id
     }));
   } catch(e) {
-    /* load fallback */
+    window._sbLastLoadError = String(e.message || e);
+    console.error('[sbLoadQuotes] FAILED:', e);
     return null;
   }
 }
@@ -4680,15 +4686,23 @@ function formatTimestamp(iso) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }
 
-async function renderQuoteHistory() {
+async function renderQuoteHistory(forceCloud = false) {
   const list = document.getElementById('quote-history-list');
   const empty = document.getElementById('quote-history-empty');
   const clearBtn = document.getElementById('quote-history-clear');
   const syncStatus = document.getElementById('sb-sync-status');
 
+  // Show loading state
+  if (syncStatus) { syncStatus.textContent = '\u23F3 Loading...'; syncStatus.className = 'text-xs text-slate-400 ml-2'; }
+  list.innerHTML = '<div class="text-center py-8 text-slate-400 text-sm">Loading quotes from cloud...</div>';
+
+  // If forceCloud, ignore any local cache
+  if (forceCloud) localStorage.removeItem('lio-quote-history');
+
   // Try Supabase first, fall back to localStorage
   let history = await sbLoadQuotes();
   let isCloud = history !== null;
+  const cloudError = window._sbLastLoadError;
   if (history === null) {
     history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
   } else {
@@ -4696,19 +4710,28 @@ async function renderQuoteHistory() {
   }
 
   if (syncStatus) {
-    syncStatus.textContent = isCloud ? '\u2601\ufe0f Cloud' : '\uD83D\uDCBE Local';
-    syncStatus.className = isCloud ? 'text-xs text-emerald-400 ml-2' : 'text-xs text-amber-400 ml-2';
+    if (isCloud) {
+      syncStatus.innerHTML = '\u2601\ufe0f Cloud (' + history.length + ') <button onclick="renderQuoteHistory(true)" class="ml-2 text-lio-400 hover:text-lio-300 underline">Refresh</button>';
+      syncStatus.className = 'text-xs text-emerald-400 ml-2';
+    } else {
+      syncStatus.innerHTML = '\u26A0\uFE0F Cloud unreachable \u2014 showing local cache (' + history.length + ') <button onclick="renderQuoteHistory(true)" class="ml-2 text-lio-400 hover:text-lio-300 underline">Retry</button>';
+      syncStatus.className = 'text-xs text-amber-400 ml-2';
+    }
   }
 
+  const errorBanner = (!isCloud && cloudError)
+    ? '<div class="mb-4 p-3 bg-red-900/20 border border-red-800/40 rounded-lg text-xs text-red-300"><strong>Cloud Error:</strong> ' + cloudError.replace(/</g,'&lt;') + '<br><span class="text-red-400/70">Check browser console (F12) for details. The list below shows the local cache only.</span></div>'
+    : '';
+
   if (history.length === 0) {
-    list.innerHTML = '';
+    list.innerHTML = errorBanner;
     empty.classList.remove('hidden');
     clearBtn.classList.add('hidden');
     return;
   }
   empty.classList.add('hidden');
   clearBtn.classList.remove('hidden');
-  list.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-sm min-w-[500px]">
+  list.innerHTML = errorBanner + `<div class="overflow-x-auto"><table class="w-full text-sm min-w-[500px]">
     <thead>
       <tr class="text-left text-xs text-slate-400 uppercase tracking-wider border-b border-slate-700">
         <th class="py-3 px-3">Quote #</th>
