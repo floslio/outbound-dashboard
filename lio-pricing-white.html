@@ -1207,10 +1207,15 @@ async function sbUpdateQuote(quoteRef, entry) {
 
 async function sbLoadQuotes() {
   window._sbLastLoadError = null;
+  // 8-second hard timeout so the UI never hangs on a blocked / slow network.
+  const ctrl = new AbortController();
+  const timeoutId = setTimeout(() => ctrl.abort(), 8000);
   try {
     const resp = await fetch(SB_URL + '/rest/v1/quotes?select=*&order=created_at.desc&limit=100', {
-      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY },
+      signal: ctrl.signal
     });
+    clearTimeout(timeoutId);
     if (!resp.ok) {
       const body = await resp.text().catch(() => '');
       throw new Error('HTTP ' + resp.status + ': ' + body.slice(0, 200));
