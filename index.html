@@ -198,10 +198,10 @@ input[type="checkbox"] { accent-color: #6366f1; }
               <div class="text-2xl font-bold text-cyan-400 mp" data-usd="50000">$50,000</div>
               <span class="text-xs text-slate-500">/year</span>
             </div>
-            <div class="text-xs text-slate-500">8 tiers</div>
+            <div class="text-xs text-slate-500">7 tiers</div>
           </div>
           <div class="mt-4 pt-4 border-t border-slate-700/50 flex items-center justify-between">
-            <span class="text-xs text-slate-500">Scales to $3B+</span>
+            <span class="text-xs text-slate-500">Scales above $2B</span>
             <span class="text-xs text-cyan-400 font-medium arrow-slide">View details <span class="arrow-icon">→</span></span>
           </div>
         </div>
@@ -563,8 +563,8 @@ input[type="checkbox"] { accent-color: #6366f1; }
                 <td class="p-4 text-slate-400">Free-text → PO automation</td>
                 <td class="p-4 text-right font-semibold mp" data-usd="50000">$50,000</td>
                 <td class="p-4 text-right text-slate-400">Indirect Spend</td>
-                <td class="p-4 text-right text-slate-400">$300M</td>
-                <td class="p-4 text-right text-slate-400 mp" data-usd="225000">$225,000</td>
+                <td class="p-4 text-right text-slate-400">$100M</td>
+                <td class="p-4 text-right text-slate-400 mp" data-usd="200000">$200,000</td>
                 <td class="p-4 text-center"><span class="text-xs px-2 py-1 bg-cyan-500/10 text-cyan-400 rounded">$0.075/k$</span></td>
                 <td class="p-4 text-right text-cyan-400 text-xs">→</td>
               </tr>
@@ -645,9 +645,9 @@ input[type="checkbox"] { accent-color: #6366f1; }
             <h3 class="font-bold">Guided Buying (GB2PO)</h3>
           </div>
           <label class="text-xs text-slate-500">Relevant Indirect Spend</label>
-          <input type="range" min="0" max="7" value="0" class="w-full slider-track mt-2" id="slider-gb2po" oninput="updateSlider('gb2po')">
+          <input type="range" min="0" max="6" value="0" class="w-full slider-track mt-2" id="slider-gb2po" oninput="updateSlider('gb2po')">
           <div class="flex justify-between mt-2">
-            <span class="text-xs text-slate-500" id="slider-gb2po-vol">Up to $300M</span>
+            <span class="text-xs text-slate-500" id="slider-gb2po-vol">Up to $100M</span>
             <span class="text-lg font-bold text-cyan-400" id="slider-gb2po-price">$50,000/yr</span>
           </div>
         </div>
@@ -879,14 +879,13 @@ input[type="checkbox"] { accent-color: #6366f1; }
           <div class="ml-8 hidden" id="calc-gb2po-opts">
             <label class="text-xs text-slate-500">Relevant Indirect Spend</label>
             <select id="calc-gb2po-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
-              <option value="50000">Up to $300M — $50,000/yr</option>
-              <option value="56250">Up to $600M — $56,250/yr</option>
-              <option value="68750">Up to $800M — $68,750/yr</option>
-              <option value="100000">Up to $1B — $100,000/yr</option>
-              <option value="150000">Up to $1.5B — $150,000/yr</option>
+              <option value="50000">Up to $100M — $50,000/yr</option>
+              <option value="56250">Up to $200M — $56,250/yr</option>
+              <option value="68750">Up to $400M — $68,750/yr</option>
+              <option value="100000">Up to $800M — $100,000/yr</option>
+              <option value="150000">Up to $1.6B — $150,000/yr</option>
               <option value="175000">Up to $2B — $175,000/yr</option>
-              <option value="200000">Up to $2.5B — $200,000/yr</option>
-              <option value="225000">Up to $3B — $225,000/yr</option>
+              <option value="200000">Above $2B — $200,000/yr</option>
             </select>
           </div>
         </div>
@@ -1575,10 +1574,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================
 const modules = {
   gb2po: { name: 'Guided Buying', color: 'cyan', tiers: [
-    { vol: 'Up to $300M', price: 50000 }, { vol: 'Up to $600M', price: 56250 },
-    { vol: 'Up to $800M', price: 68750 }, { vol: 'Up to $1B', price: 100000 },
-    { vol: 'Up to $1.5B', price: 150000 }, { vol: 'Up to $2B', price: 175000 },
-    { vol: 'Up to $2.5B', price: 200000 }, { vol: 'Up to $3B', price: 225000 }
+    { vol: 'Up to $100M', price: 50000 }, { vol: 'Up to $200M', price: 56250 },
+    { vol: 'Up to $400M', price: 68750 }, { vol: 'Up to $800M', price: 100000 },
+    { vol: 'Up to $1.6B', price: 150000 }, { vol: 'Up to $2B', price: 175000 },
+    { vol: 'Above $2B', price: 200000 }
   ]},
   ntpo: { name: 'PR Review Agent', color: 'emerald', tiers: [
     { vol: 'Up to 6,250', price: 16000 }, { vol: 'Up to 15,000', price: 25000 },
