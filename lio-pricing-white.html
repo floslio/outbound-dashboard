@@ -668,7 +668,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
 <div id="quote-history-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
   <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8 w-full max-w-6xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
     <div class="flex justify-between items-center mb-6">
-      <h3 class="text-xl font-bold text-slate-900">Quote Management<span id="sb-sync-status" class="text-xs text-slate-400 ml-2"></span><span class="text-[10px] text-slate-400 ml-2 font-mono">build 2026-04-27</span></h3>
+      <h3 class="text-xl font-bold text-slate-900">Quote Management<span id="sb-sync-status" class="text-xs text-slate-400 ml-2"></span></h3>
       <button onclick="closeQuoteHistory()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
     </div>
     <div id="quote-history-list" class="space-y-3"></div>
@@ -700,6 +700,10 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
           <option value="vladimir">Vladimir Keil</option>
           <option value="till">Till Wagner</option>
           <option value="lukas">Lukas Heinzmann</option>
+          <option value="moritz">Moritz Meidinger</option>
+          <option value="stefan">Stefan Schweiger</option>
+          <option value="lasse">Lasse Fehl</option>
+          <option value="niklas">Niklas Marxer</option>
           <option value="temoc">Temoc Chavero</option>
         </select>
       </div>
@@ -776,6 +780,15 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
               </tr>
             </tfoot>
           </table>
+        </div>
+
+        <!-- Custom Positions -->
+        <div class="mt-3 p-3 rounded-lg bg-slate-50 border border-slate-200">
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-xs text-slate-700 font-semibold">Custom Positions <span class="text-slate-400 font-normal">— added to SaaS Subtotal</span></label>
+            <button type="button" onclick="addCustomPosition()" class="px-3 py-1 bg-lio-50 hover:bg-lio-100 border border-lio-200 rounded text-xs text-lio-700 font-medium transition">+ Add Position</button>
+          </div>
+          <div id="custom-positions-list" class="space-y-2"></div>
         </div>
 
         <!-- Global Agent Discount -->
@@ -915,6 +928,10 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
                 <option value="vladimir">Vladimir Keil</option>
                 <option value="till">Till Wagner</option>
                 <option value="lukas">Lukas Heinzmann</option>
+                <option value="moritz">Moritz Meidinger</option>
+                <option value="stefan">Stefan Schweiger</option>
+                <option value="lasse">Lasse Fehl</option>
+                <option value="niklas">Niklas Marxer</option>
                 <option value="temoc">Temoc Chavero</option>
               </select>
             </div>
@@ -1205,13 +1222,17 @@ async function sbUpdateQuote(quoteRef, entry) {
   }
 }
 
+// Lite-list query — DROP `quote_html` (avg 55 KB / row) so the modal opens fast.
+// quote_html is fetched lazily by redownloadQuote() when the user actually prints.
+const SB_LIST_FIELDS = 'id,quote_ref,company,contact_person,currency,total_amount,modules,created_at,last_edited_at,form_state';
 async function sbLoadQuotes() {
   window._sbLastLoadError = null;
   // 8-second hard timeout so the UI never hangs on a blocked / slow network.
   const ctrl = new AbortController();
   const timeoutId = setTimeout(() => ctrl.abort(), 8000);
+  const t0 = performance.now();
   try {
-    const resp = await fetch(SB_URL + '/rest/v1/quotes?select=*&order=created_at.desc&limit=100', {
+    const resp = await fetch(SB_URL + '/rest/v1/quotes?select=' + SB_LIST_FIELDS + '&order=created_at.desc&limit=100', {
       headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY },
       signal: ctrl.signal
     });
@@ -1221,7 +1242,7 @@ async function sbLoadQuotes() {
       throw new Error('HTTP ' + resp.status + ': ' + body.slice(0, 200));
     }
     const data = await resp.json();
-    console.log('[sbLoadQuotes] OK — loaded ' + data.length + ' quotes from Supabase');
+    console.log('[sbLoadQuotes] OK — ' + data.length + ' quotes loaded in ' + Math.round(performance.now() - t0) + 'ms');
     return data.map(q => ({
       id: q.id,
       ref: q.quote_ref,
@@ -1230,7 +1251,7 @@ async function sbLoadQuotes() {
       contact: q.contact_person || '',
       total: q.currency === 'eur' ? q.total_amount?.toLocaleString('de-DE') + ' \u20ac' : (q.currency === 'gbp' ? '\u00a3' + q.total_amount?.toLocaleString('en-US') : '$' + q.total_amount?.toLocaleString('en-US')),
       modules: q.modules || '',
-      html: q.quote_html || '',
+      // html: lazy-loaded on demand by redownloadQuote()
       createdAt: q.created_at,
       lastEditedAt: q.last_edited_at,
       currency: q.currency || 'usd',
@@ -1240,6 +1261,25 @@ async function sbLoadQuotes() {
   } catch(e) {
     window._sbLastLoadError = String(e.message || e);
     console.error('[sbLoadQuotes] FAILED:', e);
+    return null;
+  }
+}
+
+// Lazy fetch a single quote's HTML when the user wants to print/redownload.
+async function sbLoadQuoteHtml(sbId) {
+  const ctrl = new AbortController();
+  const timeoutId = setTimeout(() => ctrl.abort(), 12000);
+  try {
+    const resp = await fetch(SB_URL + '/rest/v1/quotes?id=eq.' + encodeURIComponent(sbId) + '&select=quote_html', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY },
+      signal: ctrl.signal
+    });
+    clearTimeout(timeoutId);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    return data[0]?.quote_html || null;
+  } catch(e) {
+    console.error('[sbLoadQuoteHtml] FAILED:', e);
     return null;
   }
 }
@@ -1936,6 +1976,10 @@ function buildROIPdfHtml() {
     vladimir: { name: 'Vladimir Keil', email: 'vladimir.keil@lio.ai', phone: '' },
     till: { name: 'Till Wagner', email: 'till.wagner@lio.ai', phone: '' },
     lukas: { name: 'Lukas Heinzmann', email: 'lukas.heinzmann@lio.ai', phone: '' },
+    moritz: { name: 'Moritz Meidinger', email: 'moritz.meidinger@lio.ai', phone: '' },
+    stefan: { name: 'Stefan Schweiger', email: 'stefan.schweiger@lio.ai', phone: '' },
+    lasse: { name: 'Lasse Fehl', email: 'lasse.fehl@lio.ai', phone: '' },
+    niklas: { name: 'Niklas Marxer', email: 'niklas.marxer@lio.ai', phone: '' },
     temoc: { name: 'Temoc Chavero', email: 'temoc.chavero@lio.ai', phone: '' }
   };
   const lioSender = lioContactsMap[lioContactKey] || lioContactsMap.florian;
@@ -2531,6 +2575,10 @@ function openQuoteModal() {
   modal.classList.add('flex');
   const vd = new Date(); vd.setDate(vd.getDate() + 90);
   document.getElementById('quote-valid-until').value = vd.toISOString().split('T')[0];
+  // Reset custom positions for a fresh quote (loadQuote pre-fills these before calling us).
+  if (!window._editingQuoteId) {
+    window._customPositions = [];
+  }
   populateQuotePricing();
 
   // Populate additional agents (modules not in the quote)
@@ -2600,6 +2648,68 @@ function detectBundle(selectedKeys) {
 
 const discountMode = {};
 
+// ============================
+// CUSTOM POSITIONS
+// ============================
+// Free-form line items added to a quote (e.g. one-off services, bespoke modules
+// not in the standard catalogue). Roll into the SaaS Subtotal & all downstream calcs.
+window._customPositions = window._customPositions || [];
+let _customPosCounter = 0;
+
+function customPositionsTotal() {
+  return (window._customPositions || []).reduce((s, p) => s + (parseFloat(p.price) || 0), 0);
+}
+
+function addCustomPosition() {
+  const id = 'cp-' + (++_customPosCounter);
+  window._customPositions.push({ id, name: '', tier: '', price: 0 });
+  renderCustomPositions();
+  setTimeout(() => {
+    const el = document.querySelector('[data-cp="' + id + '"] input[data-field="name"]');
+    if (el) el.focus();
+  }, 0);
+}
+
+function removeCustomPosition(id) {
+  window._customPositions = window._customPositions.filter(p => p.id !== id);
+  renderCustomPositions();
+  updateQuotePricing();
+}
+
+function updateCustomPosition(id, field, value) {
+  const p = window._customPositions.find(x => x.id === id);
+  if (!p) return;
+  p[field] = (field === 'price') ? (parseFloat(value) || 0) : value;
+  updateQuotePricing();
+}
+
+function renderCustomPositions() {
+  const list = document.getElementById('custom-positions-list');
+  if (!list) return;
+  if (!window._customPositions || window._customPositions.length === 0) {
+    list.innerHTML = '<div class="text-xs text-slate-400 italic py-1">No custom positions. Click "+ Add Position" to add one.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  window._customPositions.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'grid grid-cols-12 gap-2 items-center';
+    row.dataset.cp = p.id;
+    row.innerHTML =
+      '<input type="text" placeholder="Module name" data-field="name" class="col-span-5 border border-slate-200 rounded p-1.5 text-xs outline-none focus:ring-2 focus:ring-lio-200">' +
+      '<input type="text" placeholder="Tier" data-field="tier" class="col-span-3 border border-slate-200 rounded p-1.5 text-xs outline-none focus:ring-2 focus:ring-lio-200">' +
+      '<input type="number" placeholder="Annual fee" min="0" step="100" data-field="price" class="col-span-3 border border-slate-200 rounded p-1.5 text-xs outline-none text-right focus:ring-2 focus:ring-lio-200">' +
+      '<button type="button" data-act="remove" class="col-span-1 text-slate-400 hover:text-red-500 text-lg" title="Remove">&times;</button>';
+    row.querySelectorAll('input').forEach(inp => {
+      const f = inp.dataset.field;
+      inp.value = (f === 'price') ? (p.price || '') : (p[f] || '');
+      inp.addEventListener('input', () => updateCustomPosition(p.id, f, inp.value));
+    });
+    row.querySelector('[data-act="remove"]').addEventListener('click', () => removeCustomPosition(p.id));
+    list.appendChild(row);
+  });
+}
+
 function populateQuotePricing() {
   const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
   const tbody = document.getElementById('quote-pricing-lines');
@@ -2641,6 +2751,7 @@ function populateQuotePricing() {
     bundleRow.classList.add('hidden');
     document.getElementById('quote-bundle-apply').checked = false;
   }
+  renderCustomPositions();
   updateQuotePricing();
 }
 
@@ -2737,6 +2848,8 @@ function updateQuotePricing() {
     const el = document.getElementById('qf-' + mod);
     if (el) saasSubtotal += Math.max(0, parseFloat(el.value) || 0);
   });
+  // Add custom positions to the subtotal so they roll into bundle/CS/Impl/Total.
+  saasSubtotal += customPositionsTotal();
 
   // Bundle discount on the subtotal
   const bundleSavings = bundlePct > 0 ? Math.round(saasSubtotal * bundlePct / 100) : 0;
@@ -2805,6 +2918,29 @@ function generateQuoteData() {
     const discPct = (discountMode[k] === 'pct') ? (parseFloat(document.getElementById('qd-' + k)?.value) || 0) : 0;
     sel.push({ key: k, name: k === 'sm' ? 'Supplier Relationship Management (SRM)' : modules[k].name, price: customPrice, listPrice: listPrice, tierUsdPrice: tierPrice, discountPct: discPct, discountMode: discountMode[k] || 'manual', tier: tierText, desc: modules[k].desc, features: modules[k].features });
   });
+
+  // Append custom positions as additional line items so they show in the PDF
+  // breakdown and roll into the SaaS subtotal.
+  (window._customPositions || []).forEach(p => {
+    const price = parseFloat(p.price) || 0;
+    const name = (p.name || '').trim();
+    if (price <= 0 && !name) return; // skip empty rows
+    totalSaas += price;
+    sel.push({
+      key: '_cp_' + p.id,
+      name: name || 'Custom Position',
+      price: price,
+      listPrice: price,
+      tierUsdPrice: price,
+      discountPct: 0,
+      discountMode: 'manual',
+      tier: (p.tier || '').trim(),
+      desc: '',
+      features: [],
+      isCustom: true
+    });
+  });
+
   if (!sel.length) { alert('Please select at least one module.'); return; }
 
   // Bundle info
@@ -2872,6 +3008,10 @@ function generateQuoteData() {
     vladimir: { name: 'Vladimir Keil', email: 'vladimir.keil@lio.ai' },
     till: { name: 'Till Wagner', email: 'till.wagner@lio.ai' },
     lukas: { name: 'Lukas Heinzmann', email: 'lukas.heinzmann@lio.ai' },
+    moritz: { name: 'Moritz Meidinger', email: 'moritz.meidinger@lio.ai' },
+    stefan: { name: 'Stefan Schweiger', email: 'stefan.schweiger@lio.ai' },
+    lasse: { name: 'Lasse Fehl', email: 'lasse.fehl@lio.ai' },
+    niklas: { name: 'Niklas Marxer', email: 'niklas.marxer@lio.ai' },
     temoc: { name: 'Temoc Chavero', email: 'temoc.chavero@lio.ai' }
   };
   const lioContactKey = document.getElementById('quote-lio-contact')?.value || 'florian';
@@ -2901,7 +3041,7 @@ function generateQuoteData() {
     }
     return '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;font-weight:600;font-size:12px;">' + m.name + '</td><td style="padding:8px 16px;color:#1e293b;font-size:11px;">' + m.tier + '</td><td style="padding:8px 16px;text-align:right;font-weight:600;font-size:12px;">' + priceHtml + '</td></tr>';
   }).join('');
-  const details = sel.map(m => {
+  const details = sel.filter(m => !m.isCustom).map(m => {
     const allTiers = modules[m.key]?.tiers || [];
     const selectedTierObj = allTiers.find(t => t.price === m.tierUsdPrice);
     const standardPrice = selectedTierObj ? getTierPriceRaw(selectedTierObj) : m.listPrice;
@@ -3095,7 +3235,8 @@ function saveQuoteToHistory(data) {
       includeService: includeService,
       includeTerms: includeTerms,
       hideDiscounts: hideDiscounts,
-      additionalAgents: Array.from(document.querySelectorAll('.additional-agent-cb:checked')).map(cb => cb.value)
+      additionalAgents: Array.from(document.querySelectorAll('.additional-agent-cb:checked')).map(cb => cb.value),
+      customPositions: (window._customPositions || []).map(p => ({ name: p.name || '', tier: p.tier || '', price: parseFloat(p.price) || 0 }))
     }
   };
   const history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
@@ -3333,6 +3474,16 @@ function loadQuote(id) {
   // Close history modal
   closeQuoteHistory();
 
+  // Pre-set editing state + restore custom positions BEFORE openQuoteModal
+  // so the modal renders them on first paint instead of clearing them.
+  window._editingQuoteId = entry.id;
+  window._customPositions = (fs.customPositions || []).map(p => ({
+    id: 'cp-' + (++_customPosCounter),
+    name: p.name || '',
+    tier: p.tier || '',
+    price: parseFloat(p.price) || 0
+  }));
+
   // Open quote modal
   openQuoteModal();
 
@@ -3391,19 +3542,35 @@ function loadQuote(id) {
       });
     }
 
+    // Re-render custom positions (in case modal opened before they were set)
+    if (typeof renderCustomPositions === 'function') renderCustomPositions();
     // Recalculate
     if (typeof updateQuotePricing === 'function') updateQuotePricing();
-
-    // Store editing state
+    // Editing state already set before openQuoteModal — keep here for safety.
     window._editingQuoteId = entry.id;
   }, 200);
 }
-function redownloadQuote(id) {
+async function redownloadQuote(id) {
   const history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
   const q = history.find(h => h.id === id);
-  if (!q) return;
+  if (!q) return alert('Quote not found.');
+  let html = q.html;
+  // Lazy-fetch quote_html from cloud when missing in cache (list query no longer carries html).
+  if (!html) {
+    const sbId = q._sbId || q.id;
+    const btn = document.querySelector('button[onclick="redownloadQuote(' + id + ')"]');
+    const prev = btn ? btn.textContent : '';
+    if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+    html = await sbLoadQuoteHtml(sbId);
+    if (btn) { btn.textContent = prev; btn.disabled = false; }
+    if (!html) return alert('Could not load quote HTML from cloud.');
+    q.html = html;
+    const idx = history.findIndex(h => h.id === id);
+    if (idx >= 0) history[idx] = q;
+    localStorage.setItem('lio-quote-history', JSON.stringify(history));
+  }
   const w = window.open('', '_blank');
-  w.document.write(q.html);
+  w.document.write(html);
   w.document.close();
   setTimeout(() => w.print(), 500);
 }
