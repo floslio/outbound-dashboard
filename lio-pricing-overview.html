@@ -2093,7 +2093,7 @@ async function sbUpdateQuote(quoteRef, entry) {
 
 // Lite-list query — DROP `quote_html` (avg 55 KB / row) so the modal opens fast.
 // quote_html is fetched lazily by redownloadQuote() when the user actually prints.
-const SB_LIST_FIELDS = 'id,quote_ref,company,contact_person,currency,total_amount,modules,created_at,last_edited_at,form_state';
+const SB_LIST_FIELDS = 'id,quote_ref,company,contact_person,currency,total_amount,modules,created_at,last_edited_at,form_state,lio_contact';
 async function sbLoadQuotes() {
   window._sbLastLoadError = null;
   // 8-second hard timeout so the UI never hangs on a blocked / slow network.
@@ -2124,6 +2124,7 @@ async function sbLoadQuotes() {
       createdAt: q.created_at,
       lastEditedAt: q.last_edited_at,
       currency: q.currency || 'usd',
+      lioContact: q.lio_contact || q.form_state?.lioContact || 'florian',
       formState: q.form_state || null,
       _sbId: q.id
     }));
@@ -5238,11 +5239,23 @@ async function renderQuoteHistory(forceCloud = false) {
   }
   empty.classList.add('hidden');
   clearBtn.classList.remove('hidden');
-  list.innerHTML = errorBanner + `<div class="overflow-x-auto"><table class="w-full text-sm min-w-[500px]">
+  // Map of all sales contact keys \u2192 display name (kept in sync with the
+  // dropdowns in the Quote Modal so renderQuoteHistory can show *who* a quote
+  // belongs to without re-deriving the name elsewhere).
+  const lioNameByKey = {
+    florian: 'Florian Wanzeck', michael: 'Michael Schmid', vincent: 'Vincent Nussmaier',
+    tobias: 'Tobias Rohringer', edmond: 'Edmond Clemens', romeo: 'Romeo Vogt',
+    patricia: 'Patricia Hoelscher', olivia: 'Olivia Pavoni', julius: 'Julius Kaiser',
+    vladimir: 'Vladimir Keil', till: 'Till Wagner', lukas: 'Lukas Heinzmann',
+    moritz: 'Moritz Medinger', stefan: 'Stefan Schweiger', lasse: 'Lasse Fehl',
+    niklas: 'Niklas Marxer', temoc: 'Temoc Chavero'
+  };
+  list.innerHTML = errorBanner + `<div class="overflow-x-auto"><table class="w-full text-sm min-w-[600px]">
     <thead>
       <tr class="text-left text-xs text-slate-400 uppercase tracking-wider border-b border-slate-700">
         <th class="py-3 px-3">Quote #</th>
         <th class="py-3 px-3">Company</th>
+        <th class="py-3 px-3 hidden lg:table-cell">Created By</th>
         <th class="py-3 px-3">Created</th>
         <th class="py-3 px-3 hidden md:table-cell">Last Edited</th>
         <th class="py-3 px-3">Total</th>
@@ -5254,6 +5267,8 @@ async function renderQuoteHistory(forceCloud = false) {
       ${history.map(q => {
         const vt = q.versions?.length ? 'Previous versions:\n' + q.versions.map(v => 'v' + v.version + ' \u2014 ' + v.total + ' (' + new Date(v.savedAt).toLocaleDateString() + ')').join('\n') : '';
         const lk = q.formState?._lock && new Date(q.formState._lock.expires) > new Date() ? q.formState._lock.by : null;
+        const ownerKey = q.lioContact || q.formState?.lioContact || 'florian';
+        const ownerName = lioNameByKey[ownerKey] || ownerKey;
         return `<tr class="border-b border-slate-700/50 hover:bg-slate-800/50">
         <td class="py-3 px-3">
           <span class="font-mono text-xs text-lio-400">${q.ref}</span>
@@ -5261,6 +5276,7 @@ async function renderQuoteHistory(forceCloud = false) {
           ${lk ? '<span class="ml-1 text-[10px] bg-amber-900/50 text-amber-300 px-1.5 py-0.5 rounded">&#128274; ' + lk + '</span>' : ''}
         </td>
         <td class="py-3 px-3 font-semibold">${q.company}</td>
+        <td class="py-3 px-3 text-xs text-slate-300 hidden lg:table-cell whitespace-nowrap">${ownerName}</td>
         <td class="py-3 px-3 text-xs text-slate-400">${formatTimestamp(q.createdAt || q.date)}</td>
         <td class="py-3 px-3 text-xs text-slate-400 hidden md:table-cell">${q.lastEditedAt && q.lastEditedAt !== q.createdAt ? formatTimestamp(q.lastEditedAt) : '\u2014'}</td>
         <td class="py-3 px-3 font-semibold text-emerald-400">${q.total}</td>
