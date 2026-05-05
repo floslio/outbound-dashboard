@@ -2921,23 +2921,28 @@ function renderCustomPositions() {
 function populateQuotePricing() {
   const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
   const tbody = document.getElementById('quote-pricing-lines');
-  const selectedKeys = [];
+  // First pass — collect modules currently in the quote so the per-row module
+  // dropdown can hide options that are already in another row (no duplicates).
+  const selectedKeys = mods.filter(m => document.getElementById('chk-' + m)?.checked);
   tbody.innerHTML = '';
-  mods.forEach(mod => {
-    if (!document.getElementById('chk-' + mod).checked) return;
-    selectedKeys.push(mod);
+  selectedKeys.forEach(mod => {
     const tierEl = document.getElementById('ct-' + mod);
     const price = parseInt(tierEl.value);
     const tierObj = modules[mod].tiers.find(t => t.price === price) || { price: price };
     const rawPrice = getTierPriceRaw(tierObj);
-    const modName = mod === 'sm' ? 'Supplier Relationship Management (SRM)' : modules[mod].name;
+    const modName = prettyModuleName(mod);
     discountMode[mod] = discountMode[mod] || 'manual';
     const tierOpts = modules[mod].tiers.map(t => {
       const sel = t.price === price ? ' selected' : '';
       return '<option value="' + t.price + '"' + sel + '>' + t.vol + '</option>';
     }).join('');
+    // Build module dropdown options — current module first (selected), then any
+    // module that isn't already in another row of the table.
+    const otherMods = mods.filter(k => !selectedKeys.includes(k));
+    const modOptions = '<option value="' + mod + '" selected>' + modName + '</option>' +
+      otherMods.map(k => '<option value="' + k + '">' + prettyModuleName(k) + '</option>').join('');
     tbody.innerHTML += `<tr class="border-t border-slate-100" data-mod="${mod}" id="qrow-${mod}">
-      <td class="p-2 pl-3 text-slate-700">${modName}</td>
+      <td class="p-2 pl-3"><select onchange="swapModuleInRow('${mod}', this.value)" class="w-full border border-slate-200 rounded p-1 text-xs outline-none cursor-pointer hover:bg-slate-50 text-slate-700" title="Click to swap with a different agent">${modOptions}</select></td>
       <td class="p-2"><select id="qt-${mod}" onchange="changeQuoteTier('${mod}')" class="w-full border border-slate-200 rounded p-1 text-xs outline-none">${tierOpts}</select></td>
       <td class="p-2 text-right text-slate-500" data-list-price="${rawPrice}">${fmtRaw(rawPrice)}</td>
       <td class="p-2 text-center">
@@ -2946,7 +2951,7 @@ function populateQuotePricing() {
       <td class="p-2 pr-3 text-right">
         <input type="number" id="qf-${mod}" value="${rawPrice}" min="0" step="100" onchange="applyManualPrice('${mod}')" oninput="applyManualPrice('${mod}')" class="w-28 border border-slate-200 rounded p-1 text-sm text-right outline-none font-semibold">
       </td>
-      <td class="p-2 text-center"><button onclick="toggleExcludeModule('${mod}')" id="qx-${mod}" class="text-slate-400 hover:text-red-500 text-lg transition" title="Exclude from quote">×</button></td>
+      <td class="p-2 text-center"><button onclick="toggleExcludeModule('${mod}')" id="qx-${mod}" class="text-slate-400 hover:text-red-500 text-lg transition" title="Exclude from quote">&times;</button></td>
     </tr>`;
   });
   const bundle = detectBundle(selectedKeys);
@@ -3006,6 +3011,36 @@ function changeQuoteTier(key) {
   if (calcTier) calcTier.value = newUsdPrice;
   calcUpdate();
   updateQuotePricing();
+}
+
+// Swap an entire row to a different agent. Used by the per-row Module dropdown
+// in the Quote Modal so the user can fix a wrong selection without closing the
+// modal. The new module starts at its first volume tier — user can adjust the
+// tier dropdown right next to it afterwards.
+function swapModuleInRow(oldMod, newMod) {
+  if (!newMod || oldMod === newMod) return;
+  if (newMod !== oldMod && document.getElementById('qrow-' + newMod)) {
+    alert(prettyModuleName(newMod) + ' is already in the quote.');
+    populateQuotePricing();
+    return;
+  }
+  const oldCb = document.getElementById('chk-' + oldMod);
+  if (oldCb) oldCb.checked = false;
+  const newCb = document.getElementById('chk-' + newMod);
+  if (newCb) newCb.checked = true;
+  const newCalcTier = document.getElementById('ct-' + newMod);
+  if (newCalcTier && newCalcTier.options.length > 0) {
+    newCalcTier.value = newCalcTier.options[0].value;
+  }
+  if (excludedModules[oldMod]) delete excludedModules[oldMod];
+  if (discountMode[oldMod]) delete discountMode[oldMod];
+  if (typeof calcUpdate === 'function') calcUpdate();
+  populateQuotePricing();
+}
+
+// Helper: SRM gets a long-form display name; everything else uses the module's name.
+function prettyModuleName(k) {
+  return k === 'sm' ? 'Supplier Relationship Management (SRM)' : (modules[k]?.name || k);
 }
 
 const excludedModules = {};
