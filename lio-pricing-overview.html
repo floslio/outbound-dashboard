@@ -2068,11 +2068,17 @@ async function sbUpdateQuote(quoteRef, entry) {
       currency: entry.currency || 'usd',
       modules: entry.modules || '',
       form_state: entry.formState || {},
-      quote_html: entry.html || '',
       lio_contact: entry.formState?.lioContact || 'florian',
       valid_until: entry.formState?.validUntil || null,
       last_edited_at: new Date().toISOString()
     };
+    // CRITICAL: only patch quote_html if we actually have HTML in this entry.
+    // The lite-list query no longer returns quote_html, so cached entries
+    // arriving here from lock-acquire/release paths have entry.html === undefined.
+    // Sending '' would silently wipe the row's quote_html in Supabase.
+    if (entry.html && entry.html.length > 0) {
+      payload.quote_html = entry.html;
+    }
     const resp = await fetch(SB_URL + '/rest/v1/quotes?quote_ref=eq.' + encodeURIComponent(quoteRef), {
       method: 'PATCH',
       headers: SB_HEADERS,
@@ -5084,7 +5090,7 @@ function saveQuoteToHistory(data) {
       hideDiscounts: hideDiscounts,
       additionalAgents: Array.from(document.querySelectorAll('.additional-agent-cb:checked')).map(cb => cb.value),
       customPositions: (window._customPositions || []).map(p => ({ name: p.name || '', tier: p.tier || '', price: parseFloat(p.price) || 0 })),
-      includeAdvROI: includeAdvROI
+      includeAdvROI: document.getElementById('quote-inc-adv-roi')?.checked ?? false
     }
   };
   const history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
