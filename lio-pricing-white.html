@@ -4388,6 +4388,22 @@ document.addEventListener('DOMContentLoaded', function() {
   'use strict';
 
   // ---------------------------
+  // Legacy bridge — top-level `const`/`let` from the main <script> are
+  // visible as bare names across scripts but NOT on `window` (per spec).
+  // Mirror them onto `window` once at boot so the wizard can read them
+  // through a single, reliable handle. `currentCurrency` is mutable, so
+  // we re-bridge it on every summary refresh.
+  // ---------------------------
+  try { if (typeof modules !== 'undefined' && !window.modules) window.modules = modules; } catch (e) {}
+  try { if (typeof roiModels !== 'undefined' && !window.roiModels) window.roiModels = roiModels; } catch (e) {}
+  try { if (typeof LIO_NAME_BY_KEY !== 'undefined' && !window.LIO_NAME_BY_KEY) window.LIO_NAME_BY_KEY = LIO_NAME_BY_KEY; } catch (e) {}
+  try { if (typeof DEFAULT_PRICING_REF !== 'undefined' && !window.DEFAULT_PRICING_REF) window.DEFAULT_PRICING_REF = DEFAULT_PRICING_REF; } catch (e) {}
+  function _refreshLegacyBridge() {
+    try { if (typeof currentCurrency !== 'undefined') window.currentCurrency = currentCurrency; } catch (e) {}
+  }
+  _refreshLegacyBridge();
+
+  // ---------------------------
   // Wizard state
   // ---------------------------
   const SEGMENTS = [
@@ -5050,6 +5066,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Live summary panel
   // ---------------------------
   window.lioSyncSummary = function () {
+    _refreshLegacyBridge();
     if (typeof calcUpdate === 'function') calcUpdate();
     const seg = SEGMENTS.find(s => s.key === W.profileKey);
     document.getElementById('lio-sum-profile').textContent = seg ? seg.name : '—';
