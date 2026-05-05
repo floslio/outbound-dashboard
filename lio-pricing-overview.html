@@ -2062,7 +2062,14 @@ const SB_HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Con
 
 async function sbSaveQuote(entry) {
   try {
-    const totalNum = parseFloat(String(entry.total).replace(/[^0-9.]/g, '')) || 0;
+    // Prefer the raw numeric total; only fall back to regex-parsing the
+    // formatted string for very old entries that predate `totalRaw`.
+    // The regex below collapses any thousands separator (`.`, `,`, ` `, `'`)
+    // by removing everything that isn't a digit, then parses — so both
+    // "$32,500" and "32.500 €" round-trip to 32500 cleanly.
+    const totalNum = (typeof entry.totalRaw === 'number' && isFinite(entry.totalRaw))
+      ? entry.totalRaw
+      : (parseInt(String(entry.total || '').replace(/[^0-9]/g, ''), 10) || 0);
     const payload = {
       quote_ref: entry.ref,
       company: entry.company || null,
@@ -2095,7 +2102,11 @@ async function sbSaveQuote(entry) {
 
 async function sbUpdateQuote(quoteRef, entry) {
   try {
-    const totalNum = parseFloat(String(entry.total).replace(/[^0-9.]/g, '')) || 0;
+    // Same totalRaw-preferred parser as sbSaveQuote — guards against the
+    // EUR thousands-dot mis-parse ("32.500 €" → 32.5) that used to corrupt rows.
+    const totalNum = (typeof entry.totalRaw === 'number' && isFinite(entry.totalRaw))
+      ? entry.totalRaw
+      : (parseInt(String(entry.total || '').replace(/[^0-9]/g, ''), 10) || 0);
     const payload = {
       company: entry.company || null,
       contact_person: entry.contact || null,
@@ -5307,6 +5318,7 @@ function saveQuoteToHistory(data) {
     company: recipientCompany || 'No company',
     contact: recipientContact || '',
     total: fmt(grandTotal),
+    totalRaw: grandTotal,  // unformatted number — sbSaveQuote prefers this over the locale-formatted string
     modules: selectedMods.map(s => s.name).join(', '),
     html: html,
     createdAt: new Date().toISOString(),
