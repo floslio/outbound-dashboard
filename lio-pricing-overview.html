@@ -1428,9 +1428,27 @@ input[type="checkbox"] { accent-color: #6366f1; }
 <!-- Quote History Modal -->
 <div id="quote-history-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
   <div class="bg-[#12132a] border border-slate-700/50 rounded-2xl p-4 sm:p-8 w-full max-w-6xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
-    <div class="flex justify-between items-center mb-6">
-      <h3 class="text-xl font-bold text-white">Quote Management<span id="sb-sync-status" class="text-xs text-slate-500 ml-2"></span></h3>
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-bold text-white">Quote Management<span id="sb-sync-status" class="text-xs text-slate-500 ml-2"></span><span id="qh-result-count" class="text-xs text-slate-500 ml-2"></span></h3>
       <button onclick="closeQuoteHistory()" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
+    </div>
+    <!-- Filter bar -->
+    <div id="qh-filter-bar" class="hidden mb-4 grid grid-cols-1 sm:grid-cols-12 gap-2 items-stretch">
+      <div class="sm:col-span-5 relative">
+        <input type="text" id="qh-filter-search" placeholder="Search by company, ref, contact, or module…" class="w-full bg-slate-800/50 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-slate-500 focus:ring-2 focus:ring-lio-500 focus:border-lio-500 outline-none" oninput="applyQuoteHistoryFilters()">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/></svg>
+      </div>
+      <select id="qh-filter-owner" class="sm:col-span-3 bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-lio-500" onchange="applyQuoteHistoryFilters()">
+        <option value="">All sales reps</option>
+      </select>
+      <select id="qh-filter-date" class="sm:col-span-2 bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-lio-500" onchange="applyQuoteHistoryFilters()">
+        <option value="all">All dates</option>
+        <option value="today">Today</option>
+        <option value="7d">Last 7 days</option>
+        <option value="30d">Last 30 days</option>
+        <option value="90d">Last 90 days</option>
+      </select>
+      <button type="button" onclick="resetQuoteHistoryFilters()" class="sm:col-span-2 bg-slate-800/30 hover:bg-slate-800/60 border border-slate-700/50 rounded-lg px-3 py-2 text-sm text-slate-300 transition">Clear filters</button>
     </div>
     <div id="quote-history-list" class="space-y-3"></div>
     <div id="quote-history-empty" class="hidden text-center py-12 text-slate-500 text-sm">No quotes created yet.</div>
@@ -2137,6 +2155,7 @@ async function sbLoadQuotes() {
       company: q.company || 'No company',
       contact: q.contact_person || '',
       total: q.currency === 'eur' ? q.total_amount?.toLocaleString('de-DE') + ' \u20ac' : (q.currency === 'gbp' ? '\u00a3' + q.total_amount?.toLocaleString('en-US') : '$' + q.total_amount?.toLocaleString('en-US')),
+      totalRaw: typeof q.total_amount === 'number' ? q.total_amount : parseFloat(q.total_amount) || 0,
       modules: q.modules || '',
       // html: lazy-loaded on demand by redownloadQuote()
       createdAt: q.created_at,
@@ -2634,6 +2653,23 @@ function getTierPriceRaw(tier) {
 function fmtRaw(n) {
   if (currentCurrency === 'eur') return n.toLocaleString('de-DE') + '\u00a0\u20ac';
   return currencySymbols[currentCurrency] + n.toLocaleString('en-US');
+}
+
+// Compact currency formatter \u2014 used in the My Quotes list so dense rows stay
+// readable at a glance. 55_000 \u2192 "$55K", 1_250_000 \u2192 "$1.3M". Currency-aware
+// (EUR places symbol after the number; GBP and USD prefix it).
+function fmtCompactCurrency(n, currency) {
+  const num = Number(n);
+  if (!isFinite(num)) return '\u2014';
+  const curr = (currency || 'usd').toLowerCase();
+  const sym = curr === 'eur' ? '\u20ac' : curr === 'gbp' ? '\u00a3' : '$';
+  const abs = Math.abs(num);
+  let body;
+  if (abs >= 1e9)      body = (num / 1e9).toFixed(abs >= 1e10 ? 0 : 1).replace(/\.0$/, '') + 'B';
+  else if (abs >= 1e6) body = (num / 1e6).toFixed(abs >= 1e7  ? 0 : 1).replace(/\.0$/, '') + 'M';
+  else if (abs >= 1e3) body = (num / 1e3).toFixed(abs >= 1e4  ? 0 : 1).replace(/\.0$/, '') + 'K';
+  else                 body = Math.round(num).toString();
+  return curr === 'eur' ? body + ' \u20ac' : sym + body;
 }
 
 // Format volume text: prepend currency symbol for spend-based modules.
@@ -4206,9 +4242,9 @@ async function downloadAdvancedRoiPDF() {
 }
 
 function openQuoteModal() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
-  const anyChecked = mods.some(m => document.getElementById('check-' + m).checked);
-  if (!anyChecked) { alert('Please select at least one module first.'); return; }
+  // Modal is always allowed to open — the quote may consist of just a
+  // reference table, custom positions, ROI section, or notes. The actual
+  // "any content?" gate runs at PDF-generation time inside generateQuoteData().
   const modal = document.getElementById('quote-modal');
   modal.classList.remove('hidden');
   modal.classList.add('flex');
@@ -4830,7 +4866,16 @@ function generateQuoteData() {
     });
   });
 
-  if (selectedMods.length === 0) { alert('Please select at least one module.'); return; }
+  // A quote needs SOMETHING — modules, custom positions, the reference table,
+  // an ROI section, or at least notes. Otherwise we'd produce an empty PDF.
+  const includePricingRef_ = document.getElementById('quote-inc-pricing-ref')?.checked ?? false;
+  const includeAdvROI_ = document.getElementById('quote-inc-adv-roi')?.checked ?? false;
+  const includeROI_ = document.getElementById('quote-inc-roi')?.checked ?? false;
+  const hasNotes_ = ((document.getElementById('quote-notes')?.value || '').trim().length) > 0;
+  if (selectedMods.length === 0 && !includePricingRef_ && !includeAdvROI_ && !includeROI_ && !hasNotes_) {
+    alert('Add at least one module, custom position, reference table, ROI section, or notes before creating a quote.');
+    return;
+  }
 
   // Bundle info
   const selectedKeys = mods.filter(m => document.getElementById('check-' + m).checked);
@@ -5107,6 +5152,7 @@ function generateQuoteData() {
     ${recipientAddress ? `<div style="font-size:12px;color:#1e293b;margin-top:4px;white-space:pre-line;">${recipientAddress}</div>` : ''}
   </div>` : ''}
 
+  ${selectedMods.length === 0 ? '' : `
   <!-- Pricing Table -->
   <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;color:#1e293b;">Pricing Breakdown</h2>
   <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
@@ -5162,6 +5208,7 @@ function generateQuoteData() {
     </tr>
     ${!hideDiscounts && totalSavingsAll > 0 ? '<tr style="border-top:1px solid #e5e7eb;"><td style="padding:8px 16px;font-size:11px;font-weight:600;" colspan="2">Total Savings</td><td style="padding:8px 16px;text-align:right;font-weight:700;font-size:12px;color:#16a34a;">-' + fmtRaw(totalSavingsAll) + '</td></tr>' : ''}
   </table>
+  `}
 
   <!-- Module Details (conditional) -->
   ${includeDetails ? `<div style="page-break-before:always;"></div><h2 style="font-size:18px;font-weight:700;margin-bottom:16px;color:#1e293b;">Selected Modules</h2>${moduleDetails_pdf}` : ''}
@@ -5394,20 +5441,82 @@ function formatTimestamp(iso) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }
 
+// Single source of truth for sales-rep key \u2192 display name. Used by both the
+// Quote Management list and the owner-filter dropdown so the names never
+// drift between the two surfaces.
+const LIO_NAME_BY_KEY = {
+  florian: 'Florian Wanzeck', michael: 'Michael Schmid', vincent: 'Vincent Nussmaier',
+  tobias: 'Tobias Rohringer', edmond: 'Edmond Clemens', romeo: 'Romeo Vogt',
+  patricia: 'Patricia Hoelscher', olivia: 'Olivia Pavoni', julius: 'Julius Kaiser',
+  vladimir: 'Vladimir Keil', till: 'Till Wagner', lukas: 'Lukas Heinzmann',
+  moritz: 'Moritz Medinger', stefan: 'Stefan Schweiger', lasse: 'Lasse Fehl',
+  niklas: 'Niklas Marxer', temoc: 'Temoc Chavero'
+};
+function ownerKeyOf(q) { return q.lioContact || q.formState?.lioContact || 'florian'; }
+
+// Populate the owner-filter dropdown with the rep keys that actually appear
+// in the loaded history (so an account with 3 reps doesn't display all 17).
+function populateOwnerFilter(history) {
+  const sel = document.getElementById('qh-filter-owner');
+  if (!sel) return;
+  const ownerKeys = new Set();
+  history.forEach(q => ownerKeys.add(ownerKeyOf(q)));
+  const current = sel.value;
+  const sortedKeys = Array.from(ownerKeys).sort((a, b) => (LIO_NAME_BY_KEY[a] || a).localeCompare(LIO_NAME_BY_KEY[b] || b));
+  sel.innerHTML = '<option value="">All sales reps (' + history.length + ')</option>' +
+    sortedKeys.map(k => '<option value="' + k + '">' + (LIO_NAME_BY_KEY[k] || k) + '</option>').join('');
+  if (current && sortedKeys.includes(current)) sel.value = current;
+}
+
+function applyQuoteHistoryFilters() {
+  const history = window._quoteHistoryFull || [];
+  const search = (document.getElementById('qh-filter-search')?.value || '').toLowerCase().trim();
+  const owner = document.getElementById('qh-filter-owner')?.value || '';
+  const date = document.getElementById('qh-filter-date')?.value || 'all';
+  const now = new Date();
+  let cutoff = null;
+  if (date === 'today')      cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  else if (date === '7d')    cutoff = new Date(now.getTime() - 7 * 86400000);
+  else if (date === '30d')   cutoff = new Date(now.getTime() - 30 * 86400000);
+  else if (date === '90d')   cutoff = new Date(now.getTime() - 90 * 86400000);
+  const filtered = history.filter(q => {
+    if (search) {
+      const hay = ((q.ref || '') + ' ' + (q.company || '') + ' ' + (q.contact || '') + ' ' + (q.modules || '')).toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    if (owner && ownerKeyOf(q) !== owner) return false;
+    if (cutoff && q.createdAt && new Date(q.createdAt) < cutoff) return false;
+    return true;
+  });
+  renderFilteredQuoteHistory(filtered);
+  const countEl = document.getElementById('qh-result-count');
+  if (countEl) {
+    const filtersActive = !!(search || owner || (date && date !== 'all'));
+    countEl.textContent = filtersActive ? '\u00B7 Showing ' + filtered.length + ' of ' + history.length : '';
+    countEl.className = 'text-xs ' + (filtersActive ? 'text-lio-400' : 'text-slate-500') + ' ml-2';
+  }
+}
+
+function resetQuoteHistoryFilters() {
+  const s = document.getElementById('qh-filter-search'); if (s) s.value = '';
+  const o = document.getElementById('qh-filter-owner'); if (o) o.value = '';
+  const d = document.getElementById('qh-filter-date'); if (d) d.value = 'all';
+  applyQuoteHistoryFilters();
+}
+
 async function renderQuoteHistory(forceCloud = false) {
   const list = document.getElementById('quote-history-list');
   const empty = document.getElementById('quote-history-empty');
   const clearBtn = document.getElementById('quote-history-clear');
   const syncStatus = document.getElementById('sb-sync-status');
+  const filterBar = document.getElementById('qh-filter-bar');
 
-  // Show loading state
   if (syncStatus) { syncStatus.textContent = '\u23F3 Loading...'; syncStatus.className = 'text-xs text-slate-400 ml-2'; }
   list.innerHTML = '<div class="text-center py-8 text-slate-400 text-sm">Loading quotes from cloud...</div>';
+  if (filterBar) filterBar.classList.add('hidden');
 
-  // If forceCloud, ignore any local cache
   if (forceCloud) localStorage.removeItem('lio-quote-history');
 
-  // Try Supabase first, fall back to localStorage
   let history = await sbLoadQuotes();
   let isCloud = history !== null;
   const cloudError = window._sbLastLoadError;
@@ -5419,7 +5528,7 @@ async function renderQuoteHistory(forceCloud = false) {
 
   if (syncStatus) {
     if (isCloud) {
-      syncStatus.innerHTML = '\u2601\ufe0f Cloud (' + history.length + ') <button onclick="renderQuoteHistory(true)" class="ml-2 text-lio-400 hover:text-lio-300 underline">Refresh</button>';
+      syncStatus.innerHTML = '\u2601\uFE0F Cloud (' + history.length + ') <button onclick="renderQuoteHistory(true)" class="ml-2 text-lio-400 hover:text-lio-300 underline">Refresh</button>';
       syncStatus.className = 'text-xs text-emerald-400 ml-2';
     } else {
       syncStatus.innerHTML = '\u26A0\uFE0F Cloud unreachable \u2014 showing local cache (' + history.length + ') <button onclick="renderQuoteHistory(true)" class="ml-2 text-lio-400 hover:text-lio-300 underline">Retry</button>';
@@ -5427,29 +5536,40 @@ async function renderQuoteHistory(forceCloud = false) {
     }
   }
 
-  const errorBanner = (!isCloud && cloudError)
-    ? '<div class="mb-4 p-3 bg-red-900/20 border border-red-800/40 rounded-lg text-xs text-red-300"><strong>Cloud Error:</strong> ' + cloudError.replace(/</g,'&lt;') + '<br><span class="text-red-400/70">Check browser console (F12) for details. The list below shows the local cache only.</span></div>'
-    : '';
+  // Stash full list + cloud-error so the filter pipeline can re-render without re-fetching
+  window._quoteHistoryFull = history;
+  window._quoteHistoryCloudError = (!isCloud && cloudError) ? cloudError : null;
 
   if (history.length === 0) {
-    list.innerHTML = errorBanner;
+    list.innerHTML = window._quoteHistoryCloudError
+      ? '<div class="mb-4 p-3 bg-red-900/20 border border-red-800/40 rounded-lg text-xs text-red-300"><strong>Cloud Error:</strong> ' + window._quoteHistoryCloudError.replace(/</g,'&lt;') + '</div>'
+      : '';
     empty.classList.remove('hidden');
     clearBtn.classList.add('hidden');
     return;
   }
   empty.classList.add('hidden');
   clearBtn.classList.remove('hidden');
-  // Map of all sales contact keys \u2192 display name (kept in sync with the
-  // dropdowns in the Quote Modal so renderQuoteHistory can show *who* a quote
-  // belongs to without re-deriving the name elsewhere).
-  const lioNameByKey = {
-    florian: 'Florian Wanzeck', michael: 'Michael Schmid', vincent: 'Vincent Nussmaier',
-    tobias: 'Tobias Rohringer', edmond: 'Edmond Clemens', romeo: 'Romeo Vogt',
-    patricia: 'Patricia Hoelscher', olivia: 'Olivia Pavoni', julius: 'Julius Kaiser',
-    vladimir: 'Vladimir Keil', till: 'Till Wagner', lukas: 'Lukas Heinzmann',
-    moritz: 'Moritz Medinger', stefan: 'Stefan Schweiger', lasse: 'Lasse Fehl',
-    niklas: 'Niklas Marxer', temoc: 'Temoc Chavero'
-  };
+  if (filterBar) filterBar.classList.remove('hidden');
+
+  populateOwnerFilter(history);
+  applyQuoteHistoryFilters();
+}
+
+// Backwards-compat alias for older code paths that referenced the rename.
+const lioNameByKey = LIO_NAME_BY_KEY;
+
+function renderFilteredQuoteHistory(history) {
+  const list = document.getElementById('quote-history-list');
+  if (!list) return;
+  const cloudError = window._quoteHistoryCloudError;
+  const errorBanner = cloudError
+    ? '<div class="mb-4 p-3 bg-red-900/20 border border-red-800/40 rounded-lg text-xs text-red-300"><strong>Cloud Error:</strong> ' + cloudError.replace(/</g,'&lt;') + '<br><span class="text-red-400/70">The list below shows the local cache only.</span></div>'
+    : '';
+  if (history.length === 0) {
+    list.innerHTML = errorBanner + '<div class="text-center py-12 text-slate-500 text-sm">No quotes match the current filters.</div>';
+    return;
+  }
   list.innerHTML = errorBanner + `<div class="overflow-x-auto"><table class="w-full text-sm min-w-[600px]">
     <thead>
       <tr class="text-left text-xs text-slate-400 uppercase tracking-wider border-b border-slate-700">
@@ -5479,7 +5599,7 @@ async function renderQuoteHistory(forceCloud = false) {
         <td class="py-3 px-3 text-xs text-slate-300 hidden lg:table-cell whitespace-nowrap">${ownerName}</td>
         <td class="py-3 px-3 text-xs text-slate-400">${formatTimestamp(q.createdAt || q.date)}</td>
         <td class="py-3 px-3 text-xs text-slate-400 hidden md:table-cell">${q.lastEditedAt && q.lastEditedAt !== q.createdAt ? formatTimestamp(q.lastEditedAt) : '\u2014'}</td>
-        <td class="py-3 px-3 font-semibold text-emerald-400">${q.total}</td>
+        <td class="py-3 px-3 font-semibold text-emerald-400 whitespace-nowrap" title="${q.total}">${fmtCompactCurrency(q.totalRaw, q.currency)}</td>
         <td class="py-3 px-3 text-xs text-slate-400 max-w-[200px] truncate hidden md:table-cell" title="${q.modules}">${q.modules}</td>
         <td class="py-3 px-3 text-right space-x-2 whitespace-nowrap">
           <button onclick="loadQuote(${q.id})" class="text-lio-400 hover:text-lio-300 text-base" title="Edit">&#9998;</button>
