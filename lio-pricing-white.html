@@ -4397,6 +4397,17 @@ document.addEventListener('DOMContentLoaded', function() {
   try { if (typeof modules !== 'undefined' && !window.modules) window.modules = modules; } catch (e) {}
   try { if (typeof roiModels !== 'undefined' && !window.roiModels) window.roiModels = roiModels; } catch (e) {}
   try { if (typeof LIO_NAME_BY_KEY !== 'undefined' && !window.LIO_NAME_BY_KEY) window.LIO_NAME_BY_KEY = LIO_NAME_BY_KEY; } catch (e) {}
+  // White file declares lioNameByKey only inside renderQuoteHistory — duplicate it on window so dashboard stats can resolve sales-rep names.
+  if (!window.LIO_NAME_BY_KEY) {
+    window.LIO_NAME_BY_KEY = {
+      florian: 'Florian Wanzeck', michael: 'Michael Schmid', vincent: 'Vincent Nussmaier',
+      tobias: 'Tobias Rohringer', edmond: 'Edmond Clemens', romeo: 'Romeo Vogt',
+      patricia: 'Patricia Hoelscher', olivia: 'Olivia Pavoni', julius: 'Julius Kaiser',
+      vladimir: 'Vladimir Keil', till: 'Till Wagner', lukas: 'Lukas Heinzmann',
+      moritz: 'Moritz Medinger', stefan: 'Stefan Schweiger', lasse: 'Lasse Fehl',
+      niklas: 'Niklas Marxer', temoc: 'Temoc Chavero'
+    };
+  }
   try { if (typeof DEFAULT_PRICING_REF !== 'undefined' && !window.DEFAULT_PRICING_REF) window.DEFAULT_PRICING_REF = DEFAULT_PRICING_REF; } catch (e) {}
   function _refreshLegacyBridge() {
     try { if (typeof currentCurrency !== 'undefined') window.currentCurrency = currentCurrency; } catch (e) {}
@@ -5033,34 +5044,76 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // ---------------------------
-  // PDF actions (delegate to existing functions)
+  // PDF actions (delegate to existing functions, name-tolerant)
   // ---------------------------
+  // The white file's legacy code uses `downloadPDFFile()` (html2pdf save)
+  // and `downloadPDF()` (open + print). The dark file uses different names —
+  // resolve at call time so the wizard works in either deployment.
+  function _resolveDownloadFn() {
+    if (typeof downloadPDFFile === 'function') return downloadPDFFile;
+    if (typeof downloadQuoteAsPDF === 'function') return downloadQuoteAsPDF;
+    return null;
+  }
+  function _resolvePrintFn() {
+    if (typeof downloadPDF === 'function') return downloadPDF;
+    if (typeof downloadQuotePDF === 'function') return downloadQuotePDF;
+    return null;
+  }
+
   window.lioGenerateAndDownload = async function () {
-    if (typeof downloadQuoteAsPDF !== 'function') {
-      alert('PDF generator not available. Please reload the page.');
+    const fn = _resolveDownloadFn();
+    if (!fn) {
+      console.error('[lioGenerateAndDownload] no download function found on this page');
+      alert('PDF generator not available on this page.');
       return;
     }
     try {
-      await downloadQuoteAsPDF();
+      await fn();
+      // After save, patch the just-created history entry with the wizard's profile key
+      _patchLatestQuoteWithProfile();
     } catch (e) {
       console.error('[lioGenerateAndDownload] failed:', e);
       alert('Could not generate PDF: ' + (e.message || e));
     }
   };
   window.lioPrintQuote = function () {
-    if (typeof downloadQuotePDF === 'function') downloadQuotePDF();
+    const fn = _resolvePrintFn();
+    if (!fn) { alert('Print function not available on this page.'); return; }
+    fn();
+    _patchLatestQuoteWithProfile();
   };
   window.lioSaveDraft = function () {
-    if (typeof generateQuoteData === 'function' && typeof saveQuoteToHistory === 'function') {
-      const data = generateQuoteData();
-      if (!data) return;
-      saveQuoteToHistory(data);
-      alert('Quote saved to My Quotes.');
-      lioGoToDashboard();
-    } else {
+    if (typeof generateQuoteData !== 'function' || typeof saveQuoteToHistory !== 'function') {
       alert('Save unavailable.');
+      return;
     }
+    const data = generateQuoteData();
+    if (!data) return;
+    saveQuoteToHistory(data);
+    _patchLatestQuoteWithProfile();
+    alert('Quote saved to My Quotes.');
+    lioGoToDashboard();
   };
+
+  // Inject the wizard's selected profile segment into the most recently saved
+  // history entry so reopening the quote can restore the wizard's customer
+  // step. saveQuoteToHistory builds formState from DOM only — this patches it
+  // after the fact and pushes the change to Supabase.
+  function _patchLatestQuoteWithProfile() {
+    if (!W.profileKey) return;
+    setTimeout(() => {
+      try {
+        const hist = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
+        if (hist.length === 0) return;
+        const top = hist[0];
+        if (top.formState) {
+          top.formState.profileSegment = W.profileKey;
+          localStorage.setItem('lio-quote-history', JSON.stringify(hist));
+          if (typeof sbUpdateQuote === 'function' && top.ref) sbUpdateQuote(top.ref, top);
+        }
+      } catch (e) { /* non-fatal */ }
+    }, 200);
+  }
 
   // ---------------------------
   // Live summary panel
@@ -5223,7 +5276,13 @@ document.addEventListener('DOMContentLoaded', function() {
         recentHost.innerHTML = top5.map(q => {
           const ownerKey = q.lioContact || q.formState?.lioContact || 'florian';
           const ownerName = (window.LIO_NAME_BY_KEY || {})[ownerKey] || ownerKey;
-          const totalCompact = (typeof fmtCompactCurrency === 'function' && typeof q.totalRaw === 'number') ? fmtCompactCurrency(q.totalRaw, q.currency) : (q.total || '—');
+          // Dashboard recent uses FULL format (e.g. "$50,000" / "50.000 €") — compact stays in the My Quotes table.
+          const totalFull = (typeof q.totalRaw === 'number')
+            ? (q.currency === 'eur' ? q.totalRaw.toLocaleString('de-DE') + ' €'
+               : q.currency === 'gbp' ? '£' + q.totalRaw.toLocaleString('en-US')
+               : '$' + q.totalRaw.toLocaleString('en-US'))
+            : (q.total || '—');
+          const totalCompact = totalFull;
           const dateStr = q.createdAt ? new Date(q.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
           return '<div onclick="lioOpenQuoteFromDashboard(' + q.id + ')" class="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 cursor-pointer">' +
             '<div class="flex items-center gap-3 min-w-0 flex-1">' +
@@ -5255,18 +5314,39 @@ document.addEventListener('DOMContentLoaded', function() {
   window.refreshDashboard = refreshDashboard;
 
   window.lioOpenQuoteFromDashboard = function (id) {
-    if (typeof loadQuote === 'function') loadQuote(id);
-    // loadQuote opens the legacy quote modal, but we want the wizard view —
-    // close the legacy modal and skip ahead to step 6.
+    if (typeof loadQuote !== 'function') {
+      alert('Quote loader unavailable.');
+      return;
+    }
+    loadQuote(id);
+    // loadQuote populates legacy DOM (chk-*, qf-*, customer fields). We then
+    // mirror its formState into the wizard state — without re-running
+    // lioStartNewQuote which would CLEAR everything we just loaded.
     setTimeout(() => {
       const m = document.getElementById('quote-modal');
       if (m) { m.classList.add('hidden'); m.classList.remove('flex'); }
-      lioStartNewQuote(); // start fresh wizard
-      // Then push the loaded data into the wizard by jumping to review
-      // (the legacy load already filled chk-*, qf-*, customer fields, etc.)
+
+      // Pull the just-loaded entry's metadata
+      const hist = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
+      const entry = hist.find(h => h.id === id);
+      const fs = entry?.formState || {};
+
+      // Mirror into wizard state — keep all chk-*, qf-*, customer inputs alive
+      W.profileKey = fs.profileSegment || (entry?.currency === 'eur' ? 'dax40' : 'fortune500');
+      W.quoteRef = entry?.ref || ('LIO-' + Date.now().toString(36).toUpperCase());
       W.completed = new Set([1, 2, 3, 4, 5]);
-      lioGoToStep(6);
-    }, 250);
+
+      // Show the wizard
+      document.getElementById('lio-dashboard')?.classList.add('hidden');
+      document.getElementById('lio-wizard')?.classList.remove('hidden');
+      document.body.classList.add('lio-workspace');
+      document.getElementById('lio-quote-ref').textContent = W.quoteRef;
+
+      // Land on step 2 (Modules) so the user immediately sees what was selected
+      W.step = 2;
+      renderStep();
+      lioSyncSummary();
+    }, 350);
   };
 
   // ---------------------------
@@ -5281,12 +5361,19 @@ document.addEventListener('DOMContentLoaded', function() {
       b.classList.toggle('text-slate-500', b.dataset.cur !== cur);
     });
   }
-  // Patch: re-sync after every setCurrency invocation
+  // Patch: re-sync after every setCurrency invocation. Also re-render
+  // step-2 module grid so prices update inline when the user switches
+  // currency at the top.
   const _origSetCurrency = window.setCurrency;
   if (typeof _origSetCurrency === 'function') {
     window.setCurrency = function (...args) {
       _origSetCurrency.apply(this, args);
+      _refreshLegacyBridge();
       syncCurrencyButtons();
+      // If the wizard is on the modules step, re-render the grid so prices reflect the new currency
+      if (W.step === 2 && document.getElementById('lio-mod-grid')) {
+        renderModuleGrid(document.getElementById('lio-mod-search')?.value || '');
+      }
       lioSyncSummary();
     };
   }
