@@ -235,6 +235,10 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
         <span class="hidden md:inline">Search</span>
         <kbd class="hidden md:inline text-[10px] bg-slate-100 px-1.5 py-0.5 rounded ml-1">⌘K</kbd>
       </button>
+      <button onclick="lioOpenModuleLibrary()" class="lio-btn lio-btn-ghost" title="Module Library — manage team-shared custom agents">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="hidden md:inline">Library</span>
+      </button>
       <button onclick="openQuoteHistory()" class="lio-btn lio-btn-ghost">My Quotes</button>
       <button onclick="lioStartNewQuote()" class="lio-btn lio-btn-primary">
         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -375,6 +379,20 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
         <button class="lio-btn lio-btn-ghost w-full justify-center" onclick="lioPrintQuote()">Print Quote</button>
       </div>
     </aside>
+  </div>
+</div>
+
+<!-- MODULE LIBRARY (admin mode) -->
+<div id="lio-modlib-overlay" onclick="if(event.target===this) lioCloseModuleLibrary()" style="position:fixed;inset:0;background:rgba(15,23,42,0.40);backdrop-filter:blur(4px);z-index:9100;display:none;align-items:flex-start;justify-content:center;padding-top:8vh;">
+  <div style="width:760px;max-width:96vw;background:white;border-radius:14px;box-shadow:0 24px 64px rgba(15,23,42,0.20);overflow:hidden;max-height:84vh;display:flex;flex-direction:column;">
+    <div style="padding:18px 22px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:16px;font-weight:700;color:#0f172a;">Module Library</div>
+        <div style="font-size:12px;color:#64748b;">Standard agents (read-only) plus custom agents your team has added</div>
+      </div>
+      <button onclick="lioCloseModuleLibrary()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+    </div>
+    <div id="lio-modlib-body" style="padding:18px 22px;overflow-y:auto;"></div>
   </div>
 </div>
 
@@ -1950,6 +1968,10 @@ const modules = {
 };
 
 let currentCurrency = 'usd';
+// Shared module-keys list — extended at runtime by the Module Library (admin
+// mode) so custom modules participate in calc/PDF flows. All places that
+// previously hardcoded the 16 standard keys now pull from this slice.
+let LIO_ALL_MODKEYS = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
 const currencyRates = { usd: 1, eur: 1/1.08, gbp: 1/1.18 };
 const currencySymbols = { usd: '$', eur: '€', gbp: '£' };
 
@@ -2013,7 +2035,7 @@ function setCurrency(cur) {
     }
   });
   // Save calculator state before rebuild
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const mods = LIO_ALL_MODKEYS.slice();
   const savedState = {};
   mods.forEach(k => {
     const chk = document.getElementById('chk-' + k);
@@ -2113,7 +2135,7 @@ function buildCalc() {
 
 let calcGrandTotal = 0;
 function calcUpdate() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const mods = LIO_ALL_MODKEYS.slice();
   let total = 0, count = 0, lines = '', hasSM = false;
   mods.forEach(k => {
     const on = document.getElementById('chk-' + k).checked;
@@ -3075,7 +3097,7 @@ async function downloadAdvancedRoiPDF() {
 
 // PDF Download
 function openQuoteModal() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const mods = LIO_ALL_MODKEYS.slice();
   const anyChecked = mods.some(m => document.getElementById('chk-' + m).checked);
   if (!anyChecked) { alert('Please select at least one module first.'); return; }
   const modal = document.getElementById('quote-modal');
@@ -3092,7 +3114,7 @@ function openQuoteModal() {
   // Populate additional agents (modules not in the quote)
   const additionalContainer = document.getElementById('quote-additional-agents');
   if (additionalContainer) {
-    const allModKeys = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
+    const allModKeys = LIO_ALL_MODKEYS.filter(k => k !== 'sh');
     const selectedKeys = [];
     allModKeys.forEach(m => {
       const cb = document.getElementById('chk-' + m);
@@ -3370,7 +3392,7 @@ function buildPricingReferenceHtml() {
 }
 
 function populateQuotePricing() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const mods = LIO_ALL_MODKEYS.slice();
   const tbody = document.getElementById('quote-pricing-lines');
   // First pass — collect modules currently in the quote so the per-row module
   // dropdown can hide options that are already in another row (no duplicates).
@@ -3518,7 +3540,7 @@ function toggleExcludeModule(key) {
 
 function applyGlobalDiscount() {
   const globalPct = parseFloat(document.getElementById('quote-exc-value')?.value) || 0;
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const mods = LIO_ALL_MODKEYS.slice();
   mods.forEach(key => {
     const pctInput = document.getElementById('qd-' + key);
     const priceInput = document.getElementById('qf-' + key);
@@ -3530,7 +3552,7 @@ function applyGlobalDiscount() {
 
 
 function updateQuotePricing() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const mods = LIO_ALL_MODKEYS.slice();
   const selectedKeys = mods.filter(m => document.getElementById('chk-' + m)?.checked);
   const bundle = detectBundle(selectedKeys);
   const bundleApply = document.getElementById('quote-bundle-apply')?.checked && bundle;
@@ -3585,7 +3607,7 @@ function updateQuotePricing() {
 }
 
 function generateQuoteData() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const mods = LIO_ALL_MODKEYS.slice();
   const sel = [];
   let totalSaas = 0, hasSM = false;
   mods.forEach(k => {
@@ -4446,6 +4468,350 @@ document.addEventListener('DOMContentLoaded', function() {
     { key: 'mittelstand', name: 'German Mittelstand',    currency: 'eur', icon: '🛠️',  desc: 'Lean DE operations · €60K – €200K typical · ~40% of F500 prices', range: '€60K – €200K', refRow: 'German Mittelstand (DE)' },
     { key: 'custom',      name: 'Custom',                currency: null,  icon: '✨',  desc: 'Blank slate · choose your own currency + modules', range: 'Custom', refRow: null }
   ];
+
+  // ---------------------------
+  // MODULE LIBRARY (admin mode) — team-shared custom modules via Supabase
+  // ---------------------------
+  // Custom modules live in a `custom_modules` table (see
+  // supabase-custom-modules-setup.sql). At boot we fetch the rows and merge
+  // them into the `modules` object so every existing flow (buildCalc,
+  // populateQuotePricing, generateQuoteData, segment factor multipliers)
+  // picks them up uniformly. The keys are also pushed onto LIO_ALL_MODKEYS
+  // so the legacy 16-key arrays now iterate the full union.
+  const CUSTOM_MOD_FIELDS = 'id,module_key,name,description,icon,category,unit,color,tiers,created_by,created_at,updated_at';
+
+  async function sbLoadCustomModules() {
+    if (typeof SB_URL === 'undefined' || typeof SB_KEY === 'undefined') return [];
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    try {
+      const resp = await fetch(SB_URL + '/rest/v1/custom_modules?select=' + CUSTOM_MOD_FIELDS + '&order=created_at.asc', {
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY },
+        signal: ctrl.signal
+      });
+      clearTimeout(t);
+      if (resp.status === 404 || resp.status === 406) return []; // table doesn't exist yet — graceful fallback
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      return await resp.json();
+    } catch (e) { console.warn('[sbLoadCustomModules]', e.message || e); return []; }
+  }
+  async function sbSaveCustomModule(mod) {
+    if (typeof SB_URL === 'undefined') return null;
+    const payload = {
+      module_key: mod.module_key,
+      name: mod.name,
+      description: mod.description || null,
+      icon: mod.icon || '⚙️',
+      category: mod.category || 'Custom',
+      unit: mod.unit || null,
+      color: mod.color || 'slate',
+      tiers: mod.tiers || [],
+      created_by: mod.created_by || (document.getElementById('quote-lio-contact')?.value || 'florian')
+    };
+    const url = mod.id
+      ? SB_URL + '/rest/v1/custom_modules?id=eq.' + encodeURIComponent(mod.id)
+      : SB_URL + '/rest/v1/custom_modules';
+    const method = mod.id ? 'PATCH' : 'POST';
+    const resp = await fetch(url, {
+      method, headers: { ...SB_HEADERS, 'Prefer': 'return=representation' }, body: JSON.stringify(payload)
+    });
+    if (!resp.ok) {
+      const body = await resp.text().catch(() => '');
+      throw new Error('Save failed: HTTP ' + resp.status + ' — ' + body.slice(0, 200));
+    }
+    const data = await resp.json();
+    return data[0] || null;
+  }
+  async function sbDeleteCustomModule(id) {
+    if (typeof SB_URL === 'undefined' || !id) return;
+    await fetch(SB_URL + '/rest/v1/custom_modules?id=eq.' + encodeURIComponent(id), {
+      method: 'DELETE', headers: { ...SB_HEADERS }
+    });
+  }
+
+  window._customModulesIndex = []; // [{id, module_key, ...}]
+
+  function _registerCustomModule(row) {
+    if (!row || !row.module_key) return;
+    const k = row.module_key;
+    // Wizard-side modules object — picked up by every render
+    modules[k] = {
+      name: row.name || k,
+      color: row.color || 'slate',
+      icon: row.icon || '⚙️',
+      desc: row.description || '',
+      tiers: Array.isArray(row.tiers) && row.tiers.length > 0 ? row.tiers : [{ vol: 'Up to 1', price: 1000 }],
+      unit: row.unit || 'Units',
+      isCustom: true,
+      _customRow: row
+    };
+    if (!LIO_ALL_MODKEYS.includes(k)) LIO_ALL_MODKEYS.push(k);
+    // Build the legacy chk-/ct- DOM elements so populateQuotePricing,
+    // calcUpdate, and the PDF generator naturally see this module.
+    const calcModulesHost = document.getElementById('calc-modules');
+    if (calcModulesHost && !document.getElementById('chk-' + k)) {
+      const card = document.createElement('div');
+      card.className = 'card p-4 bg-white';
+      card.id = 'calc-' + k;
+      const opts = modules[k].tiers.map(t => '<option value="' + t.price + '">' + (typeof fmtVol === 'function' ? fmtVol(k, t.vol) : t.vol) + ' — ' + (typeof fmtTierPrice === 'function' ? fmtTierPrice(t) : ('$' + t.price)) + '/yr</option>').join('');
+      card.innerHTML =
+        '<div class="flex items-center justify-between">' +
+          '<label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="chk-' + k + '" class="w-4 h-4 rounded" onchange="calcUpdate()"><span class="font-semibold text-slate-800">' + (row.name || k) + ' <span class="text-xs text-slate-400">[Custom]</span></span></label>' +
+          '<span class="text-sm font-semibold text-lio-600" id="cp-' + k + '">' + (typeof fmtZero === 'function' ? fmtZero() : '$0') + '</span>' +
+        '</div>' +
+        '<div class="ml-7 mt-2 hidden" id="co-' + k + '">' +
+          '<select id="ct-' + k + '" class="w-full border border-slate-200 rounded-lg p-2 text-sm pr-8 focus:ring-2 focus:ring-lio-200 focus:border-lio-400 outline-none" onchange="calcUpdate()">' + opts + '</select>' +
+        '</div>';
+      calcModulesHost.appendChild(card);
+    }
+  }
+
+  async function hydrateCustomModulesFromCloud() {
+    const rows = await sbLoadCustomModules();
+    window._customModulesIndex = rows;
+    rows.forEach(_registerCustomModule);
+    // Refresh the baseline snapshot so segment factors apply to customs too
+    if (window._modulesBaseline) {
+      rows.forEach(r => {
+        window._modulesBaseline[r.module_key] = JSON.parse(JSON.stringify(modules[r.module_key]));
+      });
+    }
+    // Re-render module grid if user is on step 2
+    if (W && W.step === 2 && document.getElementById('lio-mod-grid')) {
+      renderModuleGrid(document.getElementById('lio-mod-search')?.value || '');
+    }
+  }
+  window.hydrateCustomModulesFromCloud = hydrateCustomModulesFromCloud;
+
+  function _slugifyKey(s) {
+    return (s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 32) || ('cm_' + Date.now().toString(36));
+  }
+
+  // Module Library modal
+  window.lioOpenModuleLibrary = function () {
+    const overlay = document.getElementById('lio-modlib-overlay');
+    if (overlay) { overlay.style.display = 'flex'; overlay.classList.add('open'); }
+    renderModuleLibrary();
+  };
+  window.lioCloseModuleLibrary = function () {
+    const overlay = document.getElementById('lio-modlib-overlay');
+    if (overlay) { overlay.style.display = 'none'; overlay.classList.remove('open'); }
+    _modlibDraft = null;
+    _modlibEditingId = null;
+  };
+
+  function _emptyDraft() {
+    return { module_key: '', name: '', description: '', icon: '⚙️', category: 'Custom', unit: 'Units', color: 'slate', tiers: [{ vol: 'Up to 100', price: 5000 }] };
+  }
+  let _modlibDraft = null;
+  let _modlibEditingId = null;
+
+  function renderModuleLibrary() {
+    const host = document.getElementById('lio-modlib-body');
+    if (!host) return;
+    const customs = window._customModulesIndex || [];
+    const standardKeys = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+
+    const draftHtml = _modlibDraft ? renderModuleDraft() : '';
+    const customsList = customs.length === 0
+      ? '<div class="text-sm text-slate-400 italic py-3">No custom modules yet — click "+ Add Custom Module" to create one. Everything you save is shared with the team via Supabase.</div>'
+      : customs.map(c => (
+          '<div class="lio-card p-3 flex items-center justify-between">' +
+            '<div class="flex items-center gap-3">' +
+              '<div class="text-xl">' + (c.icon || '⚙️') + '</div>' +
+              '<div>' +
+                '<div class="font-semibold text-slate-900 text-sm">' + (c.name || c.module_key) + ' <span class="text-[10px] uppercase tracking-wider text-slate-400 ml-1">[' + (c.tiers?.length || 0) + ' tiers]</span></div>' +
+                '<div class="text-xs text-slate-500">' + (c.description || '').slice(0, 90) + (c.description && c.description.length > 90 ? '…' : '') + '</div>' +
+                '<div class="text-[10px] text-slate-400 mt-0.5">' + c.module_key + ' · ' + (c.category || 'Custom') + (c.created_by ? ' · by ' + c.created_by : '') + '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="flex items-center gap-1">' +
+              '<button class="lio-btn lio-btn-ghost text-xs" onclick="lioEditCustomModule(' + c.id + ')">Edit</button>' +
+              '<button class="lio-btn lio-btn-ghost text-xs text-red-500" onclick="lioDeleteCustomModule(' + c.id + ')">Delete</button>' +
+            '</div>' +
+          '</div>'
+        )).join('');
+
+    const standardList = standardKeys.map(k => {
+      const m = modules[k];
+      if (!m) return '';
+      return '<div class="flex items-center gap-2 py-1.5 text-sm text-slate-600"><span>' + (MOD_ICONS[k] || '⚙️') + '</span><span class="font-medium text-slate-700">' + (m.name || k) + '</span><span class="text-xs text-slate-400 ml-auto">' + (m.tiers?.length || 0) + ' tiers</span></div>';
+    }).join('');
+
+    host.innerHTML =
+      '<div class="space-y-5">' +
+        (draftHtml || (
+          '<div class="lio-card p-4">' +
+            '<div class="flex items-center justify-between mb-3">' +
+              '<div>' +
+                '<div class="font-semibold text-slate-900">Custom modules</div>' +
+                '<div class="text-xs text-slate-400">Team-shared via Supabase. Everyone with the workspace password can add/edit.</div>' +
+              '</div>' +
+              '<button class="lio-btn lio-btn-primary" onclick="lioStartNewCustomModule()">+ Add Custom Module</button>' +
+            '</div>' +
+            '<div class="space-y-2">' + customsList + '</div>' +
+          '</div>'
+        )) +
+        '<details class="lio-card p-4">' +
+          '<summary class="cursor-pointer text-sm font-semibold text-slate-700">Standard modules (read-only · 16)</summary>' +
+          '<div class="mt-3 grid grid-cols-2 gap-x-4 gap-y-1">' + standardList + '</div>' +
+        '</details>' +
+      '</div>';
+  }
+
+  function renderModuleDraft() {
+    const d = _modlibDraft;
+    const tierRows = d.tiers.map((t, i) =>
+      '<div class="grid grid-cols-12 gap-2 items-center" data-tier-idx="' + i + '">' +
+        '<input class="lio-input col-span-4 modlib-tier-vol" data-i="' + i + '" placeholder="Up to 1,000" value="' + (t.vol || '').replace(/"/g, '&quot;') + '">' +
+        '<input class="lio-input col-span-3 modlib-tier-price" data-i="' + i + '" type="number" min="0" step="100" placeholder="USD" value="' + (t.price || '') + '">' +
+        '<input class="lio-input col-span-2 modlib-tier-eur" data-i="' + i + '" type="number" min="0" step="100" placeholder="EUR" value="' + (t.eur || '') + '">' +
+        '<input class="lio-input col-span-2 modlib-tier-gbp" data-i="' + i + '" type="number" min="0" step="100" placeholder="GBP" value="' + (t.gbp || '') + '">' +
+        '<button class="col-span-1 text-slate-400 hover:text-red-500 text-base" onclick="lioRemoveDraftTier(' + i + ')">×</button>' +
+      '</div>'
+    ).join('');
+    return '<div class="lio-card p-4">' +
+      '<div class="flex items-center justify-between mb-3">' +
+        '<div class="font-semibold text-slate-900">' + (_modlibEditingId ? 'Edit module' : 'New module') + '</div>' +
+        '<div class="flex items-center gap-2">' +
+          '<button class="lio-btn lio-btn-ghost" onclick="lioCancelDraft()">Cancel</button>' +
+          '<button class="lio-btn lio-btn-primary" onclick="lioSaveDraftModule()">Save module</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="grid md:grid-cols-2 gap-3">' +
+        '<div><label class="lio-label">Name</label><input class="lio-input" id="modlib-name" value="' + (d.name || '').replace(/"/g, '&quot;') + '" placeholder="e.g. Custom Negotiation Bot"></div>' +
+        '<div><label class="lio-label">Module key</label><input class="lio-input" id="modlib-key" value="' + (d.module_key || '').replace(/"/g, '&quot;') + '" placeholder="auto" ' + (_modlibEditingId ? 'readonly' : '') + '></div>' +
+        '<div class="md:col-span-2"><label class="lio-label">Description</label><input class="lio-input" id="modlib-desc" value="' + (d.description || '').replace(/"/g, '&quot;') + '" placeholder="One-line description shown on the module card"></div>' +
+        '<div><label class="lio-label">Icon (emoji)</label><input class="lio-input" id="modlib-icon" maxlength="4" value="' + (d.icon || '').replace(/"/g, '&quot;') + '" placeholder="⚙️"></div>' +
+        '<div><label class="lio-label">Category</label><select class="lio-input" id="modlib-cat">' +
+          ['Custom','P2P — Procure to Pay','S2P — Source to Pay','Intelligence & Assistants','Strategic Sourcing','Platform','Modules'].map(c => '<option value="' + c + '"' + (d.category === c ? ' selected' : '') + '>' + c + '</option>').join('') +
+        '</select></div>' +
+        '<div><label class="lio-label">Unit (e.g. Negotiations)</label><input class="lio-input" id="modlib-unit" value="' + (d.unit || '').replace(/"/g, '&quot;') + '" placeholder="Units"></div>' +
+      '</div>' +
+      '<div class="mt-4">' +
+        '<div class="flex items-center justify-between mb-2">' +
+          '<label class="lio-label" style="margin-bottom:0;">Tiers (volume + price per currency)</label>' +
+          '<button type="button" class="lio-btn lio-btn-ghost text-xs" onclick="lioAddDraftTier()">+ Add tier</button>' +
+        '</div>' +
+        '<div class="grid grid-cols-12 gap-2 text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">' +
+          '<div class="col-span-4">Volume label</div><div class="col-span-3">Price (USD)</div><div class="col-span-2">EUR (opt.)</div><div class="col-span-2">GBP (opt.)</div><div class="col-span-1"></div>' +
+        '</div>' +
+        '<div class="space-y-1.5" id="modlib-tier-rows">' + tierRows + '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  // Wizard-side draft handlers
+  window.lioStartNewCustomModule = function () {
+    _modlibEditingId = null;
+    _modlibDraft = _emptyDraft();
+    renderModuleLibrary();
+  };
+  window.lioCancelDraft = function () {
+    _modlibDraft = null;
+    _modlibEditingId = null;
+    renderModuleLibrary();
+  };
+  window.lioEditCustomModule = function (id) {
+    const row = (window._customModulesIndex || []).find(r => r.id === id);
+    if (!row) return;
+    _modlibEditingId = id;
+    _modlibDraft = {
+      module_key: row.module_key,
+      name: row.name,
+      description: row.description || '',
+      icon: row.icon || '⚙️',
+      category: row.category || 'Custom',
+      unit: row.unit || 'Units',
+      color: row.color || 'slate',
+      tiers: JSON.parse(JSON.stringify(row.tiers || []))
+    };
+    renderModuleLibrary();
+  };
+  window.lioAddDraftTier = function () {
+    if (!_modlibDraft) return;
+    _modlibDraft.tiers.push({ vol: '', price: 0 });
+    renderModuleLibrary();
+  };
+  window.lioRemoveDraftTier = function (i) {
+    if (!_modlibDraft) return;
+    _modlibDraft.tiers.splice(i, 1);
+    if (_modlibDraft.tiers.length === 0) _modlibDraft.tiers.push({ vol: '', price: 0 });
+    renderModuleLibrary();
+  };
+  function _readDraftFromForm() {
+    if (!_modlibDraft) return null;
+    const d = _modlibDraft;
+    d.name = document.getElementById('modlib-name')?.value?.trim() || '';
+    let key = document.getElementById('modlib-key')?.value?.trim();
+    if (!key && !_modlibEditingId) key = _slugifyKey(d.name);
+    d.module_key = key;
+    d.description = document.getElementById('modlib-desc')?.value?.trim() || '';
+    d.icon = document.getElementById('modlib-icon')?.value?.trim() || '⚙️';
+    d.category = document.getElementById('modlib-cat')?.value || 'Custom';
+    d.unit = document.getElementById('modlib-unit')?.value?.trim() || 'Units';
+    // Read tier rows
+    const newTiers = [];
+    document.querySelectorAll('#modlib-tier-rows > div[data-tier-idx]').forEach(row => {
+      const vol = row.querySelector('.modlib-tier-vol')?.value?.trim();
+      const price = parseFloat(row.querySelector('.modlib-tier-price')?.value) || 0;
+      const eur = parseFloat(row.querySelector('.modlib-tier-eur')?.value);
+      const gbp = parseFloat(row.querySelector('.modlib-tier-gbp')?.value);
+      if (!vol && price <= 0) return;
+      const t = { vol: vol || 'Up to ?', price };
+      if (isFinite(eur) && eur > 0) t.eur = eur;
+      if (isFinite(gbp) && gbp > 0) t.gbp = gbp;
+      newTiers.push(t);
+    });
+    d.tiers = newTiers.length > 0 ? newTiers : [{ vol: 'Flat Rate', price: 1000 }];
+    return d;
+  }
+  window.lioSaveDraftModule = async function () {
+    const d = _readDraftFromForm();
+    if (!d) return;
+    if (!d.name) { alert('Please give the module a name.'); return; }
+    if (!d.module_key) { alert('Module key required.'); return; }
+    try {
+      const saved = await sbSaveCustomModule({ ...d, id: _modlibEditingId || undefined });
+      if (!saved) throw new Error('Empty response from cloud');
+      // Update local index + register
+      const idx = window._customModulesIndex.findIndex(r => r.id === saved.id);
+      if (idx >= 0) window._customModulesIndex[idx] = saved;
+      else window._customModulesIndex.push(saved);
+      _registerCustomModule(saved);
+      // Update baseline so it survives a segment-pricing reset
+      if (window._modulesBaseline) {
+        window._modulesBaseline[saved.module_key] = JSON.parse(JSON.stringify(modules[saved.module_key]));
+      }
+      _modlibDraft = null;
+      _modlibEditingId = null;
+      renderModuleLibrary();
+      // Refresh the wizard's module grid if visible
+      if (W && W.step === 2 && document.getElementById('lio-mod-grid')) {
+        renderModuleGrid(document.getElementById('lio-mod-search')?.value || '');
+      }
+    } catch (e) {
+      alert('Could not save module: ' + (e.message || e));
+    }
+  };
+  window.lioDeleteCustomModule = async function (id) {
+    if (!confirm('Delete this custom module from the team library? Quotes that already use it will keep their copy.')) return;
+    try {
+      await sbDeleteCustomModule(id);
+      const row = (window._customModulesIndex || []).find(r => r.id === id);
+      if (row && row.module_key) {
+        // Remove from modules + LIO_ALL_MODKEYS so future quotes don't see it
+        delete modules[row.module_key];
+        const i = LIO_ALL_MODKEYS.indexOf(row.module_key);
+        if (i >= 0) LIO_ALL_MODKEYS.splice(i, 1);
+        document.getElementById('calc-' + row.module_key)?.remove();
+      }
+      window._customModulesIndex = window._customModulesIndex.filter(r => r.id !== id);
+      renderModuleLibrary();
+    } catch (e) {
+      alert('Could not delete: ' + (e.message || e));
+    }
+  };
 
   // Save the factory baseline once so we can reset cleanly on segment change.
   function _ensureModulesBaseline() {
@@ -5556,7 +5922,10 @@ document.addEventListener('DOMContentLoaded', function() {
     syncCurrencyButtons();
     // Make sure the legacy calculator is built so chk-*/ct-* exist
     if (typeof buildCalc === 'function') buildCalc();
-    lioGoToDashboard();
+    // Pull team-shared custom modules from Supabase, register them, then go to dashboard
+    hydrateCustomModulesFromCloud().finally(() => {
+      lioGoToDashboard();
+    });
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
