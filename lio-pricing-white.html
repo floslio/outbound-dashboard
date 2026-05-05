@@ -792,6 +792,24 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
           <div id="custom-positions-list" class="space-y-2"></div>
         </div>
 
+        <!-- Pricing Range Reference (informational table for the PDF) -->
+        <div class="mt-3 p-3 rounded-lg bg-slate-50 border border-slate-200">
+          <div class="flex items-center justify-between mb-2 gap-2 flex-wrap">
+            <div class="flex items-center gap-2">
+              <input type="checkbox" id="quote-inc-pricing-ref" class="w-4 h-4 rounded accent-lio-500">
+              <label for="quote-inc-pricing-ref" class="text-xs text-slate-700 font-semibold cursor-pointer">Include Pricing Range Reference in PDF</label>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="addPricingRefRow()" class="px-2 py-1 bg-white hover:bg-slate-100 border border-slate-300 rounded text-xs text-slate-700 transition">+ Row</button>
+              <button type="button" onclick="addPricingRefColumn()" class="px-2 py-1 bg-white hover:bg-slate-100 border border-slate-300 rounded text-xs text-slate-700 transition">+ Column</button>
+              <button type="button" onclick="resetPricingRef()" class="px-2 py-1 bg-white hover:bg-slate-100 border border-slate-300 rounded text-xs text-slate-500 transition" title="Reset to default 4-segment template">Reset</button>
+            </div>
+          </div>
+          <div class="text-[10px] text-slate-400 mb-2">Editable reference table (Fortune 500 / DAX 40 / Mid Market / Mittelstand). Used as additional context in the PDF when the checkbox is on.</div>
+          <input type="text" id="pricing-ref-title" value="Typical Yearly SaaS Fee Ranges" class="w-full bg-white border border-slate-200 rounded p-1.5 text-xs text-slate-700 outline-none mb-2 focus:ring-2 focus:ring-lio-200" placeholder="Section title">
+          <div id="pricing-ref-table-wrap" class="overflow-x-auto"></div>
+        </div>
+
         <!-- Global Agent Discount -->
         <div class="mt-3 p-3 rounded-lg bg-slate-50 border border-slate-200">
           <label class="text-xs text-slate-500 block mb-2">Global Agent Discount %</label>
@@ -2925,6 +2943,157 @@ function renderCustomPositions() {
   });
 }
 
+// ============================
+// PRICING RANGE REFERENCE
+// ============================
+// Editable Fortune 500 / DAX 40 / Mid-Market / Mittelstand reference grid that
+// can optionally be appended to the quote PDF. Pure presentation/reference —
+// it does NOT participate in the SaaS subtotal calculation.
+const DEFAULT_PRICING_REF = {
+  columns: ['Customer Profile', 'Guided Buying', 'Other Agents', 'Total'],
+  rows: [
+    { profile: 'Fortune 500',             currency: '$', values: ['$95K – $175K', '$12K – $120K', '$300K – $1M']  },
+    { profile: 'DAX 40',                  currency: '€', values: ['€80K – €150K', '€10K – €100K', '€250K – €800K'] },
+    { profile: 'Mid Market (US)',         currency: '$', values: ['$55K – $95K',  '$6K – $45K',   '$69K – $550K']  },
+    { profile: 'German Mittelstand (DE)', currency: '€', values: ['€50K – €80K',  '€5K – €40K',   '€60K – €200K']  }
+  ]
+};
+window._pricingRef = window._pricingRef || JSON.parse(JSON.stringify(DEFAULT_PRICING_REF));
+
+function pricingRefColumnCount() {
+  return (window._pricingRef.columns.length - 1);
+}
+
+function ensurePricingRefShape() {
+  const dataCols = pricingRefColumnCount();
+  window._pricingRef.rows.forEach(r => {
+    while (r.values.length < dataCols) r.values.push('');
+    if (r.values.length > dataCols) r.values.length = dataCols;
+  });
+}
+
+function addPricingRefRow() {
+  const dataCols = pricingRefColumnCount();
+  window._pricingRef.rows.push({ profile: 'New segment', currency: '$', values: Array(dataCols).fill('') });
+  renderPricingReference();
+}
+
+function removePricingRefRow(idx) {
+  if (window._pricingRef.rows.length <= 1) return;
+  window._pricingRef.rows.splice(idx, 1);
+  renderPricingReference();
+}
+
+function addPricingRefColumn() {
+  window._pricingRef.columns.push('New');
+  window._pricingRef.rows.forEach(r => r.values.push(''));
+  renderPricingReference();
+}
+
+function removePricingRefColumn(idx) {
+  if (idx < 1 || window._pricingRef.columns.length <= 2) return;
+  window._pricingRef.columns.splice(idx, 1);
+  window._pricingRef.rows.forEach(r => r.values.splice(idx - 1, 1));
+  renderPricingReference();
+}
+
+function updatePricingRefHeader(idx, value) { window._pricingRef.columns[idx] = value; }
+function updatePricingRefRowProfile(idx, value) { window._pricingRef.rows[idx].profile = value; }
+function updatePricingRefRowCurrency(idx, value) { window._pricingRef.rows[idx].currency = value; }
+function updatePricingRefCell(rowIdx, colIdx, value) { window._pricingRef.rows[rowIdx].values[colIdx] = value; }
+
+function resetPricingRef() {
+  if (!confirm('Reset the pricing-range table to the default 4-segment template?')) return;
+  window._pricingRef = JSON.parse(JSON.stringify(DEFAULT_PRICING_REF));
+  const t = document.getElementById('pricing-ref-title');
+  if (t) t.value = 'Typical Yearly SaaS Fee Ranges';
+  renderPricingReference();
+}
+
+function renderPricingReference() {
+  ensurePricingRefShape();
+  const wrap = document.getElementById('pricing-ref-table-wrap');
+  if (!wrap) return;
+  const ref = window._pricingRef;
+  const headerCells = ref.columns.map((c, i) => {
+    if (i === 0) {
+      return '<th class="p-1.5 text-left bg-slate-100"><input type="text" data-col="' + i + '" value="' + (c || '').replace(/"/g, '&quot;') + '" class="w-full bg-transparent text-[11px] text-slate-700 font-semibold uppercase tracking-wider outline-none border-none" placeholder="Profile"></th>';
+    }
+    return '<th class="p-1.5 text-left bg-slate-100">' +
+      '<div class="flex items-center gap-1">' +
+        '<input type="text" data-col="' + i + '" value="' + (c || '').replace(/"/g, '&quot;') + '" class="flex-1 bg-transparent text-[11px] text-slate-700 font-semibold uppercase tracking-wider outline-none border-none" placeholder="Column">' +
+        (ref.columns.length > 2 ? '<button type="button" data-removecol="' + i + '" class="text-slate-400 hover:text-red-500 text-xs" title="Remove column">&times;</button>' : '') +
+      '</div>' +
+    '</th>';
+  }).join('');
+  const rowsHtml = ref.rows.map((r, ri) => {
+    const valCells = r.values.map((v, vi) =>
+      '<td class="p-1.5"><input type="text" data-cell="' + ri + '_' + vi + '" value="' + (v || '').replace(/"/g, '&quot;') + '" class="w-full bg-white border border-slate-200 rounded p-1 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-lio-200" placeholder="e.g. $50K – $100K"></td>'
+    ).join('');
+    return '<tr class="border-t border-slate-200">' +
+      '<td class="p-1.5">' +
+        '<div class="flex items-center gap-1">' +
+          '<input type="text" data-profile="' + ri + '" value="' + (r.profile || '').replace(/"/g, '&quot;') + '" class="flex-1 min-w-[120px] bg-white border border-slate-200 rounded p-1 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-lio-200" placeholder="Segment name">' +
+          '<select data-currency="' + ri + '" class="bg-white border border-slate-200 rounded p-1 text-xs text-slate-700 outline-none">' +
+            ['$','€','£'].map(c => '<option value="' + c + '"' + (r.currency === c ? ' selected' : '') + '>' + c + '</option>').join('') +
+          '</select>' +
+        '</div>' +
+      '</td>' +
+      valCells +
+      '<td class="p-1.5 text-center">' + (ref.rows.length > 1 ? '<button type="button" data-removerow="' + ri + '" class="text-slate-400 hover:text-red-500 text-base" title="Remove row">&times;</button>' : '') + '</td>' +
+    '</tr>';
+  }).join('');
+  wrap.innerHTML = '<table class="w-full text-xs border-collapse"><thead><tr>' + headerCells + '<th class="p-1.5 w-8"></th></tr></thead><tbody>' + rowsHtml + '</tbody></table>';
+
+  wrap.querySelectorAll('input[data-col]').forEach(el => {
+    el.addEventListener('input', () => updatePricingRefHeader(parseInt(el.dataset.col), el.value));
+  });
+  wrap.querySelectorAll('input[data-profile]').forEach(el => {
+    el.addEventListener('input', () => updatePricingRefRowProfile(parseInt(el.dataset.profile), el.value));
+  });
+  wrap.querySelectorAll('select[data-currency]').forEach(el => {
+    el.addEventListener('change', () => updatePricingRefRowCurrency(parseInt(el.dataset.currency), el.value));
+  });
+  wrap.querySelectorAll('input[data-cell]').forEach(el => {
+    el.addEventListener('input', () => {
+      const [r, c] = el.dataset.cell.split('_').map(Number);
+      updatePricingRefCell(r, c, el.value);
+    });
+  });
+  wrap.querySelectorAll('button[data-removerow]').forEach(el => {
+    el.addEventListener('click', () => removePricingRefRow(parseInt(el.dataset.removerow)));
+  });
+  wrap.querySelectorAll('button[data-removecol]').forEach(el => {
+    el.addEventListener('click', () => removePricingRefColumn(parseInt(el.dataset.removecol)));
+  });
+}
+
+function buildPricingReferenceHtml() {
+  ensurePricingRefShape();
+  const ref = window._pricingRef;
+  const titleEl = document.getElementById('pricing-ref-title');
+  const title = (titleEl?.value || 'Typical Yearly SaaS Fee Ranges').trim();
+  const headerHtml = ref.columns.map((c, i) =>
+    '<th style="padding:10px 14px;text-align:left;font-size:11px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #1e293b;background:#f8fafc;">' + (c || '').replace(/</g, '&lt;') + '</th>'
+  ).join('');
+  const rowsHtml = ref.rows.map(r => {
+    const cells = [];
+    cells.push('<td style="padding:10px 14px;font-size:12px;color:#1e293b;font-weight:600;border-bottom:1px solid #e2e8f0;">' + (r.profile || '').replace(/</g, '&lt;') + (r.currency ? ' <span style="color:#64748b;font-weight:400;">(' + r.currency + ')</span>' : '') + '</td>');
+    r.values.forEach(v => {
+      cells.push('<td style="padding:10px 14px;font-size:12px;color:#1e293b;border-bottom:1px solid #e2e8f0;">' + (v || '—').replace(/</g, '&lt;') + '</td>');
+    });
+    return '<tr>' + cells.join('') + '</tr>';
+  }).join('');
+  return '<div style="margin-top:32px;page-break-inside:avoid;">' +
+    '<h2 style="font-size:18px;font-weight:700;margin-bottom:14px;color:#1e293b;">' + title.replace(/</g, '&lt;') + '</h2>' +
+    '<table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">' +
+      '<thead><tr>' + headerHtml + '</tr></thead>' +
+      '<tbody>' + rowsHtml + '</tbody>' +
+    '</table>' +
+    '<div style="font-size:10px;color:#64748b;margin-top:8px;font-style:italic;">Reference ranges based on typical Lio engagements per customer profile. Actual pricing depends on volumes and bundle composition.</div>' +
+  '</div>';
+}
+
 function populateQuotePricing() {
   const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
   const tbody = document.getElementById('quote-pricing-lines');
@@ -2972,6 +3141,7 @@ function populateQuotePricing() {
     document.getElementById('quote-bundle-apply').checked = false;
   }
   renderCustomPositions();
+  if (typeof renderPricingReference === 'function') renderPricingReference();
   updateQuotePricing();
 }
 
@@ -3364,6 +3534,13 @@ function generateQuoteData() {
     }
   }
 
+  // Pricing Range Reference (optional informational table — Fortune 500 / DAX / etc.)
+  const includePricingRef = document.getElementById('quote-inc-pricing-ref')?.checked ?? false;
+  let pricingRefSection = '';
+  if (includePricingRef) {
+    pricingRefSection = buildPricingReferenceHtml();
+  }
+
   // Collect additional agents to showcase
   const additionalAgentCbs = document.querySelectorAll('.additional-agent-cb:checked');
   const additionalAgents = [];
@@ -3438,6 +3615,7 @@ function generateQuoteData() {
   ${additionalAgentsPdf}
   ${roiSection}
   ${advRoiSection}
+  ${pricingRefSection}
   ${customNotes ? `<div style="margin-top:28px;page-break-inside:avoid;"><h2 style="font-size:16px;font-weight:700;margin-bottom:10px;">Notes</h2><div style="background:#f8f8f8;border-radius:8px;padding:16px;font-size:12px;line-height:1.7;white-space:pre-wrap;">${customNotes}</div></div>` : ''}
   ${includeService ? `<div style="background:#f8fafc;border-radius:10px;padding:20px;margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;page-break-inside:avoid;"><div><div style="font-size:11px;font-weight:600;color:#1e293b;text-transform:uppercase;margin-bottom:6px;">Implementation (15%)</div><div style="font-size:11px;color:#1e293b;line-height:1.8;">&#10003; Web Interface & Teams<br>&#10003; ERP & P2P System integration<br>&#10003; System configuration<br>&#10003; Up to 50 punchout catalogs<br>&#10003; Training</div></div><div><div style="font-size:11px;font-weight:600;color:#1e293b;text-transform:uppercase;margin-bottom:6px;">Customer Success (10%)</div><div style="font-size:11px;color:#1e293b;line-height:1.8;">&#10003; Dedicated CSM<br>&#10003; SLA-backed response<br>&#10003; Escalation management<br>&#10003; Monthly strategy sessions</div></div></div>` : ''}
   ${includeTerms ? `<div style="margin-top:28px;padding:16px;border:1px solid #e2e8f0;border-radius:10px;font-size:11px;color:#1e293b;line-height:1.7;page-break-inside:avoid;"><div style="font-weight:600;color:#1e293b;margin-bottom:6px;">Terms & Conditions</div><div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>Prices are based on annual licensing, with customized terms possible upon mutual agreement.</span></div><div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>This quotation is non-binding and does not constitute a contract. A legally binding agreement shall only come into effect upon execution of a formal Contract Agreement by both parties.</span></div><div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>Implementation and Customer Success fees are calculated as a percentage of the combined annual SaaS fee.</span></div><div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>Minimum contract term: 24 months.</span></div><div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>Prices scale with usage volume. Contact your Account Manager for higher volume tiers.</span></div></div>` : ''}
@@ -3498,7 +3676,10 @@ function saveQuoteToHistory(data) {
       hideDiscounts: hideDiscounts,
       additionalAgents: Array.from(document.querySelectorAll('.additional-agent-cb:checked')).map(cb => cb.value),
       customPositions: (window._customPositions || []).map(p => ({ name: p.name || '', tier: p.tier || '', price: parseFloat(p.price) || 0 })),
-      includeAdvROI: document.getElementById('quote-inc-adv-roi')?.checked ?? false
+      includeAdvROI: document.getElementById('quote-inc-adv-roi')?.checked ?? false,
+      includePricingRef: document.getElementById('quote-inc-pricing-ref')?.checked ?? false,
+      pricingRefTitle: document.getElementById('pricing-ref-title')?.value || '',
+      pricingRef: window._pricingRef ? JSON.parse(JSON.stringify(window._pricingRef)) : null
     }
   };
   const history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
@@ -3778,6 +3959,15 @@ function loadQuote(id) {
     setChk('quote-inc-details', fs.includeDetails !== false);
     setChk('quote-inc-roi', fs.includeROI === true);
     setChk('quote-inc-adv-roi', fs.includeAdvROI === true);
+    setChk('quote-inc-pricing-ref', fs.includePricingRef === true);
+    if (fs.pricingRefTitle) {
+      const t = document.getElementById('pricing-ref-title');
+      if (t) t.value = fs.pricingRefTitle;
+    }
+    if (fs.pricingRef && fs.pricingRef.columns && fs.pricingRef.rows) {
+      window._pricingRef = JSON.parse(JSON.stringify(fs.pricingRef));
+      if (typeof renderPricingReference === 'function') renderPricingReference();
+    }
     setChk('quote-inc-service', fs.includeService !== false);
     setChk('quote-inc-terms', fs.includeTerms !== false);
 
