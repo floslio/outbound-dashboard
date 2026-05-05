@@ -118,6 +118,275 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
 })();
 </script>
 
+<!-- =========================================================
+     LIO QUOTE WORKSPACE — wizard-style redesign (Phase 2a).
+     The existing public landing/marketing markup below is hidden
+     via the rule body.lio-workspace > nav, body.lio-workspace >
+     section { display:none !important; } so all the legacy DOM
+     stays available for the existing JS to read/write — the
+     wizard is just an alternate visual shell on top.
+     ========================================================= -->
+<style>
+  /* Hide all legacy public-facing sections + nav when the workspace shell is active */
+  body.lio-workspace > nav,
+  body.lio-workspace > section,
+  body.lio-workspace > footer { display: none !important; }
+  /* Modals (top-level divs that aren't sections) stay visible when their own .hidden toggles. */
+
+  /* Workspace layout primitives */
+  .lio-grid-shell { display: grid; grid-template-columns: 240px 1fr 320px; gap: 0; min-height: calc(100vh - 56px); }
+  @media (max-width: 1100px) { .lio-grid-shell { grid-template-columns: 200px 1fr; } #lio-summary { display: none; } }
+  @media (max-width: 768px)  { .lio-grid-shell { grid-template-columns: 1fr; } #lio-stepnav { display: none; } }
+
+  .lio-pane { padding: 24px 28px; }
+  .lio-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 14px; box-shadow: 0 1px 2px rgba(15,23,42,0.04); }
+  .lio-card-hover:hover { border-color: #c7d2fe; box-shadow: 0 4px 16px rgba(99,102,241,0.08); cursor: pointer; }
+  .lio-card-active { border-color: #6366f1 !important; box-shadow: 0 0 0 4px rgba(99,102,241,0.10) !important; }
+
+  .lio-step { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 10px; font-size: 13px; font-weight: 500; color: #475569; cursor: pointer; transition: all 120ms; }
+  .lio-step:hover { background: #f1f5f9; color: #0f172a; }
+  .lio-step.active { background: #eef2ff; color: #4338ca; }
+  .lio-step .lio-step-num { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; font-size: 11px; font-weight: 700; background: #e2e8f0; color: #475569; }
+  .lio-step.active .lio-step-num { background: #4f46e5; color: white; box-shadow: 0 0 0 4px rgba(79,70,229,0.15); }
+  .lio-step.done .lio-step-num { background: #10b981; color: white; }
+  .lio-step.done .lio-step-num::after { content: '✓'; }
+  .lio-step.done .lio-step-num span { display: none; }
+
+  .lio-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 500; }
+  .lio-pill-blue { background: #eef2ff; color: #4338ca; }
+  .lio-pill-green { background: #ecfdf5; color: #047857; }
+  .lio-pill-amber { background: #fffbeb; color: #b45309; }
+  .lio-pill-slate { background: #f1f5f9; color: #475569; }
+
+  .lio-btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 120ms; border: 1px solid transparent; }
+  .lio-btn-primary { background: #4f46e5; color: white; box-shadow: 0 1px 2px rgba(79,70,229,0.25); }
+  .lio-btn-primary:hover { background: #4338ca; box-shadow: 0 4px 12px rgba(79,70,229,0.30); }
+  .lio-btn-primary:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; }
+  .lio-btn-ghost { background: transparent; color: #475569; border-color: #e2e8f0; }
+  .lio-btn-ghost:hover { background: #f8fafc; color: #0f172a; }
+  .lio-btn-emerald { background: #059669; color: white; }
+  .lio-btn-emerald:hover { background: #047857; }
+
+  .lio-input { width: 100%; padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 13px; color: #0f172a; outline: none; transition: all 120ms; background: #ffffff; }
+  .lio-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
+  .lio-label { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: block; }
+
+  .lio-module-card { padding: 14px; border-radius: 12px; border: 1.5px solid #e5e7eb; cursor: pointer; transition: all 120ms; background: white; display: flex; flex-direction: column; gap: 8px; min-height: 120px; }
+  .lio-module-card:hover { border-color: #c7d2fe; }
+  .lio-module-card.selected { border-color: #4f46e5; background: #fafbff; box-shadow: 0 0 0 3px rgba(79,70,229,0.08); }
+
+  .lio-progress-bar { height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden; }
+  .lio-progress-bar > div { height: 100%; background: linear-gradient(90deg, #6366f1, #8b5cf6); transition: width 240ms; }
+
+  /* Cmd+K palette */
+  #lio-cmdk-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.40); backdrop-filter: blur(4px); z-index: 9000; display: none; align-items: flex-start; justify-content: center; padding-top: 12vh; }
+  #lio-cmdk-overlay.open { display: flex; }
+  #lio-cmdk { width: 600px; max-width: 90vw; background: white; border-radius: 14px; box-shadow: 0 24px 64px rgba(15,23,42,0.20); overflow: hidden; }
+  #lio-cmdk-input { width: 100%; padding: 16px 20px; border: none; outline: none; font-size: 15px; color: #0f172a; border-bottom: 1px solid #f1f5f9; }
+  .lio-cmdk-row { padding: 10px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 13px; color: #334155; }
+  .lio-cmdk-row.active { background: #eef2ff; color: #4338ca; }
+  .lio-cmdk-row .lio-cmdk-kind { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 6px; border-radius: 4px; background: #f1f5f9; color: #64748b; margin-left: auto; }
+
+  /* Profile-segment cards */
+  .lio-segment-card { padding: 24px; border-radius: 16px; border: 2px solid #e5e7eb; background: white; cursor: pointer; transition: all 160ms; }
+  .lio-segment-card:hover { border-color: #c7d2fe; transform: translateY(-2px); box-shadow: 0 12px 32px rgba(99,102,241,0.12); }
+  .lio-segment-card.active { border-color: #4f46e5; background: linear-gradient(135deg, #fafbff 0%, #f4f6ff 100%); box-shadow: 0 0 0 3px rgba(79,70,229,0.10); }
+  .lio-segment-icon { font-size: 28px; margin-bottom: 8px; }
+
+  /* Sticky summary card */
+  #lio-summary { position: sticky; top: 56px; height: calc(100vh - 56px); overflow-y: auto; border-left: 1px solid #f1f5f9; padding: 24px 22px; background: #fafbfc; }
+  .lio-summary-row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; font-size: 13px; color: #475569; }
+  .lio-summary-row .v { color: #0f172a; font-weight: 600; }
+  .lio-summary-divider { height: 1px; background: #e2e8f0; margin: 10px 0; }
+
+  /* Stepnav left */
+  #lio-stepnav { padding: 24px 16px; border-right: 1px solid #f1f5f9; background: #fafbfc; min-height: calc(100vh - 56px); }
+
+  /* Tier chip buttons (step 2) */
+  .lio-tier-chip { padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 500; cursor: pointer; transition: all 120ms; border: 1px solid #e2e8f0; background: white; color: #475569; white-space: nowrap; }
+  .lio-tier-chip:hover { border-color: #c7d2fe; }
+  .lio-tier-chip.active { background: #4f46e5; color: white; border-color: #4f46e5; }
+</style>
+
+<!-- WORKSPACE TOP BAR -->
+<header id="lio-topbar" class="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-b border-slate-100" style="height:56px;">
+  <div class="max-w-full mx-auto h-full px-6 flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <button onclick="lioGoToDashboard()" class="flex items-center gap-2 group" title="Back to dashboard">
+        <span style="background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:800;font-size:18px;letter-spacing:-0.5px;">Lio</span>
+        <span class="text-xs text-slate-400 hidden md:inline">Quote Workspace</span>
+      </button>
+      <div id="lio-breadcrumb" class="hidden md:flex items-center gap-2 text-xs text-slate-400 ml-4"></div>
+    </div>
+    <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5" id="lio-currency-switcher">
+        <button onclick="setCurrency('usd'); lioSyncSummary();" class="lio-cur-btn px-2 py-1 rounded text-xs font-medium" data-cur="usd">$ USD</button>
+        <button onclick="setCurrency('eur'); lioSyncSummary();" class="lio-cur-btn px-2 py-1 rounded text-xs font-medium" data-cur="eur">€ EUR</button>
+        <button onclick="setCurrency('gbp'); lioSyncSummary();" class="lio-cur-btn px-2 py-1 rounded text-xs font-medium" data-cur="gbp">£ GBP</button>
+      </div>
+      <button onclick="lioOpenCmdK()" class="lio-btn lio-btn-ghost" title="Quick command palette (⌘K)">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/></svg>
+        <span class="hidden md:inline">Search</span>
+        <kbd class="hidden md:inline text-[10px] bg-slate-100 px-1.5 py-0.5 rounded ml-1">⌘K</kbd>
+      </button>
+      <button onclick="openQuoteHistory()" class="lio-btn lio-btn-ghost">My Quotes</button>
+      <button onclick="lioStartNewQuote()" class="lio-btn lio-btn-primary">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        New Quote
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- DASHBOARD VIEW -->
+<div id="lio-dashboard" class="hidden" style="padding-top:56px;">
+  <div class="max-w-6xl mx-auto p-8">
+    <div class="mb-10">
+      <div class="text-sm text-slate-400 mb-1">Sales Workspace</div>
+      <h1 class="text-3xl font-extrabold text-slate-900">Welcome back<span id="lio-dash-greeting"></span>.</h1>
+      <p class="text-slate-500 mt-1">Build a quote, browse history, or jump straight back into a deal.</p>
+    </div>
+
+    <!-- Stats row -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+      <div class="lio-card p-5"><div class="text-xs text-slate-400 uppercase tracking-wider">Total quotes</div><div class="text-2xl font-extrabold text-slate-900 mt-1" id="lio-dash-stat-total">—</div></div>
+      <div class="lio-card p-5"><div class="text-xs text-slate-400 uppercase tracking-wider">Last 30 days</div><div class="text-2xl font-extrabold text-slate-900 mt-1" id="lio-dash-stat-30d">—</div></div>
+      <div class="lio-card p-5"><div class="text-xs text-slate-400 uppercase tracking-wider">Avg. quote value</div><div class="text-2xl font-extrabold text-slate-900 mt-1" id="lio-dash-stat-avg">—</div></div>
+      <div class="lio-card p-5"><div class="text-xs text-slate-400 uppercase tracking-wider">Top sales rep</div><div class="text-2xl font-extrabold text-slate-900 mt-1" id="lio-dash-stat-top">—</div></div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-5">
+      <!-- New Quote primary card -->
+      <button onclick="lioStartNewQuote()" class="lio-card lio-card-hover p-6 md:col-span-1 text-left flex flex-col gap-3 group" style="background:linear-gradient(135deg,#fafbff 0%,#eef2ff 100%);border-color:#c7d2fe;">
+        <div class="flex items-center justify-between">
+          <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-sm">
+            <svg width="22" height="22" fill="none" stroke="#4f46e5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          </div>
+          <span class="lio-pill lio-pill-blue">Step-by-step</span>
+        </div>
+        <div>
+          <div class="text-xl font-bold text-slate-900">Start a new quote</div>
+          <div class="text-sm text-slate-500 mt-1">Six guided steps. Customer profile → modules → services → details → review → PDF.</div>
+        </div>
+        <div class="text-xs text-indigo-600 font-semibold mt-auto pt-2 group-hover:translate-x-1 transition">Begin →</div>
+      </button>
+
+      <!-- Recent Quotes -->
+      <div class="lio-card p-6 md:col-span-2">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <div class="text-sm font-semibold text-slate-900">Recent Quotes</div>
+            <div class="text-xs text-slate-400">Click any quote to reopen</div>
+          </div>
+          <button onclick="openQuoteHistory()" class="text-xs text-indigo-600 font-semibold hover:text-indigo-700">View all →</button>
+        </div>
+        <div id="lio-dash-recent" class="space-y-2">
+          <div class="text-sm text-slate-400 py-6 text-center">Loading quotes…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pricing reference quick-view -->
+    <div class="lio-card p-6 mt-5">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <div class="text-sm font-semibold text-slate-900">Pricing reference</div>
+          <div class="text-xs text-slate-400">Typical yearly SaaS fee ranges (editable inside any quote)</div>
+        </div>
+      </div>
+      <div id="lio-dash-pricing-ref" class="overflow-x-auto"></div>
+    </div>
+  </div>
+</div>
+
+<!-- WIZARD VIEW -->
+<div id="lio-wizard" class="hidden" style="padding-top:56px;">
+  <div class="lio-grid-shell">
+    <!-- LEFT: stepnav -->
+    <aside id="lio-stepnav">
+      <div class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold mb-3 px-2">Quote Builder</div>
+      <div class="space-y-1">
+        <div class="lio-step active" data-step="1" onclick="lioGoToStep(1)"><span class="lio-step-num"><span>1</span></span> Customer Profile</div>
+        <div class="lio-step" data-step="2" onclick="lioGoToStep(2)"><span class="lio-step-num"><span>2</span></span> Modules</div>
+        <div class="lio-step" data-step="3" onclick="lioGoToStep(3)"><span class="lio-step-num"><span>3</span></span> Services</div>
+        <div class="lio-step" data-step="4" onclick="lioGoToStep(4)"><span class="lio-step-num"><span>4</span></span> Customization</div>
+        <div class="lio-step" data-step="5" onclick="lioGoToStep(5)"><span class="lio-step-num"><span>5</span></span> Customer Details</div>
+        <div class="lio-step" data-step="6" onclick="lioGoToStep(6)"><span class="lio-step-num"><span>6</span></span> Review &amp; Send</div>
+      </div>
+      <div class="mt-6 px-2">
+        <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Progress</div>
+        <div class="lio-progress-bar"><div id="lio-progress-fill" style="width:16%;"></div></div>
+        <div class="text-[10px] text-slate-400 mt-1" id="lio-progress-label">Step 1 of 6</div>
+      </div>
+      <div class="mt-8 px-2 text-[11px] text-slate-400">
+        <div class="font-semibold text-slate-500 mb-1">Quote Ref</div>
+        <div class="font-mono text-slate-700" id="lio-quote-ref">—</div>
+      </div>
+    </aside>
+
+    <!-- CENTER: step canvas -->
+    <main id="lio-canvas" class="lio-pane">
+      <!-- step panes injected by JS -->
+      <div id="lio-step-pane"></div>
+
+      <!-- step nav buttons -->
+      <div class="flex items-center justify-between mt-8 pt-6 border-t border-slate-100">
+        <button id="lio-btn-back" class="lio-btn lio-btn-ghost" onclick="lioPrevStep()">← Back</button>
+        <div class="flex items-center gap-3">
+          <button id="lio-btn-save-draft" class="lio-btn lio-btn-ghost" onclick="lioSaveDraft()" title="Save current state to a draft you can pick up later">Save draft</button>
+          <button id="lio-btn-next" class="lio-btn lio-btn-primary" onclick="lioNextStep()">Next →</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- RIGHT: live summary -->
+    <aside id="lio-summary">
+      <div class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold mb-3">Live Summary</div>
+      <div class="lio-card p-4 mb-4">
+        <div class="text-[11px] text-slate-400 uppercase tracking-wider mb-1">Total (Year 1)</div>
+        <div class="text-2xl font-extrabold text-slate-900" id="lio-sum-total">—</div>
+        <div class="text-xs text-slate-400 mt-1" id="lio-sum-monthly">—</div>
+      </div>
+      <div class="space-y-1 mb-3">
+        <div class="lio-summary-row"><span>Profile</span><span class="v" id="lio-sum-profile">—</span></div>
+        <div class="lio-summary-row"><span>Modules</span><span class="v" id="lio-sum-modcount">0</span></div>
+        <div class="lio-summary-row"><span>Custom positions</span><span class="v" id="lio-sum-custom">0</span></div>
+      </div>
+      <div class="lio-summary-divider"></div>
+      <div class="space-y-1">
+        <div class="lio-summary-row"><span>SaaS Subtotal</span><span class="v" id="lio-sum-subtotal">—</span></div>
+        <div class="lio-summary-row" id="lio-sum-bundlerow" style="display:none;"><span class="text-emerald-600">Bundle discount</span><span class="v text-emerald-600" id="lio-sum-bundle">—</span></div>
+        <div class="lio-summary-row"><span>Customer Success (10%)</span><span class="v" id="lio-sum-cs">—</span></div>
+        <div class="lio-summary-row"><span>Implementation (15%)</span><span class="v" id="lio-sum-impl">—</span></div>
+      </div>
+      <div class="lio-summary-divider"></div>
+      <div class="lio-summary-row"><span class="font-semibold text-slate-700">Recurring annual</span><span class="v" id="lio-sum-recurring">—</span></div>
+      <div class="mt-6 space-y-2">
+        <button id="lio-sum-pdf" class="lio-btn lio-btn-emerald w-full justify-center" onclick="lioGenerateAndDownload()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          Download PDF
+        </button>
+        <button class="lio-btn lio-btn-ghost w-full justify-center" onclick="lioPrintQuote()">Print Quote</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- CMD+K PALETTE -->
+<div id="lio-cmdk-overlay" onclick="if(event.target===this) lioCloseCmdK()">
+  <div id="lio-cmdk">
+    <input id="lio-cmdk-input" type="text" placeholder="Search modules, jump to step, or run an action…" oninput="lioCmdKFilter()" onkeydown="lioCmdKKey(event)">
+    <div id="lio-cmdk-results" style="max-height:60vh;overflow-y:auto;"></div>
+    <div class="px-5 py-3 text-[10px] text-slate-400 border-t border-slate-100 flex items-center gap-3">
+      <span><kbd class="bg-slate-100 px-1.5 py-0.5 rounded">↑↓</kbd> navigate</span>
+      <span><kbd class="bg-slate-100 px-1.5 py-0.5 rounded">↵</kbd> select</span>
+      <span><kbd class="bg-slate-100 px-1.5 py-0.5 rounded">esc</kbd> close</span>
+    </div>
+  </div>
+</div>
+<!-- end of new wizard shell -->
+
+
 <!-- Navigation -->
 <nav class="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-xl border-b border-slate-100 shadow-sm">
   <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
@@ -4097,6 +4366,932 @@ document.addEventListener('DOMContentLoaded', function() {
     observer.observe(el);
   });
 });
+
+// === LIO WIZARD WORKSPACE (Phase 2a) ===
+/* =========================================================
+   LIO QUOTE WORKSPACE — wizard state machine + step renderers
+   ---------------------------------------------------------
+   This script ASSUMES all the existing helpers are loaded
+   already (modules, fmt, fmtRaw, calcUpdate, sbLoadQuotes,
+   sbSaveQuote, sbLoadQuoteHtml, generateQuoteData,
+   downloadQuoteAsPDF, downloadQuotePDF, populateQuotePricing,
+   updateQuotePricing, openQuoteHistory, renderQuoteHistory,
+   renderPricingReference, addCustomPosition, etc.).
+
+   The wizard does NOT duplicate that logic — instead it
+   programmatically toggles the legacy DOM (the hidden
+   #calculator-modules checkboxes, the #quote-modal inputs,
+   the pricing-ref state, etc.) so all downstream calc/PDF
+   paths keep working unchanged.
+   ========================================================= */
+(function () {
+  'use strict';
+
+  // ---------------------------
+  // Wizard state
+  // ---------------------------
+  const SEGMENTS = [
+    { key: 'fortune500',  name: 'Fortune 500',           currency: 'usd', icon: '🏛️',  desc: 'Global enterprise · $300K – $1M typical', range: '$300K – $1M', refRow: 'Fortune 500' },
+    { key: 'dax40',       name: 'DAX 40',                currency: 'eur', icon: '🇩🇪',  desc: 'German enterprise · €250K – €800K typical', range: '€250K – €800K', refRow: 'DAX 40' },
+    { key: 'midmarket',   name: 'Mid Market (US)',       currency: 'usd', icon: '🚀',  desc: 'Scaling US teams · $69K – $550K typical', range: '$69K – $550K', refRow: 'Mid Market (US)' },
+    { key: 'mittelstand', name: 'German Mittelstand',    currency: 'eur', icon: '🛠️',  desc: 'Lean DE operations · €60K – €200K typical', range: '€60K – €200K', refRow: 'German Mittelstand (DE)' },
+    { key: 'custom',      name: 'Custom',                currency: null,  icon: '✨',  desc: 'Blank slate · choose your own currency + modules', range: 'Custom', refRow: null }
+  ];
+
+  const W = window.lioWizard = window.lioWizard || {
+    step: 1,
+    completed: new Set(),
+    profileKey: null,
+    quoteRef: null
+  };
+
+  function newQuoteRef() {
+    return 'LIO-' + Date.now().toString(36).toUpperCase();
+  }
+
+  // ---------------------------
+  // Top-level mode router
+  // ---------------------------
+  function showShell() {
+    document.body.classList.add('lio-workspace');
+  }
+
+  function lioGoToDashboard() {
+    showShell();
+    document.getElementById('lio-dashboard')?.classList.remove('hidden');
+    document.getElementById('lio-wizard')?.classList.add('hidden');
+    refreshDashboard();
+  }
+  window.lioGoToDashboard = lioGoToDashboard;
+
+  function lioStartNewQuote() {
+    showShell();
+    // reset wizard state for a fresh quote
+    W.step = 1;
+    W.completed = new Set();
+    W.profileKey = null;
+    W.quoteRef = newQuoteRef();
+    // wipe any legacy state from the previous run
+    resetLegacyState();
+    document.getElementById('lio-dashboard')?.classList.add('hidden');
+    document.getElementById('lio-wizard')?.classList.remove('hidden');
+    document.getElementById('lio-quote-ref').textContent = W.quoteRef;
+    renderStep();
+    lioSyncSummary();
+  }
+  window.lioStartNewQuote = lioStartNewQuote;
+
+  function resetLegacyState() {
+    // uncheck every module
+    Object.keys(window.modules || {}).forEach(k => {
+      const cb = document.getElementById('chk-' + k);
+      if (cb) cb.checked = false;
+    });
+    // clear custom positions
+    window._customPositions = [];
+    // reset editing-quote pointer
+    window._editingQuoteId = null;
+    // clear customer fields if present
+    ['quote-company', 'quote-contact', 'quote-address', 'quote-notes'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    // reset advanced ROI selections
+    Object.keys(window.roiModels || {}).forEach(k => {
+      const cb = document.getElementById('roi-adv-chk-' + k);
+      if (cb) cb.checked = false;
+    });
+    if (typeof calcUpdate === 'function') calcUpdate();
+  }
+
+  // ---------------------------
+  // Step navigation
+  // ---------------------------
+  function lioGoToStep(n) {
+    if (n < 1 || n > 6) return;
+    W.step = n;
+    renderStep();
+    lioSyncSummary();
+    // scroll the canvas to the top so the user sees the new step from the start
+    document.getElementById('lio-canvas')?.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  window.lioGoToStep = lioGoToStep;
+
+  function lioNextStep() {
+    // Validate current step before advancing
+    if (!validateStep(W.step)) return;
+    W.completed.add(W.step);
+    if (W.step < 6) lioGoToStep(W.step + 1);
+  }
+  window.lioNextStep = lioNextStep;
+
+  function lioPrevStep() {
+    if (W.step > 1) lioGoToStep(W.step - 1);
+  }
+  window.lioPrevStep = lioPrevStep;
+
+  function validateStep(n) {
+    if (n === 1 && !W.profileKey) {
+      alert('Pick a customer profile to continue (or choose Custom for a blank slate).');
+      return false;
+    }
+    return true;
+  }
+
+  // ---------------------------
+  // Step rendering
+  // ---------------------------
+  function renderStep() {
+    // Update sidebar active/done states
+    document.querySelectorAll('.lio-step').forEach(el => {
+      const n = parseInt(el.dataset.step, 10);
+      el.classList.toggle('active', n === W.step);
+      el.classList.toggle('done', W.completed.has(n) && n !== W.step);
+    });
+    // Progress bar
+    const fill = document.getElementById('lio-progress-fill');
+    if (fill) fill.style.width = (W.step / 6 * 100).toFixed(0) + '%';
+    const lbl = document.getElementById('lio-progress-label');
+    if (lbl) lbl.textContent = 'Step ' + W.step + ' of 6';
+
+    // Breadcrumb in topbar
+    const bc = document.getElementById('lio-breadcrumb');
+    if (bc) {
+      const stepName = ['', 'Customer Profile', 'Modules', 'Services', 'Customization', 'Customer Details', 'Review & Send'][W.step];
+      bc.innerHTML = '<span class="text-slate-400">Quote Builder</span><span class="text-slate-300">·</span><span class="text-slate-600 font-medium">' + stepName + '</span>';
+    }
+
+    // Back / Next button enable/disable
+    document.getElementById('lio-btn-back').style.visibility = (W.step === 1) ? 'hidden' : 'visible';
+    const nextBtn = document.getElementById('lio-btn-next');
+    if (W.step === 6) {
+      nextBtn.textContent = 'Generate PDF';
+      nextBtn.onclick = lioGenerateAndDownload;
+    } else {
+      nextBtn.textContent = 'Next →';
+      nextBtn.onclick = lioNextStep;
+    }
+
+    // Render current step content
+    const pane = document.getElementById('lio-step-pane');
+    if (!pane) return;
+    pane.innerHTML = '';
+    if (W.step === 1) renderStep1Profile(pane);
+    else if (W.step === 2) renderStep2Modules(pane);
+    else if (W.step === 3) renderStep3Services(pane);
+    else if (W.step === 4) renderStep4Customization(pane);
+    else if (W.step === 5) renderStep5CustomerDetails(pane);
+    else if (W.step === 6) renderStep6Review(pane);
+  }
+
+  // ---------------------------
+  // STEP 1 — Customer Profile
+  // ---------------------------
+  function renderStep1Profile(pane) {
+    pane.innerHTML =
+      '<div class="mb-6">' +
+        '<h1 class="text-2xl font-extrabold text-slate-900">Who is this quote for?</h1>' +
+        '<p class="text-sm text-slate-500 mt-1">Pick the customer segment to set sensible defaults — currency, expected pricing range, and the highlighted reference row in the PDF.</p>' +
+      '</div>' +
+      '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">' +
+        SEGMENTS.map(s => {
+          const isActive = W.profileKey === s.key;
+          return '<div class="lio-segment-card' + (isActive ? ' active' : '') + '" data-segkey="' + s.key + '">' +
+            '<div class="lio-segment-icon">' + s.icon + '</div>' +
+            '<div class="text-lg font-bold text-slate-900">' + s.name + '</div>' +
+            '<div class="text-xs text-slate-500 mt-0.5">' + s.desc + '</div>' +
+            '<div class="mt-3 flex items-center gap-2">' +
+              '<span class="lio-pill ' + (s.currency === 'eur' ? 'lio-pill-amber' : s.currency === 'gbp' ? 'lio-pill-slate' : 'lio-pill-blue') + '">' + (s.currency ? s.currency.toUpperCase() : 'Choose currency') + '</span>' +
+              '<span class="text-xs text-slate-400">' + s.range + '</span>' +
+            '</div>' +
+          '</div>';
+        }).join('') +
+      '</div>';
+
+    pane.querySelectorAll('.lio-segment-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const key = card.dataset.segkey;
+        const seg = SEGMENTS.find(s => s.key === key);
+        W.profileKey = key;
+        if (seg.currency && typeof setCurrency === 'function') setCurrency(seg.currency);
+        // Re-render to highlight the selected card
+        renderStep();
+        lioSyncSummary();
+      });
+    });
+  }
+
+  // ---------------------------
+  // STEP 2 — Modules
+  // ---------------------------
+  // Display order — same priority as the dark file's calculator
+  const MOD_ORDER = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const MOD_ICONS = { gb2po: '🛒', ntpo: '✅', na: '🤝', sa: '🔍', oc: '📋', liox: '🧠', sm: '🏢', aa: '🔐', gr: '📦', inv: '🧾', pia: '📊', npa: '🎯', cna: '📄', aop: '🔧', clm: '📑', sh: '🏗️' };
+
+  function renderStep2Modules(pane) {
+    pane.innerHTML =
+      '<div class="mb-6 flex items-end justify-between gap-4 flex-wrap">' +
+        '<div>' +
+          '<h1 class="text-2xl font-extrabold text-slate-900">Choose the modules</h1>' +
+          '<p class="text-sm text-slate-500 mt-1">Click a card to toggle it. Pick a tier per module — the default is the smallest tier so you can scale up.</p>' +
+        '</div>' +
+        '<div class="flex items-center gap-2">' +
+          '<input id="lio-mod-search" type="text" placeholder="Filter modules…" class="lio-input" style="min-width:220px;" oninput="lioFilterModules(this.value)">' +
+          '<button class="lio-btn lio-btn-ghost" onclick="lioOpenCmdK()" title="⌘K">⌘K</button>' +
+        '</div>' +
+      '</div>' +
+      '<div id="lio-mod-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>';
+
+    renderModuleGrid();
+  }
+
+  function renderModuleGrid(filter) {
+    const grid = document.getElementById('lio-mod-grid');
+    if (!grid || !window.modules) return;
+    const f = (filter || '').toLowerCase().trim();
+    grid.innerHTML = '';
+    MOD_ORDER.forEach(k => {
+      const m = window.modules[k];
+      if (!m) return;
+      if (f && !(m.name + ' ' + (m.desc || '')).toLowerCase().includes(f)) return;
+      const cb = document.getElementById('chk-' + k);
+      const sel = !!(cb && cb.checked);
+      const tierEl = document.getElementById('ct-' + k);
+      const tierUsd = tierEl ? parseInt(tierEl.value) : (m.tiers[0]?.price || 0);
+      const tierObj = m.tiers.find(t => t.price === tierUsd) || m.tiers[0];
+      const tierLabel = tierObj ? (typeof fmtVol === 'function' ? fmtVol(k, tierObj.vol) : tierObj.vol) : '—';
+      const priceLabel = tierObj ? (typeof fmtTierPrice === 'function' ? fmtTierPrice(tierObj) : ('$' + tierObj.price)) : '—';
+      const tierChips = sel ? m.tiers.map(t => {
+        const isCurrent = tierObj && t.price === tierObj.price;
+        return '<button class="lio-tier-chip' + (isCurrent ? ' active' : '') + '" data-tier="' + t.price + '" data-modkey="' + k + '" type="button">' + (typeof fmtVol === 'function' ? fmtVol(k, t.vol) : t.vol) + '</button>';
+      }).join('') : '';
+
+      const niceName = k === 'sm' ? 'Supplier Relationship Management' : m.name;
+      grid.insertAdjacentHTML('beforeend',
+        '<div class="lio-module-card' + (sel ? ' selected' : '') + '" data-modkey="' + k + '">' +
+          '<div class="flex items-start justify-between gap-2">' +
+            '<div class="flex items-start gap-2">' +
+              '<div class="text-xl">' + (MOD_ICONS[k] || '⚙️') + '</div>' +
+              '<div>' +
+                '<div class="font-semibold text-slate-900 text-sm leading-tight">' + niceName + '</div>' +
+                '<div class="text-[11px] text-slate-400 uppercase tracking-wider mt-0.5">' + k.toUpperCase() + '</div>' +
+              '</div>' +
+            '</div>' +
+            (sel ? '<svg width="18" height="18" fill="#4f46e5" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>' : '<div style="width:18px;height:18px;border:1.5px solid #cbd5e1;border-radius:50%;"></div>') +
+          '</div>' +
+          (sel ? '<div class="text-xs text-slate-500 mt-1">' + tierLabel + ' · <span class="font-semibold text-slate-700">' + priceLabel + '/yr</span></div>' : '<div class="text-xs text-slate-400 mt-1">From ' + (typeof fmtTierPrice === 'function' ? fmtTierPrice(m.tiers[0]) : '$' + m.tiers[0].price) + '/yr</div>') +
+          (sel && m.tiers.length > 1 ? '<div class="flex flex-wrap gap-1 mt-2">' + tierChips + '</div>' : '') +
+        '</div>'
+      );
+    });
+
+    // Wire card clicks (toggle module)
+    grid.querySelectorAll('.lio-module-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        // Don't toggle the card if a tier-chip was clicked
+        if (e.target.classList.contains('lio-tier-chip')) return;
+        toggleModule(card.dataset.modkey);
+      });
+    });
+    // Wire tier-chip clicks
+    grid.querySelectorAll('.lio-tier-chip').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setModuleTier(btn.dataset.modkey, parseInt(btn.dataset.tier));
+      });
+    });
+  }
+
+  function toggleModule(key) {
+    const cb = document.getElementById('chk-' + key);
+    if (!cb) return; // calculator hasn't been built yet
+    cb.checked = !cb.checked;
+    if (typeof calcUpdate === 'function') calcUpdate();
+    renderModuleGrid(document.getElementById('lio-mod-search')?.value || '');
+    lioSyncSummary();
+  }
+
+  function setModuleTier(key, usdPrice) {
+    const tierEl = document.getElementById('ct-' + key);
+    if (!tierEl) return;
+    tierEl.value = String(usdPrice);
+    if (typeof calcUpdate === 'function') calcUpdate();
+    renderModuleGrid(document.getElementById('lio-mod-search')?.value || '');
+    lioSyncSummary();
+  }
+
+  window.lioFilterModules = function (val) { renderModuleGrid(val); };
+
+  // ---------------------------
+  // STEP 3 — Services
+  // ---------------------------
+  function renderStep3Services(pane) {
+    pane.innerHTML =
+      '<div class="mb-6">' +
+        '<h1 class="text-2xl font-extrabold text-slate-900">Services &amp; fees</h1>' +
+        '<p class="text-sm text-slate-500 mt-1">Implementation and Customer Success scale with the modules you picked. Add bespoke services as custom positions below.</p>' +
+      '</div>' +
+      '<div class="grid md:grid-cols-2 gap-4 mb-6">' +
+        '<div class="lio-card p-5">' +
+          '<div class="flex items-start justify-between mb-2">' +
+            '<div>' +
+              '<div class="font-semibold text-slate-900">Implementation</div>' +
+              '<div class="text-xs text-slate-400 mt-0.5">15% of net SaaS, one-time</div>' +
+            '</div>' +
+            '<span class="lio-pill lio-pill-blue">Included</span>' +
+          '</div>' +
+          '<div class="text-2xl font-extrabold text-slate-900 mt-2" id="lio-svc-impl">—</div>' +
+          '<ul class="text-xs text-slate-500 mt-3 space-y-1">' +
+            '<li>· Web Interface &amp; Teams setup</li>' +
+            '<li>· ERP &amp; P2P integration</li>' +
+            '<li>· Up to 50 punchout catalogs</li>' +
+            '<li>· Buyer &amp; requestor training</li>' +
+          '</ul>' +
+          '<div class="mt-3 flex items-center gap-2">' +
+            '<label class="text-xs text-slate-500">Discount</label>' +
+            '<input type="number" id="lio-svc-impl-disc" min="0" step="1" placeholder="0" class="lio-input" style="width:80px;" oninput="lioSyncImpl()">' +
+            '<select id="lio-svc-impl-disc-type" class="lio-input" style="width:60px;" onchange="lioSyncImpl()"><option value="pct">%</option><option value="fixed">$</option></select>' +
+          '</div>' +
+        '</div>' +
+        '<div class="lio-card p-5">' +
+          '<div class="flex items-start justify-between mb-2">' +
+            '<div>' +
+              '<div class="font-semibold text-slate-900">Customer Success</div>' +
+              '<div class="text-xs text-slate-400 mt-0.5">10% of net SaaS, recurring annually</div>' +
+            '</div>' +
+            '<span class="lio-pill lio-pill-green">Included</span>' +
+          '</div>' +
+          '<div class="text-2xl font-extrabold text-slate-900 mt-2" id="lio-svc-cs">—</div>' +
+          '<ul class="text-xs text-slate-500 mt-3 space-y-1">' +
+            '<li>· Dedicated CSM</li>' +
+            '<li>· SLA-backed response</li>' +
+            '<li>· Quarterly reviews</li>' +
+            '<li>· Continuous optimization</li>' +
+          '</ul>' +
+          '<div class="mt-3 flex items-center gap-2">' +
+            '<label class="text-xs text-slate-500">Discount</label>' +
+            '<input type="number" id="lio-svc-cs-disc" min="0" step="1" placeholder="0" class="lio-input" style="width:80px;" oninput="lioSyncCS()">' +
+            '<select id="lio-svc-cs-disc-type" class="lio-input" style="width:60px;" onchange="lioSyncCS()"><option value="pct">%</option><option value="fixed">$</option></select>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="lio-card p-5">' +
+        '<div class="flex items-center justify-between mb-3">' +
+          '<div>' +
+            '<div class="font-semibold text-slate-900">Custom positions</div>' +
+            '<div class="text-xs text-slate-400">Bespoke charges that should appear on the quote (training, migration, custom integrations…). Added to the SaaS subtotal.</div>' +
+          '</div>' +
+          '<button class="lio-btn lio-btn-primary" onclick="addCustomPosition(); lioRefreshCustomPositions();">+ Add Position</button>' +
+        '</div>' +
+        '<div id="lio-custom-positions-host"></div>' +
+      '</div>' +
+      '<div class="mt-4 flex items-center gap-2 text-sm text-slate-600">' +
+        '<input type="checkbox" id="lio-hide-discounts" class="w-4 h-4">' +
+        '<label for="lio-hide-discounts">Hide discount breakdown on the quote PDF (show net prices as standard)</label>' +
+      '</div>';
+
+    // Mirror the values + render hosts
+    requestAnimationFrame(() => {
+      lioSyncImpl();
+      lioSyncCS();
+      lioRefreshCustomPositions();
+    });
+  }
+
+  // Sync wizard inputs back into legacy quote-modal inputs (so generateQuoteData picks them up)
+  window.lioSyncImpl = function () {
+    const v = document.getElementById('lio-svc-impl-disc')?.value || '0';
+    const t = document.getElementById('lio-svc-impl-disc-type')?.value || 'pct';
+    const lv = document.getElementById('quote-impl-disc'); if (lv) lv.value = v;
+    const lt = document.getElementById('quote-impl-disc-type'); if (lt) lt.value = t;
+    if (typeof updateQuotePricing === 'function') updateQuotePricing();
+    lioSyncSummary();
+  };
+  window.lioSyncCS = function () {
+    const v = document.getElementById('lio-svc-cs-disc')?.value || '0';
+    const t = document.getElementById('lio-svc-cs-disc-type')?.value || 'pct';
+    const lv = document.getElementById('quote-cs-disc'); if (lv) lv.value = v;
+    const lt = document.getElementById('quote-cs-disc-type'); if (lt) lt.value = t;
+    if (typeof updateQuotePricing === 'function') updateQuotePricing();
+    lioSyncSummary();
+  };
+
+  // The legacy custom-positions UI has its own renderer; we just reparent its host so it appears inside step 3
+  window.lioRefreshCustomPositions = function () {
+    const wizardHost = document.getElementById('lio-custom-positions-host');
+    const legacyList = document.getElementById('custom-positions-list');
+    if (!wizardHost || !legacyList) return;
+    // Move the legacy list into the wizard host so existing rendering applies
+    if (legacyList.parentElement !== wizardHost) wizardHost.appendChild(legacyList);
+    if (typeof renderCustomPositions === 'function') renderCustomPositions();
+    lioSyncSummary();
+  };
+
+  // ---------------------------
+  // STEP 4 — Customization
+  // ---------------------------
+  function renderStep4Customization(pane) {
+    pane.innerHTML =
+      '<div class="mb-6">' +
+        '<h1 class="text-2xl font-extrabold text-slate-900">Customization &amp; PDF sections</h1>' +
+        '<p class="text-sm text-slate-500 mt-1">Toggle which sections appear on the generated PDF. The pricing reference table is editable below.</p>' +
+      '</div>' +
+      '<div class="grid md:grid-cols-2 gap-4 mb-6">' +
+        '<div class="lio-card p-5">' +
+          '<div class="font-semibold text-slate-900 mb-3">Sections to include</div>' +
+          '<div class="space-y-2 text-sm text-slate-700">' +
+            '<label class="flex items-center gap-2"><input type="checkbox" id="lio-sec-details" class="w-4 h-4" checked>Module details (per-tier breakdown)</label>' +
+            '<label class="flex items-center gap-2"><input type="checkbox" id="lio-sec-roi" class="w-4 h-4">Impact summary (Simple ROI)</label>' +
+            '<label class="flex items-center gap-2"><input type="checkbox" id="lio-sec-advroi" class="w-4 h-4">Advanced ROI analysis</label>' +
+            '<label class="flex items-center gap-2"><input type="checkbox" id="lio-sec-pricingref" class="w-4 h-4">Pricing range reference</label>' +
+            '<label class="flex items-center gap-2"><input type="checkbox" id="lio-sec-service" class="w-4 h-4" checked>Service &amp; Support</label>' +
+            '<label class="flex items-center gap-2"><input type="checkbox" id="lio-sec-terms" class="w-4 h-4" checked>Terms &amp; Conditions</label>' +
+          '</div>' +
+        '</div>' +
+        '<div class="lio-card p-5">' +
+          '<div class="font-semibold text-slate-900 mb-2">Quote notes</div>' +
+          '<div class="text-xs text-slate-400 mb-2">Free-form text that appears at the end of the PDF.</div>' +
+          '<textarea id="lio-notes" rows="6" class="lio-input" placeholder="e.g. Pricing valid until&#10;Implementation kickoff next quarter&#10;Special agreements…" oninput="lioSyncNotes()"></textarea>' +
+        '</div>' +
+      '</div>' +
+      '<div class="lio-card p-5">' +
+        '<div class="font-semibold text-slate-900 mb-2">Pricing range reference</div>' +
+        '<div class="text-xs text-slate-400 mb-3">Editable Fortune 500 / DAX 40 / Mid Market / Mittelstand reference (optional, included only when its checkbox above is on).</div>' +
+        '<div id="lio-pricing-ref-host"></div>' +
+      '</div>';
+
+    // Mirror checkbox state from legacy + wire change handlers
+    [
+      ['lio-sec-details','quote-inc-details'],
+      ['lio-sec-roi','quote-inc-roi'],
+      ['lio-sec-advroi','quote-inc-adv-roi'],
+      ['lio-sec-pricingref','quote-inc-pricing-ref'],
+      ['lio-sec-service','quote-inc-service'],
+      ['lio-sec-terms','quote-inc-terms']
+    ].forEach(([w, l]) => {
+      const wEl = document.getElementById(w);
+      const lEl = document.getElementById(l);
+      if (!wEl || !lEl) return;
+      wEl.checked = lEl.checked;
+      wEl.addEventListener('change', () => {
+        lEl.checked = wEl.checked;
+        // For "include pricing ref" toggle, also reveal the editor host
+        lioSyncSummary();
+      });
+    });
+
+    // Hook notes
+    const notesEl = document.getElementById('lio-notes');
+    const legacyNotes = document.getElementById('quote-notes');
+    if (notesEl && legacyNotes) notesEl.value = legacyNotes.value || '';
+
+    // Move pricing-ref editor into the host
+    requestAnimationFrame(() => {
+      const wizardHost = document.getElementById('lio-pricing-ref-host');
+      const legacyTable = document.getElementById('pricing-ref-table-wrap');
+      if (wizardHost && legacyTable && legacyTable.parentElement !== wizardHost) {
+        // Also bring the title input + add/remove buttons into the host
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML =
+          '<div class="flex items-center justify-between mb-2 gap-2 flex-wrap">' +
+            '<input type="text" id="lio-pricing-ref-title" placeholder="Section title" class="lio-input" style="flex:1;min-width:220px;">' +
+            '<div class="flex items-center gap-2">' +
+              '<button type="button" onclick="addPricingRefRow()" class="lio-btn lio-btn-ghost">+ Row</button>' +
+              '<button type="button" onclick="addPricingRefColumn()" class="lio-btn lio-btn-ghost">+ Column</button>' +
+              '<button type="button" onclick="resetPricingRef()" class="lio-btn lio-btn-ghost">Reset</button>' +
+            '</div>' +
+          '</div>';
+        wizardHost.appendChild(wrapper);
+        wizardHost.appendChild(legacyTable);
+        // Sync title from legacy
+        const wTitle = document.getElementById('lio-pricing-ref-title');
+        const lTitle = document.getElementById('pricing-ref-title');
+        if (wTitle && lTitle) {
+          wTitle.value = lTitle.value;
+          wTitle.addEventListener('input', () => { lTitle.value = wTitle.value; });
+        }
+        if (typeof renderPricingReference === 'function') renderPricingReference();
+      }
+    });
+  }
+
+  window.lioSyncNotes = function () {
+    const v = document.getElementById('lio-notes')?.value || '';
+    const lEl = document.getElementById('quote-notes');
+    if (lEl) lEl.value = v;
+  };
+
+  // ---------------------------
+  // STEP 5 — Customer Details
+  // ---------------------------
+  function renderStep5CustomerDetails(pane) {
+    const validUntil = (() => { const d = new Date(); d.setDate(d.getDate() + 90); return d.toISOString().split('T')[0]; })();
+    pane.innerHTML =
+      '<div class="mb-6">' +
+        '<h1 class="text-2xl font-extrabold text-slate-900">Customer details</h1>' +
+        '<p class="text-sm text-slate-500 mt-1">These show up on the PDF cover and footer.</p>' +
+      '</div>' +
+      '<div class="grid md:grid-cols-2 gap-5">' +
+        '<div>' +
+          '<label class="lio-label">Recipient company</label>' +
+          '<input type="text" id="lio-cust-company" class="lio-input" placeholder="e.g. Siemens AG" oninput="lioSyncCustomerFields()">' +
+        '</div>' +
+        '<div>' +
+          '<label class="lio-label">Contact person</label>' +
+          '<input type="text" id="lio-cust-contact" class="lio-input" placeholder="e.g. Dr. Max Müller" oninput="lioSyncCustomerFields()">' +
+        '</div>' +
+        '<div class="md:col-span-2">' +
+          '<label class="lio-label">Company address</label>' +
+          '<textarea id="lio-cust-address" rows="2" class="lio-input" placeholder="Street, ZIP City, Country" oninput="lioSyncCustomerFields()"></textarea>' +
+        '</div>' +
+        '<div>' +
+          '<label class="lio-label">Quote valid until</label>' +
+          '<input type="date" id="lio-cust-valid" class="lio-input" oninput="lioSyncCustomerFields()">' +
+        '</div>' +
+        '<div>' +
+          '<label class="lio-label">Lio sales contact</label>' +
+          '<select id="lio-cust-lio-contact" class="lio-input" onchange="lioSyncCustomerFields()"></select>' +
+        '</div>' +
+      '</div>';
+
+    // Pre-fill from legacy + populate Lio contact dropdown
+    const company = document.getElementById('quote-company');
+    const contact = document.getElementById('quote-contact');
+    const address = document.getElementById('quote-address');
+    const valid = document.getElementById('quote-valid-until');
+    const lioContact = document.getElementById('quote-lio-contact');
+
+    document.getElementById('lio-cust-company').value = company?.value || '';
+    document.getElementById('lio-cust-contact').value = contact?.value || '';
+    document.getElementById('lio-cust-address').value = address?.value || '';
+    document.getElementById('lio-cust-valid').value = (valid?.value || validUntil);
+
+    const wizSel = document.getElementById('lio-cust-lio-contact');
+    if (wizSel && lioContact) {
+      wizSel.innerHTML = lioContact.innerHTML;
+      wizSel.value = lioContact.value;
+    }
+  }
+
+  window.lioSyncCustomerFields = function () {
+    const set = (wId, lId) => {
+      const w = document.getElementById(wId);
+      const l = document.getElementById(lId);
+      if (w && l) l.value = w.value;
+    };
+    set('lio-cust-company', 'quote-company');
+    set('lio-cust-contact', 'quote-contact');
+    set('lio-cust-address', 'quote-address');
+    set('lio-cust-valid', 'quote-valid-until');
+    set('lio-cust-lio-contact', 'quote-lio-contact');
+    lioSyncSummary();
+  };
+
+  // ---------------------------
+  // STEP 6 — Review & Send
+  // ---------------------------
+  function renderStep6Review(pane) {
+    // Make sure legacy state is fully synced (custom positions, etc.) before reading
+    if (typeof populateQuotePricing === 'function') populateQuotePricing();
+    if (typeof updateQuotePricing === 'function') updateQuotePricing();
+
+    const company = document.getElementById('quote-company')?.value || '—';
+    const contact = document.getElementById('quote-contact')?.value || '';
+    const lioContactKey = document.getElementById('quote-lio-contact')?.value || 'florian';
+    const lioContactName = document.getElementById('quote-lio-contact')?.selectedOptions[0]?.text || '';
+    const validUntil = document.getElementById('quote-valid-until')?.value || '';
+    const segName = (SEGMENTS.find(s => s.key === W.profileKey) || {}).name || '—';
+    const recurring = document.getElementById('c-recurring')?.textContent || document.getElementById('quote-final-total')?.textContent || '—';
+    const total = document.getElementById('c-total')?.textContent || document.getElementById('quote-final-total')?.textContent || '—';
+
+    // Build module list
+    const modList = MOD_ORDER.filter(k => document.getElementById('chk-' + k)?.checked).map(k => {
+      const m = window.modules[k];
+      const tierEl = document.getElementById('ct-' + k);
+      const tierUsd = tierEl ? parseInt(tierEl.value) : 0;
+      const tierObj = m?.tiers?.find(t => t.price === tierUsd) || m?.tiers?.[0];
+      const niceName = k === 'sm' ? 'SRM' : (m?.name || k);
+      return '<div class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0"><div class="flex items-center gap-2"><span>' + (MOD_ICONS[k] || '⚙️') + '</span><span class="text-sm text-slate-700">' + niceName + '</span><span class="text-xs text-slate-400">' + (tierObj?.vol || '') + '</span></div><div class="text-sm font-semibold text-slate-900">' + (tierObj && typeof fmtTierPrice === 'function' ? fmtTierPrice(tierObj) : '—') + '/yr</div></div>';
+    }).join('') || '<div class="text-sm text-slate-400 py-4 text-center">No modules selected — quote will only include reference / notes / ROI sections.</div>';
+
+    pane.innerHTML =
+      '<div class="mb-6">' +
+        '<h1 class="text-2xl font-extrabold text-slate-900">Review &amp; send</h1>' +
+        '<p class="text-sm text-slate-500 mt-1">Final check before generating the PDF. Use the buttons on the right (or below) to download or print.</p>' +
+      '</div>' +
+      '<div class="grid md:grid-cols-2 gap-5 mb-6">' +
+        '<div class="lio-card p-5">' +
+          '<div class="text-[11px] text-slate-400 uppercase tracking-wider mb-2">Customer</div>' +
+          '<div class="text-lg font-bold text-slate-900">' + company + '</div>' +
+          (contact ? '<div class="text-sm text-slate-500 mt-0.5">Attn: ' + contact + '</div>' : '') +
+          '<div class="mt-3 flex items-center gap-2 flex-wrap">' +
+            '<span class="lio-pill lio-pill-blue">' + segName + '</span>' +
+            (validUntil ? '<span class="lio-pill lio-pill-slate">Valid until ' + new Date(validUntil).toLocaleDateString() + '</span>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="lio-card p-5">' +
+          '<div class="text-[11px] text-slate-400 uppercase tracking-wider mb-2">Lio sales contact</div>' +
+          '<div class="text-lg font-bold text-slate-900">' + lioContactName + '</div>' +
+          '<div class="text-sm text-slate-500 mt-0.5">' + lioContactKey + '@lio.ai</div>' +
+          '<div class="mt-3"><span class="lio-pill lio-pill-slate font-mono">' + (W.quoteRef || '—') + '</span></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="lio-card p-5 mb-5">' +
+        '<div class="text-[11px] text-slate-400 uppercase tracking-wider mb-3">Selected modules</div>' +
+        '<div>' + modList + '</div>' +
+      '</div>' +
+      '<div class="grid md:grid-cols-3 gap-4">' +
+        '<button class="lio-btn lio-btn-primary justify-center py-4" onclick="lioGenerateAndDownload()">' +
+          '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>' +
+          'Download PDF' +
+        '</button>' +
+        '<button class="lio-btn lio-btn-ghost justify-center py-4" onclick="lioPrintQuote()">' +
+          '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>' +
+          'Print Quote' +
+        '</button>' +
+        '<button class="lio-btn lio-btn-emerald justify-center py-4" onclick="lioSaveDraft()">' +
+          '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' +
+          'Save &amp; Done' +
+        '</button>' +
+      '</div>';
+  }
+
+  // ---------------------------
+  // PDF actions (delegate to existing functions)
+  // ---------------------------
+  window.lioGenerateAndDownload = async function () {
+    if (typeof downloadQuoteAsPDF !== 'function') {
+      alert('PDF generator not available. Please reload the page.');
+      return;
+    }
+    try {
+      await downloadQuoteAsPDF();
+    } catch (e) {
+      console.error('[lioGenerateAndDownload] failed:', e);
+      alert('Could not generate PDF: ' + (e.message || e));
+    }
+  };
+  window.lioPrintQuote = function () {
+    if (typeof downloadQuotePDF === 'function') downloadQuotePDF();
+  };
+  window.lioSaveDraft = function () {
+    if (typeof generateQuoteData === 'function' && typeof saveQuoteToHistory === 'function') {
+      const data = generateQuoteData();
+      if (!data) return;
+      saveQuoteToHistory(data);
+      alert('Quote saved to My Quotes.');
+      lioGoToDashboard();
+    } else {
+      alert('Save unavailable.');
+    }
+  };
+
+  // ---------------------------
+  // Live summary panel
+  // ---------------------------
+  window.lioSyncSummary = function () {
+    if (typeof calcUpdate === 'function') calcUpdate();
+    const seg = SEGMENTS.find(s => s.key === W.profileKey);
+    document.getElementById('lio-sum-profile').textContent = seg ? seg.name : '—';
+    const modCount = MOD_ORDER.filter(k => document.getElementById('chk-' + k)?.checked).length;
+    document.getElementById('lio-sum-modcount').textContent = String(modCount);
+    document.getElementById('lio-sum-custom').textContent = String((window._customPositions || []).filter(p => p.name || (p.price > 0)).length);
+    document.getElementById('lio-sum-subtotal').textContent = document.getElementById('c-saas')?.textContent || '—';
+    const bundleEl = document.getElementById('c-bundle-savings');
+    if (bundleEl && bundleEl.textContent && bundleEl.textContent !== '$0' && bundleEl.textContent.length > 1) {
+      document.getElementById('lio-sum-bundlerow').style.display = 'flex';
+      document.getElementById('lio-sum-bundle').textContent = bundleEl.textContent;
+    } else {
+      document.getElementById('lio-sum-bundlerow').style.display = 'none';
+    }
+    document.getElementById('lio-sum-cs').textContent = document.getElementById('c-cs')?.textContent || '—';
+    document.getElementById('lio-sum-impl').textContent = document.getElementById('c-impl')?.textContent || '—';
+    document.getElementById('lio-sum-recurring').textContent = document.getElementById('c-recurring')?.textContent || '—';
+    document.getElementById('lio-sum-total').textContent = document.getElementById('c-total')?.textContent || '—';
+    document.getElementById('lio-sum-monthly').textContent = (document.getElementById('c-monthly')?.textContent || '');
+  };
+
+  // ---------------------------
+  // Cmd+K palette
+  // ---------------------------
+  let cmdkActiveIdx = 0;
+  let cmdkResults = [];
+
+  window.lioOpenCmdK = function () {
+    document.getElementById('lio-cmdk-overlay').classList.add('open');
+    setTimeout(() => {
+      const inp = document.getElementById('lio-cmdk-input');
+      if (inp) { inp.value = ''; inp.focus(); }
+      lioCmdKFilter();
+    }, 50);
+  };
+  window.lioCloseCmdK = function () {
+    document.getElementById('lio-cmdk-overlay').classList.remove('open');
+  };
+
+  window.lioCmdKFilter = function () {
+    const q = (document.getElementById('lio-cmdk-input')?.value || '').toLowerCase().trim();
+    const items = [];
+    // Modules
+    MOD_ORDER.forEach(k => {
+      const m = window.modules[k];
+      if (!m) return;
+      const niceName = k === 'sm' ? 'Supplier Relationship Management' : m.name;
+      const matches = !q || (niceName + ' ' + k).toLowerCase().includes(q);
+      if (matches) {
+        const checked = !!document.getElementById('chk-' + k)?.checked;
+        items.push({ kind: 'Module', label: (checked ? '✓ ' : '+ ') + niceName, action: () => { toggleModule(k); } });
+      }
+    });
+    // Steps
+    [['Customer Profile',1],['Modules',2],['Services',3],['Customization',4],['Customer Details',5],['Review & Send',6]].forEach(([n, s]) => {
+      if (!q || n.toLowerCase().includes(q) || ('step ' + s).includes(q)) {
+        items.push({ kind: 'Step', label: 'Go to ' + n, action: () => lioGoToStep(s) });
+      }
+    });
+    // Quick actions
+    [
+      { label: 'Open dashboard', action: lioGoToDashboard },
+      { label: 'Open My Quotes', action: () => { if (typeof openQuoteHistory === 'function') openQuoteHistory(); } },
+      { label: 'Save draft', action: lioSaveDraft },
+      { label: 'Download PDF', action: lioGenerateAndDownload },
+      { label: 'Print quote', action: lioPrintQuote }
+    ].forEach(a => {
+      if (!q || a.label.toLowerCase().includes(q)) items.push({ kind: 'Action', label: a.label, action: a.action });
+    });
+
+    cmdkResults = items.slice(0, 30);
+    cmdkActiveIdx = 0;
+    const wrap = document.getElementById('lio-cmdk-results');
+    if (!wrap) return;
+    if (cmdkResults.length === 0) {
+      wrap.innerHTML = '<div class="px-5 py-6 text-center text-sm text-slate-400">Nothing matches.</div>';
+      return;
+    }
+    wrap.innerHTML = cmdkResults.map((r, i) =>
+      '<div class="lio-cmdk-row' + (i === cmdkActiveIdx ? ' active' : '') + '" data-idx="' + i + '">' +
+        '<span>' + r.label + '</span>' +
+        '<span class="lio-cmdk-kind">' + r.kind + '</span>' +
+      '</div>'
+    ).join('');
+    wrap.querySelectorAll('.lio-cmdk-row').forEach(row => {
+      row.addEventListener('click', () => { cmdkActiveIdx = parseInt(row.dataset.idx); cmdkExecute(); });
+    });
+  };
+
+  function cmdkExecute() {
+    const item = cmdkResults[cmdkActiveIdx];
+    if (!item) return;
+    lioCloseCmdK();
+    setTimeout(item.action, 50);
+  }
+
+  window.lioCmdKKey = function (e) {
+    if (e.key === 'Escape') { e.preventDefault(); lioCloseCmdK(); return; }
+    if (e.key === 'ArrowDown') { e.preventDefault(); cmdkActiveIdx = Math.min(cmdkResults.length - 1, cmdkActiveIdx + 1); document.querySelectorAll('.lio-cmdk-row').forEach((el, i) => el.classList.toggle('active', i === cmdkActiveIdx)); return; }
+    if (e.key === 'ArrowUp') { e.preventDefault(); cmdkActiveIdx = Math.max(0, cmdkActiveIdx - 1); document.querySelectorAll('.lio-cmdk-row').forEach((el, i) => el.classList.toggle('active', i === cmdkActiveIdx)); return; }
+    if (e.key === 'Enter') { e.preventDefault(); cmdkExecute(); return; }
+  };
+
+  // Global keyboard shortcut Cmd+K / Ctrl+K
+  document.addEventListener('keydown', function (e) {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      if (document.getElementById('lio-cmdk-overlay').classList.contains('open')) lioCloseCmdK();
+      else lioOpenCmdK();
+    }
+  });
+
+  // ---------------------------
+  // Dashboard refresh
+  // ---------------------------
+  async function refreshDashboard() {
+    document.getElementById('lio-dash-greeting').textContent = '';
+
+    // Use cached _quoteHistoryFull if available, else fetch
+    let history = window._quoteHistoryFull;
+    if (!Array.isArray(history)) {
+      if (typeof sbLoadQuotes === 'function') {
+        const fetched = await sbLoadQuotes();
+        history = fetched || JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
+        window._quoteHistoryFull = history;
+      } else {
+        history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
+      }
+    }
+
+    // Stats
+    const total = history.length;
+    const cutoff30 = Date.now() - 30 * 86400000;
+    const recent = history.filter(q => q.createdAt && new Date(q.createdAt).getTime() >= cutoff30);
+    const valSum = recent.reduce((s, q) => s + (typeof q.totalRaw === 'number' ? q.totalRaw : 0), 0);
+    const avg = recent.length > 0 ? Math.round(valSum / recent.length) : 0;
+    const ownerCounts = {};
+    recent.forEach(q => { const k = q.lioContact || q.formState?.lioContact || 'florian'; ownerCounts[k] = (ownerCounts[k] || 0) + 1; });
+    const topOwner = Object.entries(ownerCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
+    const topOwnerName = (window.LIO_NAME_BY_KEY || {})[topOwner] || topOwner;
+
+    document.getElementById('lio-dash-stat-total').textContent = String(total);
+    document.getElementById('lio-dash-stat-30d').textContent = String(recent.length);
+    document.getElementById('lio-dash-stat-avg').textContent = avg > 0 ? (typeof fmtCompactCurrency === 'function' ? fmtCompactCurrency(avg, recent[0]?.currency || 'usd') : ('$' + avg.toLocaleString())) : '—';
+    document.getElementById('lio-dash-stat-top').textContent = topOwner === '—' ? '—' : topOwnerName;
+
+    // Recent quotes list
+    const recentHost = document.getElementById('lio-dash-recent');
+    if (recentHost) {
+      const top5 = history.slice(0, 5);
+      if (top5.length === 0) {
+        recentHost.innerHTML = '<div class="text-sm text-slate-400 py-6 text-center">No quotes yet — start your first one above.</div>';
+      } else {
+        recentHost.innerHTML = top5.map(q => {
+          const ownerKey = q.lioContact || q.formState?.lioContact || 'florian';
+          const ownerName = (window.LIO_NAME_BY_KEY || {})[ownerKey] || ownerKey;
+          const totalCompact = (typeof fmtCompactCurrency === 'function' && typeof q.totalRaw === 'number') ? fmtCompactCurrency(q.totalRaw, q.currency) : (q.total || '—');
+          const dateStr = q.createdAt ? new Date(q.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+          return '<div onclick="lioOpenQuoteFromDashboard(' + q.id + ')" class="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 cursor-pointer">' +
+            '<div class="flex items-center gap-3 min-w-0 flex-1">' +
+              '<div class="font-mono text-xs text-indigo-600 whitespace-nowrap">' + q.ref + '</div>' +
+              '<div class="min-w-0 flex-1">' +
+                '<div class="text-sm font-medium text-slate-900 truncate">' + (q.company || 'No company') + '</div>' +
+                '<div class="text-xs text-slate-400">' + ownerName + ' · ' + dateStr + '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="text-sm font-semibold text-emerald-600 ml-3 whitespace-nowrap">' + totalCompact + '</div>' +
+          '</div>';
+        }).join('');
+      }
+    }
+
+    // Pricing reference snapshot — render a static read-only mirror of the default
+    const ref = document.getElementById('lio-dash-pricing-ref');
+    if (ref) {
+      const data = window._pricingRef || (window.DEFAULT_PRICING_REF || null);
+      if (data && data.columns && data.rows) {
+        const head = '<tr>' + data.columns.map(c => '<th class="text-left text-[10px] uppercase tracking-wider text-slate-400 font-semibold py-2 px-3">' + c + '</th>').join('') + '</tr>';
+        const body = data.rows.map(r => '<tr class="border-t border-slate-100"><td class="py-2 px-3 text-sm font-medium text-slate-700">' + (r.profile || '') + ' <span class="text-xs text-slate-400">(' + (r.currency || '') + ')</span></td>' + r.values.map(v => '<td class="py-2 px-3 text-sm text-slate-600">' + (v || '—') + '</td>').join('') + '</tr>').join('');
+        ref.innerHTML = '<table class="w-full text-sm"><thead>' + head + '</thead><tbody>' + body + '</tbody></table>';
+      } else {
+        ref.innerHTML = '<div class="text-sm text-slate-400 py-3">Reference table will appear here.</div>';
+      }
+    }
+  }
+  window.refreshDashboard = refreshDashboard;
+
+  window.lioOpenQuoteFromDashboard = function (id) {
+    if (typeof loadQuote === 'function') loadQuote(id);
+    // loadQuote opens the legacy quote modal, but we want the wizard view —
+    // close the legacy modal and skip ahead to step 6.
+    setTimeout(() => {
+      const m = document.getElementById('quote-modal');
+      if (m) { m.classList.add('hidden'); m.classList.remove('flex'); }
+      lioStartNewQuote(); // start fresh wizard
+      // Then push the loaded data into the wizard by jumping to review
+      // (the legacy load already filled chk-*, qf-*, customer fields, etc.)
+      W.completed = new Set([1, 2, 3, 4, 5]);
+      lioGoToStep(6);
+    }, 250);
+  };
+
+  // ---------------------------
+  // Currency-switcher button styling sync
+  // ---------------------------
+  function syncCurrencyButtons() {
+    const cur = window.currentCurrency || 'usd';
+    document.querySelectorAll('.lio-cur-btn').forEach(b => {
+      b.classList.toggle('bg-white', b.dataset.cur === cur);
+      b.classList.toggle('shadow-sm', b.dataset.cur === cur);
+      b.classList.toggle('text-slate-900', b.dataset.cur === cur);
+      b.classList.toggle('text-slate-500', b.dataset.cur !== cur);
+    });
+  }
+  // Patch: re-sync after every setCurrency invocation
+  const _origSetCurrency = window.setCurrency;
+  if (typeof _origSetCurrency === 'function') {
+    window.setCurrency = function (...args) {
+      _origSetCurrency.apply(this, args);
+      syncCurrencyButtons();
+      lioSyncSummary();
+    };
+  }
+
+  // ---------------------------
+  // Boot
+  // ---------------------------
+  function boot() {
+    showShell();
+    syncCurrencyButtons();
+    // Make sure the legacy calculator is built so chk-*/ct-* exist
+    if (typeof buildCalc === 'function') buildCalc();
+    lioGoToDashboard();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    // The legacy <script>'s init runs after DOMContentLoaded too — wait a tick to ensure modules etc. are populated
+    setTimeout(boot, 100);
+  }
+})();
+
 </script>
 </body>
 </html>
