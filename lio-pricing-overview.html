@@ -1122,6 +1122,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
               <option value="35000">Up to 25,000 — $35,000/yr</option>
               <option value="65000">Up to 50,000 — $65,000/yr</option>
               <option value="118750">Up to 100,000 — $118,750/yr</option>
+              <option value="200000">Up to 200,000 — $200,000/yr</option>
             </select>
           </div>
         </div>
@@ -2602,7 +2603,8 @@ const modules = {
   inv: { name: 'Invoice Agent', color: 'orange', tiers: [
     { vol: 'Up to 5,000', price: 8000 }, { vol: 'Up to 10,000', price: 15000 },
     { vol: 'Up to 25,000', price: 35000 }, { vol: 'Up to 50,000', price: 65000 },
-    { vol: 'Up to 100,000', price: 118750 }
+    { vol: 'Up to 100,000', price: 118750 },
+    { vol: 'Up to 200,000', price: 200000, eur: 200000, gbp: 200000 }
   ]},
   pia: { name: 'Procurement Intelligence', color: 'sky', tiers: [
     { vol: 'Up to 5 users', price: 6000 }, { vol: 'Up to 10 users', price: 12000 },
@@ -3123,7 +3125,14 @@ function calcUpdate() {
       opts.classList.remove('hidden');
       const usdPrice = parseInt(document.getElementById('calc-' + mod + '-tier').value);
       const tierObj = modules[mod]?.tiers?.find(t => t.price === usdPrice) || { price: usdPrice };
-      const price = getTierPriceRaw(tierObj);
+      let price = getTierPriceRaw(tierObj);
+      // Manual override from Quote Modal's qf-{mod} input — use it if the
+      // user has typed a different price so the calculator + summary stay
+      // in sync with their per-module customisations.
+      const qf = document.getElementById('qf-' + mod);
+      if (qf && qf.value !== '' && parseFloat(qf.value) > 0) {
+        price = parseFloat(qf.value);
+      }
       totalSaas += price;
       count++;
       document.getElementById('calc-' + mod + '-price').textContent = fmtRaw(price);
@@ -4659,6 +4668,8 @@ function applyDiscountPct(key) {
     priceInput.value = listPrice;
     discountMode[key] = 'manual';
   }
+  // Keep calculator + wizard summary in sync with the new line-discount price.
+  if (typeof calcUpdate === 'function') calcUpdate();
   updateQuotePricing();
 }
 
@@ -4666,6 +4677,10 @@ function applyManualPrice(key) {
   const pctInput = document.getElementById('qd-' + key);
   if (pctInput) pctInput.value = '';
   discountMode[key] = 'manual';
+  // calcUpdate now reads qf-{key} so the calculator + wizard summary reflect
+  // the manual override immediately. Run it before updateQuotePricing so the
+  // bundle/CS/Impl numbers downstream are consistent with the manual price.
+  if (typeof calcUpdate === 'function') calcUpdate();
   updateQuotePricing();
 }
 
@@ -4832,11 +4847,16 @@ function updateQuotePricing() {
   const monthly = Math.round(recurringAnnual / 12);
 
   // Update display
-  document.getElementById('quote-saas-subtotal').textContent = fmt(saasSubtotal);
-  document.getElementById('quote-final-saas').textContent = fmt(netSaas);
-  document.getElementById('quote-final-impl').textContent = fmt(impl);
-  document.getElementById('quote-final-cs').textContent = fmt(cs);
-  document.getElementById('quote-final-total').textContent = fmt(grandTotal);
+  // CRITICAL: these values are already in the user's display currency (sums
+  // of qf-{key} inputs which were initialized via getTierPriceRaw → currency-
+  // native, and the user types currency-native values when manually editing).
+  // Use fmtRaw — fmt() would multiply by currencyRate AGAIN, producing a
+  // wrong total off by ~7-15% on any non-USD quote.
+  document.getElementById('quote-saas-subtotal').textContent = fmtRaw(saasSubtotal);
+  document.getElementById('quote-final-saas').textContent = fmtRaw(netSaas);
+  document.getElementById('quote-final-impl').textContent = fmtRaw(impl);
+  document.getElementById('quote-final-cs').textContent = fmtRaw(cs);
+  document.getElementById('quote-final-total').textContent = fmtRaw(grandTotal);
 
   // Show/hide bundle row
   const bundleRow = document.getElementById('quote-bundle-row');
@@ -5358,7 +5378,7 @@ function saveQuoteToHistory(data) {
     date: today,
     company: recipientCompany || 'No company',
     contact: recipientContact || '',
-    total: fmt(grandTotal),
+    total: fmtRaw(grandTotal),  // currency-native string (fmt would double-convert non-USD)
     totalRaw: grandTotal,  // unformatted number — sbSaveQuote prefers this over the locale-formatted string
     modules: selectedMods.map(s => s.name).join(', '),
     html: html,

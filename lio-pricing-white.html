@@ -1958,7 +1958,7 @@ const modules = {
   sm:{name:'SRM',color:'slate',icon:'🏢',desc:'Automated supplier relationship management with full supplier onboarding included. AI-powered supplier data enrichment, outreach, compliance collection, and continuous validation. No platform registration required for suppliers.',features:['Full supplier onboarding included','Supplier data enrichment and validation','AI-driven supplier outreach','Contract Management','Certificate & ESG Management','Analytics'],tiers:[{vol:'Flat Rate',price:125000,eur:109000,gbp:99000}],unit:'Flat Rate'},
   aa:{name:'Approval Agent',color:'teal',icon:'🔐',desc:'Manages PR approval workflows with proactive outreach, OOO handling, and bottleneck prevention.',features:['Remote Approver','Configurable approval chains','AOP-based workflows','OOO escalation','Contextual approval requests','Integration as first approver'],tiers:[{vol:'Flat Rate',price:12500}],unit:'Flat Rate'},
   gr:{name:'Goods Receipt Agent',color:'lime',icon:'📦',desc:'Automates goods receipt processing. Handles document-based receipt creation, partial delivery tracking, and proactive follow-ups.',features:['Document upload & OCR','Partial/full delivery handling','Pending receipt surfacing','Automated reminders','SAP integration','Proactive follow-ups'],tiers:[{vol:'Up to 5,000',price:7000},{vol:'Up to 10,000',price:13500},{vol:'Up to 25,000',price:32500},{vol:'Up to 50,000',price:62500},{vol:'Up to 100,000',price:113500}],unit:'GR Checks'},
-  inv:{name:'Invoice Agent',color:'orange',icon:'🧾',desc:'Automated three-way match (PO, GR, Invoice), dispute detection, categorization, and resolution orchestration.',features:['Automatic 3-way match','Dispute type categorization','Resolution workflows','Aging tracking','Consolidated invoice handling','ERP integration'],tiers:[{vol:'Up to 5,000',price:8000},{vol:'Up to 10,000',price:15000},{vol:'Up to 25,000',price:35000},{vol:'Up to 50,000',price:65000},{vol:'Up to 100,000',price:118750}],unit:'Invoice Checks'},
+  inv:{name:'Invoice Agent',color:'orange',icon:'🧾',desc:'Automated three-way match (PO, GR, Invoice), dispute detection, categorization, and resolution orchestration.',features:['Automatic 3-way match','Dispute type categorization','Resolution workflows','Aging tracking','Consolidated invoice handling','ERP integration'],tiers:[{vol:'Up to 5,000',price:8000},{vol:'Up to 10,000',price:15000},{vol:'Up to 25,000',price:35000},{vol:'Up to 50,000',price:65000},{vol:'Up to 100,000',price:118750},{vol:'Up to 200,000',price:200000,eur:200000,gbp:200000}],unit:'Invoice Checks'},
   pia:{name:'Procurement Intelligence',color:'sky',icon:'📊',desc:'AI-powered spend analytics and dynamic reporting. Query procurement data in natural language.',features:['Natural language queries','Dynamic chart creation','Spend analysis','Order analytics','Procurement insights dashboard','Data visualization'],tiers:[{vol:'Up to 5',price:6000},{vol:'Up to 10',price:12000},{vol:'Up to 25',price:25000},{vol:'Up to 50',price:40000},{vol:'Up to 100',price:68750}],unit:'Users'},
   npa:{name:'Negotiation Preparation',color:'fuchsia',icon:'🎯',desc:'Prepares procurement teams for strategic negotiations. Includes supplier analysis, market intelligence, and negotiation strategies.',features:['Supplier data analysis','Contract history review','Strategy recommendations','Live coaching assistant','Market data integration','Best practice templates'],tiers:[{vol:'Up to 500',price:12000},{vol:'Up to 1,000',price:22000},{vol:'Up to 2,500',price:45000},{vol:'Up to 5,000',price:78000},{vol:'Up to 10,000',price:125000}],unit:'Prep Events'},
   cna:{name:'Contract Negotiation',color:'red',icon:'📄',desc:'Analyzes contracts at scale, identifies key terms, risks, and renegotiation opportunities with automated follow-ups.',features:['Bulk contract analysis (1000+)','Risk identification','Actionable follow-ups','Email handling','Coupa integration','Content-group based intake'],tiers:[{vol:'Up to 250',price:15000},{vol:'Up to 500',price:26000},{vol:'Up to 1,000',price:45500},{vol:'Up to 5,000',price:80000},{vol:'Up to 10,000',price:135000}],unit:'Contract Negotiations'},
@@ -2143,7 +2143,14 @@ function calcUpdate() {
     if (on) {
       const usdP = parseInt(document.getElementById('ct-' + k).value);
       const tierObj = modules[k]?.tiers?.find(t => t.price === usdP) || { price: usdP };
-      const p = getTierPriceRaw(tierObj);
+      let p = getTierPriceRaw(tierObj);
+      // Manual override from Quote Modal's qf-{k} input — use it if the
+      // user has typed a different price so the calculator + summary stay
+      // in sync with their per-module customisations.
+      const qf = document.getElementById('qf-' + k);
+      if (qf && qf.value !== '' && parseFloat(qf.value) > 0) {
+        p = parseFloat(qf.value);
+      }
       total += p; count++;
       document.getElementById('cp-' + k).textContent = fmtRaw(p);
       lines += `<div class="flex justify-between text-sm"><span class="text-slate-500">${k === 'sm' ? 'SRM' : modules[k].name}</span><span class="font-medium">${fmtRaw(p)}</span></div>`;
@@ -3467,6 +3474,8 @@ function applyDiscountPct(key) {
     priceInput.value = listPrice;
     discountMode[key] = 'manual';
   }
+  // Keep calculator + wizard summary in sync with the new line-discount price.
+  if (typeof calcUpdate === 'function') calcUpdate();
   updateQuotePricing();
 }
 
@@ -3474,6 +3483,10 @@ function applyManualPrice(key) {
   const pctInput = document.getElementById('qd-' + key);
   if (pctInput) pctInput.value = '';
   discountMode[key] = 'manual';
+  // calcUpdate now reads qf-{key} so the calculator + wizard summary reflect
+  // the manual override immediately. Run it before updateQuotePricing so the
+  // bundle/CS/Impl numbers downstream are consistent with the manual price.
+  if (typeof calcUpdate === 'function') calcUpdate();
   updateQuotePricing();
 }
 
@@ -3626,11 +3639,16 @@ function updateQuotePricing() {
   const monthly = Math.round(recurringAnnual / 12);
 
   // Update display
-  document.getElementById('quote-saas-subtotal').textContent = fmt(saasSubtotal);
-  document.getElementById('quote-final-saas').textContent = fmt(netSaas);
-  document.getElementById('quote-final-impl').textContent = fmt(impl);
-  document.getElementById('quote-final-cs').textContent = fmt(cs);
-  document.getElementById('quote-final-total').textContent = fmt(grandTotal);
+  // CRITICAL: these values are already in the user's display currency (sums
+  // of qf-{key} inputs which were initialized via getTierPriceRaw → currency-
+  // native, and the user types currency-native values when manually editing).
+  // Use fmtRaw — fmt() would multiply by currencyRate AGAIN, producing a
+  // wrong total off by ~7-15% on any non-USD quote.
+  document.getElementById('quote-saas-subtotal').textContent = fmtRaw(saasSubtotal);
+  document.getElementById('quote-final-saas').textContent = fmtRaw(netSaas);
+  document.getElementById('quote-final-impl').textContent = fmtRaw(impl);
+  document.getElementById('quote-final-cs').textContent = fmtRaw(cs);
+  document.getElementById('quote-final-total').textContent = fmtRaw(grandTotal);
 
   // Show/hide bundle row
   const bundleRow = document.getElementById('quote-bundle-row');
@@ -3984,7 +4002,8 @@ function saveQuoteToHistory(data) {
     date: today,
     company: recipientCompany || 'No company',
     contact: recipientContact || '',
-    total: fmt(grandTotal),
+    total: fmtRaw(grandTotal),  // currency-native string (fmt would double-convert non-USD)
+    totalRaw: grandTotal,
     modules: selectedMods.map(s => s.name).join(', '),
     html: html,
     createdAt: new Date().toISOString(),
@@ -5355,8 +5374,12 @@ document.addEventListener('DOMContentLoaded', function() {
         '<label for="lio-hide-discounts">Hide discount breakdown on the quote PDF (show net prices as standard)</label>' +
       '</div>';
 
-    // Mirror the values + render hosts
+    // Mirror the values + render hosts. populateQuotePricing builds the
+    // legacy qf-{key} table that updateQuotePricing then reads — without
+    // it the Impl/CS card amounts would stay empty until the user reaches
+    // step 6.
     requestAnimationFrame(() => {
+      if (typeof populateQuotePricing === 'function') populateQuotePricing();
       lioSyncImpl();
       lioSyncCS();
       lioRefreshCustomPositions();
@@ -5364,12 +5387,22 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Sync wizard inputs back into legacy quote-modal inputs (so generateQuoteData picks them up)
+  // and mirror the recomputed Impl/CS amounts into the wizard's step-3 cards.
+  function _mirrorImplCsCards() {
+    const wImpl = document.getElementById('lio-svc-impl');
+    const lImpl = document.getElementById('quote-final-impl');
+    if (wImpl && lImpl) wImpl.textContent = lImpl.textContent || '—';
+    const wCs = document.getElementById('lio-svc-cs');
+    const lCs = document.getElementById('quote-final-cs');
+    if (wCs && lCs) wCs.textContent = lCs.textContent || '—';
+  }
   window.lioSyncImpl = function () {
     const v = document.getElementById('lio-svc-impl-disc')?.value || '0';
     const t = document.getElementById('lio-svc-impl-disc-type')?.value || 'pct';
     const lv = document.getElementById('quote-impl-disc'); if (lv) lv.value = v;
     const lt = document.getElementById('quote-impl-disc-type'); if (lt) lt.value = t;
     if (typeof updateQuotePricing === 'function') updateQuotePricing();
+    _mirrorImplCsCards();
     lioSyncSummary();
   };
   window.lioSyncCS = function () {
@@ -5378,8 +5411,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const lv = document.getElementById('quote-cs-disc'); if (lv) lv.value = v;
     const lt = document.getElementById('quote-cs-disc-type'); if (lt) lt.value = t;
     if (typeof updateQuotePricing === 'function') updateQuotePricing();
+    _mirrorImplCsCards();
     lioSyncSummary();
   };
+  // Also expose so renderStep3Services can mirror once on first paint.
+  window._mirrorImplCsCards = _mirrorImplCsCards;
 
   // The legacy custom-positions UI has its own renderer; we just reparent its host so it appears inside step 3
   window.lioRefreshCustomPositions = function () {
