@@ -3770,7 +3770,13 @@ function generateQuoteData() {
       const displayPrice = fmtRaw(adjustedPrice);
       return `<tr style="border-bottom:1px solid #f1f5f9;${isSelected ? 'background:#f0fdf4;font-weight:600;' : ''}"><td style="padding:4px 8px;font-size:11px;">${isSelected ? '&#9654; ' : ''}${fmtVol(m.key, t.vol)}</td><td style="padding:4px 8px;font-size:11px;text-align:right;">${displayPrice}/yr</td></tr>`;
     }).join('');
-    return `<div style="margin-bottom:24px;page-break-inside:avoid;"><h3 style="font-size:14px;font-weight:700;margin:0 0 4px;">${m.name}</h3><p style="font-size:11px;color:#1e293b;margin:0 0 8px;line-height:1.5;">${m.desc}</p><div style="margin-bottom:10px;">${m.features.slice(0,4).map(f=>`<span style="display:inline-block;background:#f1f5f9;padding:3px 8px;border-radius:4px;font-size:10px;margin:2px 2px 2px 0;">&#10003; ${f}</span>`).join('')}</div><div style="margin-top:8px;"><div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers</div><table style="width:100%;max-width:400px;border-collapse:collapse;border:1px solid #e2e8f0;font-size:10px;"><thead><tr style="background:#f8fafc;"><th style="padding:3px 8px;text-align:left;font-size:9px;color:#64748b;text-transform:uppercase;">Volume</th><th style="padding:3px 8px;text-align:right;font-size:9px;color:#64748b;text-transform:uppercase;">Price</th></tr></thead><tbody>${tierRows}</tbody></table></div></div>`;
+    // The tier-ladder block carries `data-tier-ladder="1"` so a post-processor
+    // can strip it cleanly when the user toggles "Hide tier ladder per module"
+    // in step 4. The description (m.desc) and features (m.features) are
+    // populated from per-quote overrides in window._moduleOverrides if set
+    // (the wizard's wrapper around generateQuoteData applies them just
+    // before this block runs).
+    return `<div style="margin-bottom:24px;page-break-inside:avoid;"><h3 style="font-size:14px;font-weight:700;margin:0 0 4px;">${m.name}</h3>${m.desc ? `<p style="font-size:11px;color:#1e293b;margin:0 0 8px;line-height:1.5;white-space:pre-line;">${m.desc}</p>` : ''}${(m.features && m.features.length > 0) ? `<div style="margin-bottom:10px;">${m.features.map(f=>`<span style="display:inline-block;background:#f1f5f9;padding:3px 8px;border-radius:4px;font-size:10px;margin:2px 2px 2px 0;">&#10003; ${f}</span>`).join('')}</div>` : ''}<div data-tier-ladder="1" style="margin-top:8px;"><div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers</div><table style="width:100%;max-width:400px;border-collapse:collapse;border:1px solid #e2e8f0;font-size:10px;"><thead><tr style="background:#f8fafc;"><th style="padding:3px 8px;text-align:left;font-size:9px;color:#64748b;text-transform:uppercase;">Volume</th><th style="padding:3px 8px;text-align:right;font-size:9px;color:#64748b;text-transform:uppercase;">Price</th></tr></thead><tbody>${tierRows}</tbody></table></div></div>`;
   }).join('');
 
   // ROI section (conditional) - calculate fresh from current inputs
@@ -4923,6 +4929,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     // clear custom positions
     window._customPositions = [];
+    // reset PDF overrides and tier-ladder visibility for a fresh quote
+    window._moduleOverrides = {};
+    window._hideTierLadder = false;
     // reset editing-quote pointer
     window._editingQuoteId = null;
     // clear customer fields if present
@@ -5354,13 +5363,14 @@ document.addEventListener('DOMContentLoaded', function() {
     pane.innerHTML =
       '<div class="mb-6">' +
         '<h1 class="text-2xl font-extrabold text-slate-900">Customization &amp; PDF sections</h1>' +
-        '<p class="text-sm text-slate-500 mt-1">Toggle which sections appear on the generated PDF. The pricing reference table is editable below.</p>' +
+        '<p class="text-sm text-slate-500 mt-1">Toggle which sections appear on the generated PDF. Module descriptions and feature bullets are editable below — your edits stay with this quote and don\'t affect the global module library.</p>' +
       '</div>' +
       '<div class="grid md:grid-cols-2 gap-4 mb-6">' +
         '<div class="lio-card p-5">' +
           '<div class="font-semibold text-slate-900 mb-3">Sections to include</div>' +
           '<div class="space-y-2 text-sm text-slate-700">' +
-            '<label class="flex items-center gap-2"><input type="checkbox" id="lio-sec-details" class="w-4 h-4" checked>Module details (per-tier breakdown)</label>' +
+            '<label class="flex items-center gap-2"><input type="checkbox" id="lio-sec-details" class="w-4 h-4" checked>Module details page</label>' +
+            '<label class="flex items-center gap-2 ml-6 text-slate-600"><input type="checkbox" id="lio-sec-hidetiers" class="w-4 h-4">Hide tier price ladder per module <span class="text-xs text-slate-400">(keep description)</span></label>' +
             '<label class="flex items-center gap-2"><input type="checkbox" id="lio-sec-roi" class="w-4 h-4">Impact summary (Simple ROI)</label>' +
             '<label class="flex items-center gap-2"><input type="checkbox" id="lio-sec-advroi" class="w-4 h-4">Advanced ROI analysis</label>' +
             '<label class="flex items-center gap-2"><input type="checkbox" id="lio-sec-pricingref" class="w-4 h-4">Pricing range reference</label>' +
@@ -5374,11 +5384,31 @@ document.addEventListener('DOMContentLoaded', function() {
           '<textarea id="lio-notes" rows="6" class="lio-input" placeholder="e.g. Pricing valid until&#10;Implementation kickoff next quarter&#10;Special agreements…" oninput="lioSyncNotes()"></textarea>' +
         '</div>' +
       '</div>' +
+      // Per-module description + features editor
+      '<div class="lio-card p-5 mb-4">' +
+        '<div class="flex items-center justify-between mb-2 gap-2 flex-wrap">' +
+          '<div>' +
+            '<div class="font-semibold text-slate-900">Module copy editor</div>' +
+            '<div class="text-xs text-slate-400">Tweak the description and feature bullets that go to the PDF — per-quote only, no impact on the team library.</div>' +
+          '</div>' +
+          '<div class="text-xs text-slate-500" id="lio-modedit-count"></div>' +
+        '</div>' +
+        '<div id="lio-modedit-host" class="space-y-3"></div>' +
+      '</div>' +
       '<div class="lio-card p-5">' +
         '<div class="font-semibold text-slate-900 mb-2">Pricing range reference</div>' +
         '<div class="text-xs text-slate-400 mb-3">Editable Fortune 500 / DAX 40 / Mid Market / Mittelstand reference (optional, included only when its checkbox above is on).</div>' +
         '<div id="lio-pricing-ref-host"></div>' +
       '</div>';
+
+    // Hide-tier-ladder toggle
+    const hideTiers = document.getElementById('lio-sec-hidetiers');
+    if (hideTiers) {
+      hideTiers.checked = !!window._hideTierLadder;
+      hideTiers.addEventListener('change', () => { window._hideTierLadder = hideTiers.checked; });
+    }
+    // Render the per-module description + features editor
+    renderModuleOverridesEditor();
 
     // Mirror checkbox state from legacy + wire change handlers
     [
@@ -5434,6 +5464,65 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
+
+  // Render the per-module description + features editor in step 4. Only
+  // shows modules currently selected in the quote (chk-{key} ticked).
+  function renderModuleOverridesEditor() {
+    const host = document.getElementById('lio-modedit-host');
+    if (!host) return;
+    const selectedKeys = MOD_ORDER.filter(k => document.getElementById('chk-' + k)?.checked)
+      .concat(LIO_ALL_MODKEYS.filter(k => !MOD_ORDER.includes(k) && document.getElementById('chk-' + k)?.checked));
+    const countEl = document.getElementById('lio-modedit-count');
+    if (countEl) countEl.textContent = selectedKeys.length === 0 ? 'No modules selected' : (selectedKeys.length + ' module' + (selectedKeys.length === 1 ? '' : 's') + ' to edit');
+    if (selectedKeys.length === 0) {
+      host.innerHTML = '<div class="text-sm text-slate-400 italic py-3">Select modules in step 2 to edit their copy.</div>';
+      return;
+    }
+    host.innerHTML = '';
+    selectedKeys.forEach(k => {
+      const m = modules[k]; if (!m) return;
+      const niceName = k === 'sm' ? 'Supplier Relationship Management' : (m.name || k);
+      const ov = window._moduleOverrides[k] || {};
+      const desc = (typeof ov.desc === 'string') ? ov.desc : (m.desc || '');
+      const features = Array.isArray(ov.features) ? ov.features : (m.features || []);
+      const isCustomized = !!(window._moduleOverrides[k] && (typeof ov.desc === 'string' || Array.isArray(ov.features)));
+
+      const card = document.createElement('div');
+      card.className = 'border border-slate-200 rounded-xl p-4 bg-white';
+      card.innerHTML =
+        '<div class="flex items-center justify-between mb-3 gap-2 flex-wrap">' +
+          '<div class="flex items-center gap-2">' +
+            '<span class="text-lg">' + (MOD_ICONS[k] || m.icon || '⚙️') + '</span>' +
+            '<span class="font-semibold text-slate-900">' + niceName + '</span>' +
+            (m.isCustom ? '<span class="lio-pill lio-pill-slate text-[10px]">Custom</span>' : '') +
+            (isCustomized ? '<span class="lio-pill lio-pill-amber text-[10px]">Edited for this quote</span>' : '') +
+          '</div>' +
+          (isCustomized ? '<button type="button" class="lio-btn lio-btn-ghost text-xs" data-act="reset" data-key="' + k + '">Reset to default</button>' : '') +
+        '</div>' +
+        '<label class="lio-label">Description (multi-line OK)</label>' +
+        '<textarea data-act="desc" data-key="' + k + '" rows="2" class="lio-input" placeholder="One-paragraph description shown above the features in the PDF."></textarea>' +
+        '<label class="lio-label mt-3">Feature bullets — one per line (any number of rows)</label>' +
+        '<textarea data-act="feat" data-key="' + k + '" rows="' + Math.max(3, features.length) + '" class="lio-input"></textarea>' +
+        '<div class="text-[10px] text-slate-400 mt-1">Empty lines and bullets that are identical to the library default are auto-stripped on save.</div>';
+      // Set values via property to avoid HTML escaping issues
+      card.querySelector('textarea[data-act="desc"]').value = desc;
+      card.querySelector('textarea[data-act="feat"]').value = features.join('\n');
+      // Wire input handlers
+      card.querySelector('textarea[data-act="desc"]').addEventListener('input', (e) => {
+        lioSetModuleDesc(e.target.dataset.key, e.target.value);
+      });
+      card.querySelector('textarea[data-act="feat"]').addEventListener('input', (e) => {
+        const lines = e.target.value.split(/\n+/);
+        lioSetModuleFeatures(e.target.dataset.key, lines);
+      });
+      const resetBtn = card.querySelector('button[data-act="reset"]');
+      if (resetBtn) resetBtn.addEventListener('click', () => {
+        lioResetModuleOverride(resetBtn.dataset.key);
+      });
+      host.appendChild(card);
+    });
+  }
+  window.renderModuleOverridesEditor = renderModuleOverridesEditor;
 
   window.lioSyncNotes = function () {
     const v = document.getElementById('lio-notes')?.value || '';
@@ -5631,22 +5720,27 @@ document.addEventListener('DOMContentLoaded', function() {
     lioGoToDashboard();
   };
 
-  // Inject the wizard's selected profile segment into the most recently saved
-  // history entry so reopening the quote can restore the wizard's customer
-  // step. saveQuoteToHistory builds formState from DOM only — this patches it
-  // after the fact and pushes the change to Supabase.
+  // Inject the wizard's selected profile segment + per-module copy overrides
+  // + the tier-ladder visibility flag into the most recently saved history
+  // entry. saveQuoteToHistory builds formState from DOM only — this patches
+  // it after the fact and pushes the change to Supabase so reopening the
+  // quote restores everything (incl. PDF customizations).
   function _patchLatestQuoteWithProfile() {
-    if (!W.profileKey) return;
     setTimeout(() => {
       try {
         const hist = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
         if (hist.length === 0) return;
         const top = hist[0];
-        if (top.formState) {
-          top.formState.profileSegment = W.profileKey;
-          localStorage.setItem('lio-quote-history', JSON.stringify(hist));
-          if (typeof sbUpdateQuote === 'function' && top.ref) sbUpdateQuote(top.ref, top);
+        if (!top.formState) return;
+        if (W.profileKey) top.formState.profileSegment = W.profileKey;
+        if (window._moduleOverrides && Object.keys(window._moduleOverrides).length > 0) {
+          top.formState.moduleOverrides = JSON.parse(JSON.stringify(window._moduleOverrides));
+        } else {
+          delete top.formState.moduleOverrides;
         }
+        top.formState.hideTierLadder = !!window._hideTierLadder;
+        localStorage.setItem('lio-quote-history', JSON.stringify(hist));
+        if (typeof sbUpdateQuote === 'function' && top.ref) sbUpdateQuote(top.ref, top);
       } catch (e) { /* non-fatal */ }
     }, 200);
   }
@@ -5871,6 +5965,10 @@ document.addEventListener('DOMContentLoaded', function() {
       W.profileKey = fs.profileSegment || (entry?.currency === 'eur' ? 'dax40' : 'fortune500');
       W.quoteRef = entry?.ref || ('LIO-' + Date.now().toString(36).toUpperCase());
       W.completed = new Set([1, 2, 3, 4, 5]);
+      // Restore per-quote PDF overrides so the description / features editor
+      // and the tier-ladder toggle reflect what was saved.
+      window._moduleOverrides = (fs.moduleOverrides && typeof fs.moduleOverrides === 'object') ? JSON.parse(JSON.stringify(fs.moduleOverrides)) : {};
+      window._hideTierLadder = !!fs.hideTierLadder;
 
       // Show the wizard
       document.getElementById('lio-dashboard')?.classList.add('hidden');
@@ -5917,6 +6015,89 @@ document.addEventListener('DOMContentLoaded', function() {
   // ---------------------------
   // Boot
   // ---------------------------
+  // ---------------------------
+  // PDF override layer — per-quote description / features / tier-ladder visibility
+  // ---------------------------
+  // window._moduleOverrides = { gb2po: { desc?: '...', features?: ['…'] }, … }
+  // window._hideTierLadder = boolean
+  //
+  // We wrap generateQuoteData so the overrides apply transparently. The
+  // wrapper temporarily mutates modules[k].desc / modules[k].features for
+  // the duration of the call, then restores the originals. Tier ladders
+  // get stripped from the resulting HTML when the toggle is on.
+  window._moduleOverrides = window._moduleOverrides || {};
+  if (typeof window.generateQuoteData === 'function' && !window._origGenerateQuoteData) {
+    window._origGenerateQuoteData = window.generateQuoteData;
+    window.generateQuoteData = function () {
+      const ov = window._moduleOverrides || {};
+      const backup = {};
+      Object.keys(ov).forEach(k => {
+        if (modules[k]) {
+          backup[k] = { desc: modules[k].desc, features: modules[k].features };
+          if (typeof ov[k].desc === 'string') {
+            modules[k].desc = ov[k].desc;
+          }
+          if (Array.isArray(ov[k].features)) {
+            modules[k].features = ov[k].features;
+          }
+        }
+      });
+      let result;
+      try {
+        result = window._origGenerateQuoteData.apply(this, arguments);
+      } finally {
+        Object.keys(backup).forEach(k => {
+          if (modules[k]) {
+            modules[k].desc = backup[k].desc;
+            modules[k].features = backup[k].features;
+          }
+        });
+      }
+      // If hideTierLadder is on, strip every tier-ladder block from the HTML
+      if (result && result.html && window._hideTierLadder) {
+        result.html = result.html.replace(/<div data-tier-ladder="1"[^>]*>[\s\S]*?<\/table>\s*<\/div>/g, '');
+      }
+      return result;
+    };
+  }
+
+  // Helpers used by the step-4 UI
+  window.lioGetModuleDesc = function (k) {
+    const ov = window._moduleOverrides[k];
+    if (ov && typeof ov.desc === 'string') return ov.desc;
+    return modules[k]?.desc || '';
+  };
+  window.lioGetModuleFeatures = function (k) {
+    const ov = window._moduleOverrides[k];
+    if (ov && Array.isArray(ov.features)) return ov.features.slice();
+    return (modules[k]?.features || []).slice();
+  };
+  window.lioSetModuleDesc = function (k, v) {
+    window._moduleOverrides[k] = window._moduleOverrides[k] || {};
+    if (v == null || v.trim() === '' || v === modules[k]?.desc) {
+      delete window._moduleOverrides[k].desc;
+      if (Object.keys(window._moduleOverrides[k]).length === 0) delete window._moduleOverrides[k];
+    } else {
+      window._moduleOverrides[k].desc = v;
+    }
+  };
+  window.lioSetModuleFeatures = function (k, list) {
+    window._moduleOverrides[k] = window._moduleOverrides[k] || {};
+    const cleaned = (list || []).map(s => String(s).trim()).filter(Boolean);
+    const original = (modules[k]?.features || []).map(s => String(s).trim()).filter(Boolean);
+    const isOriginal = cleaned.length === original.length && cleaned.every((s, i) => s === original[i]);
+    if (cleaned.length === 0 || isOriginal) {
+      delete window._moduleOverrides[k].features;
+      if (Object.keys(window._moduleOverrides[k]).length === 0) delete window._moduleOverrides[k];
+    } else {
+      window._moduleOverrides[k].features = cleaned;
+    }
+  };
+  window.lioResetModuleOverride = function (k) {
+    delete window._moduleOverrides[k];
+    if (typeof renderModuleOverridesEditor === 'function') renderModuleOverridesEditor();
+  };
+
   function boot() {
     showShell();
     syncCurrencyButtons();
