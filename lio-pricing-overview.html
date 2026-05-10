@@ -488,7 +488,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
               <div class="text-2xl font-bold text-lio-400 mp" data-usd="9900" data-eur="9900" data-gbp="9900">$9,900</div>
               <span class="text-xs text-slate-500">/year</span>
             </div>
-            <div class="text-xs text-slate-500">8 tiers</div>
+            <div class="text-xs text-slate-500">Flat Rate</div>
           </div>
           <div class="mt-4 pt-4 border-t border-slate-700/50 flex items-center justify-between">
             <span class="text-xs text-slate-500">Scales to Unlimited</span>
@@ -724,10 +724,10 @@ input[type="checkbox"] { accent-color: #6366f1; }
                 <td class="p-4 font-medium"><span class="text-lio-400">●</span> Lio X</td>
                 <td class="p-4 text-slate-400">AI procurement assistant</td>
                 <td class="p-4 text-right font-semibold mp" data-usd="9900" data-eur="9900" data-gbp="9900">$9,900</td>
-                <td class="p-4 text-right text-slate-400">Users</td>
-                <td class="p-4 text-right text-slate-400">Flat / 15+</td>
-                <td class="p-4 text-right text-slate-400 mp" data-usd="250000" data-eur="210000" data-gbp="185000">$250,000</td>
-                <td class="p-4 text-center"><span class="text-xs px-2 py-1 bg-lio-500/10 text-lio-400 rounded"><span class="cur-sym">$</span>350/user</span></td>
+                <td class="p-4 text-right text-slate-400">Flat Rate</td>
+                <td class="p-4 text-right text-slate-400">—</td>
+                <td class="p-4 text-right text-slate-400 mp" data-usd="9900" data-eur="9900" data-gbp="9900">$9,900</td>
+                <td class="p-4 text-center"><span class="text-xs px-2 py-1 bg-lio-500/10 text-lio-400 rounded">Flat</span></td>
                 <td class="p-4 text-right text-lio-400 text-xs">→</td>
               </tr>
               <tr class="hover:bg-slate-800/30 transition cursor-pointer" onclick="showModulePage('sm')">
@@ -844,7 +844,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
             <h3 class="font-bold">Lio X (LIOX)</h3>
           </div>
           <label class="text-xs text-slate-500">Number of Users</label>
-          <input type="range" min="0" max="7" value="0" class="w-full slider-track mt-2" id="slider-liox" oninput="updateSlider('liox')">
+          <input type="range" min="0" max="0" value="0" class="w-full slider-track mt-2" id="slider-liox" oninput="updateSlider('liox')" disabled>
           <div class="flex justify-between mt-2">
             <span class="text-xs text-slate-500" id="slider-liox-vol">Flat Rate</span>
             <span class="text-lg font-bold text-lio-400" id="slider-liox-price">$9,900/yr</span>
@@ -1205,13 +1205,6 @@ input[type="checkbox"] { accent-color: #6366f1; }
             <label class="text-xs text-slate-500">Number of Users</label>
             <select id="calc-liox-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
               <option value="9900">Flat Rate — $9,900/yr</option>
-              <option value="5500">Up to 15 — $5,500/yr</option>
-              <option value="15000">Up to 50 — $15,000/yr</option>
-              <option value="28000">Up to 100 — $28,000/yr</option>
-              <option value="48000">Up to 200 — $48,000/yr</option>
-              <option value="85000">Up to 400 — $85,000/yr</option>
-              <option value="150000">Up to 800 — $150,000/yr</option>
-              <option value="250000">Unlimited — $250,000/yr</option>
             </select>
           </div>
         </div>
@@ -2580,14 +2573,7 @@ const modules = {
     { vol: 'Up to 100,000', price: 118750 }
   ]},
   liox: { name: 'Lio X', color: 'indigo', tiers: [
-    { vol: 'Flat Rate', price: 9900, eur: 9900, gbp: 9900 },
-    { vol: 'Up to 15 users', price: 5500, eur: 4500, gbp: 4000 },
-    { vol: 'Up to 50 users', price: 15000, eur: 12500, gbp: 11000 },
-    { vol: 'Up to 100 users', price: 28000, eur: 23000, gbp: 20000 },
-    { vol: 'Up to 200 users', price: 48000, eur: 40000, gbp: 35000 },
-    { vol: 'Up to 400 users', price: 85000, eur: 70000, gbp: 62000 },
-    { vol: 'Up to 800 users', price: 150000, eur: 125000, gbp: 110000 },
-    { vol: 'Unlimited', price: 250000, eur: 210000, gbp: 185000 }
+    { vol: 'Flat Rate', price: 9900, eur: 9900, gbp: 9900 }
   ]},
   sm: { name: 'SRM', color: 'slate', tiers: [
     { vol: 'Flat Rate', price: 125000, eur: 109000, gbp: 99000 }
