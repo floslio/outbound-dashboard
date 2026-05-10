@@ -485,10 +485,10 @@ input[type="checkbox"] { accent-color: #6366f1; }
           <div class="flex items-end justify-between">
             <div>
               <span class="text-xs text-slate-500">Starting at</span>
-              <div class="text-2xl font-bold text-lio-400 mp" data-usd="5500" data-eur="4500" data-gbp="4000">$5,500</div>
+              <div class="text-2xl font-bold text-lio-400 mp" data-usd="9900" data-eur="9900" data-gbp="9900">$9,900</div>
               <span class="text-xs text-slate-500">/year</span>
             </div>
-            <div class="text-xs text-slate-500">7 tiers</div>
+            <div class="text-xs text-slate-500">8 tiers</div>
           </div>
           <div class="mt-4 pt-4 border-t border-slate-700/50 flex items-center justify-between">
             <span class="text-xs text-slate-500">Scales to Unlimited</span>
@@ -723,9 +723,9 @@ input[type="checkbox"] { accent-color: #6366f1; }
               <tr class="border-b border-slate-700/30 hover:bg-slate-800/30 transition cursor-pointer" onclick="showModulePage('liox')">
                 <td class="p-4 font-medium"><span class="text-lio-400">●</span> Lio X</td>
                 <td class="p-4 text-slate-400">AI procurement assistant</td>
-                <td class="p-4 text-right font-semibold mp" data-usd="5500" data-eur="4500" data-gbp="4000">$5,500</td>
+                <td class="p-4 text-right font-semibold mp" data-usd="9900" data-eur="9900" data-gbp="9900">$9,900</td>
                 <td class="p-4 text-right text-slate-400">Users</td>
-                <td class="p-4 text-right text-slate-400">15</td>
+                <td class="p-4 text-right text-slate-400">Flat / 15+</td>
                 <td class="p-4 text-right text-slate-400 mp" data-usd="250000" data-eur="210000" data-gbp="185000">$250,000</td>
                 <td class="p-4 text-center"><span class="text-xs px-2 py-1 bg-lio-500/10 text-lio-400 rounded"><span class="cur-sym">$</span>350/user</span></td>
                 <td class="p-4 text-right text-lio-400 text-xs">→</td>
@@ -846,8 +846,8 @@ input[type="checkbox"] { accent-color: #6366f1; }
           <label class="text-xs text-slate-500">Number of Users</label>
           <input type="range" min="0" max="7" value="0" class="w-full slider-track mt-2" id="slider-liox" oninput="updateSlider('liox')">
           <div class="flex justify-between mt-2">
-            <span class="text-xs text-slate-500" id="slider-liox-vol">Up to 5 users</span>
-            <span class="text-lg font-bold text-lio-400" id="slider-liox-price">$4,400/yr</span>
+            <span class="text-xs text-slate-500" id="slider-liox-vol">Flat Rate</span>
+            <span class="text-lg font-bold text-lio-400" id="slider-liox-price">$9,900/yr</span>
           </div>
         </div>
 
@@ -1203,6 +1203,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
           <div class="ml-8 hidden" id="calc-liox-opts">
             <label class="text-xs text-slate-500">Number of Users</label>
             <select id="calc-liox-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="9900">Flat Rate — $9,900/yr</option>
               <option value="5500">Up to 15 — $5,500/yr</option>
               <option value="15000">Up to 50 — $15,000/yr</option>
               <option value="28000">Up to 100 — $28,000/yr</option>
@@ -2578,6 +2579,7 @@ const modules = {
     { vol: 'Up to 100,000', price: 118750 }
   ]},
   liox: { name: 'Lio X', color: 'indigo', tiers: [
+    { vol: 'Flat Rate', price: 9900, eur: 9900, gbp: 9900 },
     { vol: 'Up to 15 users', price: 5500, eur: 4500, gbp: 4000 },
     { vol: 'Up to 50 users', price: 15000, eur: 12500, gbp: 11000 },
     { vol: 'Up to 100 users', price: 28000, eur: 23000, gbp: 20000 },
@@ -4262,9 +4264,11 @@ function openQuoteModal() {
   // Prefill valid-until with +90 days
   const vd = new Date(); vd.setDate(vd.getDate() + 90);
   document.getElementById('quote-valid-until').value = vd.toISOString().split('T')[0];
-  // Reset custom positions for a fresh quote (loadQuote pre-fills these before calling us).
+  // Reset custom positions + tier-label overrides for a fresh quote
+  // (loadQuote pre-fills these before calling us).
   if (!window._editingQuoteId) {
     window._customPositions = [];
+    window._tierLabelOverrides = {};
   }
   populateQuotePricing();
 
@@ -4601,7 +4605,9 @@ function populateQuotePricing() {
       otherMods.map(k => '<option value="' + k + '">' + prettyName(k) + '</option>').join('');
     tbody.innerHTML += '<tr class="border-t border-slate-700/30" data-mod="' + mod + '" id="qrow-' + mod + '">'
       + '<td class="p-2 pl-3"><select onchange="swapModuleInRow(\'' + mod + '\', this.value)" class="w-full bg-slate-800/50 border border-slate-600 rounded p-1 text-xs text-slate-200 outline-none cursor-pointer hover:bg-slate-800" title="Click to swap with a different agent">' + modOptions + '</select></td>'
-      + '<td class="p-2"><select id="qt-' + mod + '" onchange="changeQuoteTier(\'' + mod + '\')" class="w-full bg-slate-800/50 border border-slate-600 rounded p-1 text-xs text-white outline-none">' + tierOpts + '</select></td>'
+      + '<td class="p-2"><select id="qt-' + mod + '" onchange="changeQuoteTier(\'' + mod + '\'); syncTierLabelPlaceholder(\'' + mod + '\')" class="w-full bg-slate-800/50 border border-slate-600 rounded p-1 text-xs text-white outline-none">' + tierOpts + '</select>'
+      + '<input type="text" id="qt-label-' + mod + '" placeholder="Custom label (optional)" class="w-full mt-1 bg-slate-800/50 border border-slate-600 rounded p-1 text-[11px] text-slate-300 outline-none placeholder-slate-500" oninput="updateTierLabelOverride(\'' + mod + '\', this.value)" title="Override the tier label that prints on the quote (leave empty to use the volume from the dropdown).">'
+      + '</td>'
       + '<td class="p-2 text-right text-slate-400" data-list-price="' + rawPrice + '">' + fmtRaw(rawPrice) + '</td>'
       + '<td class="p-2 text-center">'
       + '<input type="number" id="qd-' + mod + '" value="" min="0" max="100" step="1" placeholder="%" onchange="applyDiscountPct(\'' + mod + '\')" oninput="applyDiscountPct(\'' + mod + '\')" class="w-16 bg-slate-800/50 border border-slate-600 rounded p-1 text-sm text-white text-center outline-none">'
@@ -4627,6 +4633,13 @@ function populateQuotePricing() {
 
   renderCustomPositions();
   if (typeof renderPricingReference === 'function') renderPricingReference();
+  // Hydrate tier-label override inputs from window._tierLabelOverrides + set placeholders
+  selectedKeys.forEach(mod => {
+    const inp = document.getElementById('qt-label-' + mod);
+    if (!inp) return;
+    inp.value = (window._tierLabelOverrides && window._tierLabelOverrides[mod]) || '';
+    syncTierLabelPlaceholder(mod);
+  });
   updateQuotePricing();
 }
 
@@ -4654,6 +4667,33 @@ function applyManualPrice(key) {
   if (pctInput) pctInput.value = '';
   discountMode[key] = 'manual';
   updateQuotePricing();
+}
+
+// ---------------------------------------------------------------
+// Per-quote tier-label overrides — let the user type a free-text
+// volume label (e.g. "5,000 negotiations" instead of "Up to 5,000")
+// in the pricing breakdown row. The override applies to the chosen
+// tier's display in the Selected Modules table on the PDF.
+// ---------------------------------------------------------------
+window._tierLabelOverrides = window._tierLabelOverrides || {};
+function updateTierLabelOverride(key, value) {
+  const v = (value || '').trim();
+  if (v) window._tierLabelOverrides[key] = v;
+  else delete window._tierLabelOverrides[key];
+}
+function syncTierLabelPlaceholder(key) {
+  // After the user picks a different volume tier, refresh the placeholder so
+  // it shows what would print if no override is supplied.
+  const inp = document.getElementById('qt-label-' + key);
+  const sel = document.getElementById('qt-' + key);
+  if (!inp || !sel) return;
+  const fallback = sel.selectedOptions[0]?.text?.split(' — ')[0] || '';
+  inp.placeholder = fallback ? 'Default: ' + fallback : 'Custom label (optional)';
+}
+function getTierLabel(key) {
+  if (window._tierLabelOverrides && window._tierLabelOverrides[key]) return window._tierLabelOverrides[key];
+  const sel = document.getElementById('qt-' + key) || document.getElementById('calc-' + key + '-tier');
+  return sel?.selectedOptions[0]?.text?.split(' — ')[0] || '';
 }
 
 function changeQuoteTier(key) {
@@ -4819,7 +4859,8 @@ function generateQuoteData() {
     if (excludedModules[mod]) return;
     const tierEl = document.getElementById('calc-' + mod + '-tier');
     if (!tierEl) return;
-    const tierText = tierEl.selectedOptions[0]?.text?.split(' — ')[0] || '';
+    // Tier label can be overridden per-quote via the Custom-label input next to qt-{mod}.
+    const tierText = (window._tierLabelOverrides && window._tierLabelOverrides[mod]) || tierEl.selectedOptions[0]?.text?.split(' — ')[0] || '';
     const tierPrice = parseInt(tierEl.value);
     const tierObj = modules[mod]?.tiers?.find(t => t.price === tierPrice) || { price: tierPrice };
     const listPrice = getTierPriceRaw(tierObj); // Correct current-currency price
@@ -5347,6 +5388,7 @@ function saveQuoteToHistory(data) {
       hideDiscounts: hideDiscounts,
       additionalAgents: Array.from(document.querySelectorAll('.additional-agent-cb:checked')).map(cb => cb.value),
       customPositions: (window._customPositions || []).map(p => ({ name: p.name || '', tier: p.tier || '', price: parseFloat(p.price) || 0 })),
+      tierLabelOverrides: Object.assign({}, window._tierLabelOverrides || {}),
       includeAdvROI: document.getElementById('quote-inc-adv-roi')?.checked ?? false,
       includePricingRef: document.getElementById('quote-inc-pricing-ref')?.checked ?? false,
       pricingRefTitle: document.getElementById('pricing-ref-title')?.value || '',
@@ -5687,6 +5729,8 @@ function loadQuote(id) {
     tier: p.tier || '',
     price: parseFloat(p.price) || 0
   }));
+  // Restore per-quote tier-label overrides
+  window._tierLabelOverrides = (fs.tierLabelOverrides && typeof fs.tierLabelOverrides === 'object') ? Object.assign({}, fs.tierLabelOverrides) : {};
 
   // Open quote modal
   openQuoteModal();

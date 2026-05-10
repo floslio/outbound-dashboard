@@ -649,9 +649,9 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
           <div class="flex items-end justify-between pt-4 border-t border-slate-100">
             <div>
               <span class="text-xs text-slate-400">From</span>
-              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="5500" data-eur="4500" data-gbp="4000">$5,500</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
+              <div class="text-2xl font-extrabold text-slate-900"><span class="mp" data-usd="9900" data-eur="9900" data-gbp="9900">$9,900</span><span class="text-sm font-normal text-slate-400">/yr</span></div>
             </div>
-            <span class="text-xs text-lio-600 font-medium arrow-slide">7 tiers <span class="arrow-icon">→</span></span>
+            <span class="text-xs text-lio-600 font-medium arrow-slide">8 tiers <span class="arrow-icon">→</span></span>
           </div>
         </div>
 
@@ -777,7 +777,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
             <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('sa')"><td class="p-4 font-semibold">Sourcing Agent</td><td class="p-4 text-slate-500">Bid sourcing</td><td class="p-4 text-right font-semibold mp" data-usd="25000">$25,000</td><td class="p-4 text-right text-slate-500">Events</td><td class="p-4 text-center"><span class="px-2 py-1 bg-rose-50 text-rose-700 rounded text-xs font-medium"><span class="cur-sym">$</span>12.50/event</span></td></tr>
             <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('na')"><td class="p-4 font-semibold">Negotiation Agent</td><td class="p-4 text-slate-500">Bid negotiation</td><td class="p-4 text-right font-semibold mp" data-usd="20500" data-eur="17500" data-gbp="15500">$20,500</td><td class="p-4 text-right text-slate-500">Events</td><td class="p-4 text-center"><span class="px-2 py-1 bg-amber-50 text-amber-700 rounded text-xs font-medium"><span class="cur-sym">$</span>32.80/event</span></td></tr>
             <tr class="bg-slate-50"><td colspan="5" class="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Intelligence & Assistants</td></tr>
-            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('liox')"><td class="p-4 font-semibold">Lio X</td><td class="p-4 text-slate-500">AI assistant</td><td class="p-4 text-right font-semibold mp" data-usd="5500" data-eur="4500" data-gbp="4000">$5,500</td><td class="p-4 text-right text-slate-500">Users</td><td class="p-4 text-center"><span class="px-2 py-1 bg-lio-50 text-lio-700 rounded text-xs font-medium"><span class="cur-sym">$</span>367/user</span></td></tr>
+            <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('liox')"><td class="p-4 font-semibold">Lio X</td><td class="p-4 text-slate-500">AI assistant</td><td class="p-4 text-right font-semibold mp" data-usd="9900" data-eur="9900" data-gbp="9900">$9,900</td><td class="p-4 text-right text-slate-500">Flat / Users</td><td class="p-4 text-center"><span class="px-2 py-1 bg-lio-50 text-lio-700 rounded text-xs font-medium">Flat or per-user</span></td></tr>
             <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('pia')"><td class="p-4 font-semibold">Procurement Intelligence</td><td class="p-4 text-slate-500">Spend analytics</td><td class="p-4 text-right font-semibold mp" data-usd="6000">$6,000</td><td class="p-4 text-right text-slate-500">Users</td><td class="p-4 text-center"><span class="px-2 py-1 bg-sky-50 text-sky-700 rounded text-xs font-medium"><span class="cur-sym">$</span>688/user</span></td></tr>
             <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('npa')"><td class="p-4 font-semibold">Negotiation Preparation</td><td class="p-4 text-slate-500">Negotiation prep</td><td class="p-4 text-right font-semibold mp" data-usd="12000">$12,000</td><td class="p-4 text-right text-slate-500">Prep Events</td><td class="p-4 text-center"><span class="px-2 py-1 bg-fuchsia-50 text-fuchsia-700 rounded text-xs font-medium"><span class="cur-sym">$</span>12.50/event</span></td></tr>
             <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer" onclick="showModule('cna')"><td class="p-4 font-semibold">Contract Negotiation</td><td class="p-4 text-slate-500">Contract analysis</td><td class="p-4 text-right font-semibold mp" data-usd="15000">$15,000</td><td class="p-4 text-right text-slate-500">Negotiations</td><td class="p-4 text-center"><span class="px-2 py-1 bg-red-50 text-red-700 rounded text-xs font-medium"><span class="cur-sym">$</span>13.50/neg</span></td></tr>
@@ -1954,7 +1954,7 @@ const modules = {
   na:{name:'Negotiation Agent',color:'amber',icon:'🤝',desc:'AI agents autonomously negotiate supplier bids. Uses advanced strategies and market data for optimal outcomes.',features:['Autonomous multi-round negotiations','Market-aware pricing intelligence','Historical benchmark analysis','Multi-supplier bid management','Custom strategy rules','Real-time dashboards'],tiers:[{vol:'Up to 625',price:20500,eur:17500,gbp:15500},{vol:'Up to 1,250',price:35000,eur:30000,gbp:27000},{vol:'Up to 2,500',price:65000,eur:55000,gbp:50000},{vol:'Up to 5,000',price:115000,eur:100000,gbp:90000},{vol:'Up to 10,000',price:210000,eur:180000,gbp:160000},{vol:'Up to 20,000',price:380000,eur:320000,gbp:300000}],unit:'Negotiation Events'},
   sa:{name:'Sourcing Agent',color:'rose',icon:'🔍',desc:'AI agents source bids, compare them, and select the best outcome automatically.',features:['Automated RFQ creation','AI-powered bid comparison','Supplier matching & discovery','Total cost analysis','Weighted scoring models','Collaborative workflows'],tiers:[{vol:'Up to 2,000',price:25000},{vol:'Up to 4,000',price:50000},{vol:'Up to 6,000',price:75000},{vol:'Up to 8,000',price:100000},{vol:'Up to 10,000',price:125000},{vol:'Up to 20,000',price:250000}],unit:'Sourcing Events'},
   oc:{name:'Order Confirmations',color:'violet',icon:'📋',desc:'Automatically reviews delivery date, price, quantity, and address on every order confirmation.',features:['Automatic OC data extraction','Price & quantity deviation detection','Delivery date verification','Address validation','Auto-acceptance or flagging','ERP integration'],tiers:[{vol:'Up to 6,250',price:15000},{vol:'Up to 12,500',price:22500},{vol:'Up to 25,000',price:36250},{vol:'Up to 50,000',price:63750},{vol:'Up to 100,000',price:118750}],unit:'OC Checks'},
-  liox:{name:'Lio X',color:'lio',icon:'🧠',desc:'AI procurement assistant with template library, custom creation, and Lio Academy access.',features:['AI-powered quote analysis','T&C review','Negotiation strategy templates','Custom AI assistant builder','Lio Academy access','Team collaboration'],tiers:[{vol:'Up to 15',price:5500,eur:4500,gbp:4000},{vol:'Up to 50',price:15000,eur:12500,gbp:11000},{vol:'Up to 100',price:28000,eur:23000,gbp:20000},{vol:'Up to 200',price:48000,eur:40000,gbp:35000},{vol:'Up to 400',price:85000,eur:70000,gbp:62000},{vol:'Up to 800',price:150000,eur:125000,gbp:110000},{vol:'Unlimited',price:250000,eur:210000,gbp:185000}],unit:'Users'},
+  liox:{name:'Lio X',color:'lio',icon:'🧠',desc:'AI procurement assistant with template library, custom creation, and Lio Academy access.',features:['AI-powered quote analysis','T&C review','Negotiation strategy templates','Custom AI assistant builder','Lio Academy access','Team collaboration'],tiers:[{vol:'Flat Rate',price:9900,eur:9900,gbp:9900},{vol:'Up to 15',price:5500,eur:4500,gbp:4000},{vol:'Up to 50',price:15000,eur:12500,gbp:11000},{vol:'Up to 100',price:28000,eur:23000,gbp:20000},{vol:'Up to 200',price:48000,eur:40000,gbp:35000},{vol:'Up to 400',price:85000,eur:70000,gbp:62000},{vol:'Up to 800',price:150000,eur:125000,gbp:110000},{vol:'Unlimited',price:250000,eur:210000,gbp:185000}],unit:'Users'},
   sm:{name:'SRM',color:'slate',icon:'🏢',desc:'Automated supplier relationship management with full supplier onboarding included. AI-powered supplier data enrichment, outreach, compliance collection, and continuous validation. No platform registration required for suppliers.',features:['Full supplier onboarding included','Supplier data enrichment and validation','AI-driven supplier outreach','Contract Management','Certificate & ESG Management','Analytics'],tiers:[{vol:'Flat Rate',price:125000,eur:109000,gbp:99000}],unit:'Flat Rate'},
   aa:{name:'Approval Agent',color:'teal',icon:'🔐',desc:'Manages PR approval workflows with proactive outreach, OOO handling, and bottleneck prevention.',features:['Remote Approver','Configurable approval chains','AOP-based workflows','OOO escalation','Contextual approval requests','Integration as first approver'],tiers:[{vol:'Flat Rate',price:12500}],unit:'Flat Rate'},
   gr:{name:'Goods Receipt Agent',color:'lime',icon:'📦',desc:'Automates goods receipt processing. Handles document-based receipt creation, partial delivery tracking, and proactive follow-ups.',features:['Document upload & OCR','Partial/full delivery handling','Pending receipt surfacing','Automated reminders','SAP integration','Proactive follow-ups'],tiers:[{vol:'Up to 5,000',price:7000},{vol:'Up to 10,000',price:13500},{vol:'Up to 25,000',price:32500},{vol:'Up to 50,000',price:62500},{vol:'Up to 100,000',price:113500}],unit:'GR Checks'},
@@ -3105,9 +3105,11 @@ function openQuoteModal() {
   modal.classList.add('flex');
   const vd = new Date(); vd.setDate(vd.getDate() + 90);
   document.getElementById('quote-valid-until').value = vd.toISOString().split('T')[0];
-  // Reset custom positions for a fresh quote (loadQuote pre-fills these before calling us).
+  // Reset custom positions + tier-label overrides for a fresh quote
+  // (loadQuote pre-fills these before calling us).
   if (!window._editingQuoteId) {
     window._customPositions = [];
+    window._tierLabelOverrides = {};
   }
   populateQuotePricing();
 
@@ -3416,7 +3418,7 @@ function populateQuotePricing() {
       otherMods.map(k => '<option value="' + k + '">' + prettyModuleName(k) + '</option>').join('');
     tbody.innerHTML += `<tr class="border-t border-slate-100" data-mod="${mod}" id="qrow-${mod}">
       <td class="p-2 pl-3"><select onchange="swapModuleInRow('${mod}', this.value)" class="w-full border border-slate-200 rounded p-1 text-xs outline-none cursor-pointer hover:bg-slate-50 text-slate-700" title="Click to swap with a different agent">${modOptions}</select></td>
-      <td class="p-2"><select id="qt-${mod}" onchange="changeQuoteTier('${mod}')" class="w-full border border-slate-200 rounded p-1 text-xs outline-none">${tierOpts}</select></td>
+      <td class="p-2"><select id="qt-${mod}" onchange="changeQuoteTier('${mod}'); syncTierLabelPlaceholder('${mod}')" class="w-full border border-slate-200 rounded p-1 text-xs outline-none">${tierOpts}</select><input type="text" id="qt-label-${mod}" placeholder="Custom label (optional)" class="w-full mt-1 border border-slate-200 rounded p-1 text-[11px] text-slate-700 outline-none placeholder-slate-400" oninput="updateTierLabelOverride('${mod}', this.value)" title="Override the tier label that prints on the quote (leave empty to use the volume from the dropdown)."></td>
       <td class="p-2 text-right text-slate-500" data-list-price="${rawPrice}">${fmtRaw(rawPrice)}</td>
       <td class="p-2 text-center">
         <input type="number" id="qd-${mod}" value="" min="0" max="100" step="1" placeholder="%" onchange="applyDiscountPct('${mod}')" oninput="applyDiscountPct('${mod}')" class="w-16 border border-slate-200 rounded p-1 text-sm text-center outline-none">
@@ -3439,6 +3441,13 @@ function populateQuotePricing() {
   }
   renderCustomPositions();
   if (typeof renderPricingReference === 'function') renderPricingReference();
+  // Hydrate tier-label override inputs from window._tierLabelOverrides + set placeholders
+  selectedKeys.forEach(mod => {
+    const inp = document.getElementById('qt-label-' + mod);
+    if (!inp) return;
+    inp.value = (window._tierLabelOverrides && window._tierLabelOverrides[mod]) || '';
+    syncTierLabelPlaceholder(mod);
+  });
   updateQuotePricing();
 }
 
@@ -3466,6 +3475,30 @@ function applyManualPrice(key) {
   if (pctInput) pctInput.value = '';
   discountMode[key] = 'manual';
   updateQuotePricing();
+}
+
+// ---------------------------------------------------------------
+// Per-quote tier-label overrides — let the user type a free-text
+// volume label in the pricing breakdown row that prints in place
+// of the dropdown's volume on the PDF.
+// ---------------------------------------------------------------
+window._tierLabelOverrides = window._tierLabelOverrides || {};
+function updateTierLabelOverride(key, value) {
+  const v = (value || '').trim();
+  if (v) window._tierLabelOverrides[key] = v;
+  else delete window._tierLabelOverrides[key];
+}
+function syncTierLabelPlaceholder(key) {
+  const inp = document.getElementById('qt-label-' + key);
+  const sel = document.getElementById('qt-' + key);
+  if (!inp || !sel) return;
+  const fallback = sel.selectedOptions[0]?.text?.split(' — ')[0] || '';
+  inp.placeholder = fallback ? 'Default: ' + fallback : 'Custom label (optional)';
+}
+function getTierLabel(key) {
+  if (window._tierLabelOverrides && window._tierLabelOverrides[key]) return window._tierLabelOverrides[key];
+  const sel = document.getElementById('qt-' + key) || document.getElementById('ct-' + key);
+  return sel?.selectedOptions[0]?.text?.split(' — ')[0] || '';
 }
 
 function changeQuoteTier(key) {
@@ -3615,7 +3648,8 @@ function generateQuoteData() {
     if (excludedModules[k]) return;
     const tierEl = document.getElementById('ct-' + k);
     if (!tierEl) return;
-    const tierText = tierEl.selectedOptions[0]?.text?.split(' \u2014 ')[0] || '';
+    // Tier label can be overridden per-quote via the Custom-label input next to qt-{k}.
+    const tierText = (window._tierLabelOverrides && window._tierLabelOverrides[k]) || tierEl.selectedOptions[0]?.text?.split(' \u2014 ')[0] || '';
     const tierPrice = parseInt(tierEl.value);
     const tierObj = modules[k]?.tiers?.find(t => t.price === tierPrice) || { price: tierPrice };
     const listPrice = getTierPriceRaw(tierObj); // Correct current-currency price
@@ -3979,6 +4013,7 @@ function saveQuoteToHistory(data) {
       hideDiscounts: hideDiscounts,
       additionalAgents: Array.from(document.querySelectorAll('.additional-agent-cb:checked')).map(cb => cb.value),
       customPositions: (window._customPositions || []).map(p => ({ name: p.name || '', tier: p.tier || '', price: parseFloat(p.price) || 0 })),
+      tierLabelOverrides: Object.assign({}, window._tierLabelOverrides || {}),
       includeAdvROI: document.getElementById('quote-inc-adv-roi')?.checked ?? false,
       includePricingRef: document.getElementById('quote-inc-pricing-ref')?.checked ?? false,
       pricingRefTitle: document.getElementById('pricing-ref-title')?.value || '',
@@ -4929,9 +4964,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     // clear custom positions
     window._customPositions = [];
-    // reset PDF overrides and tier-ladder visibility for a fresh quote
+    // reset PDF overrides, tier-ladder visibility, and tier-label overrides for a fresh quote
     window._moduleOverrides = {};
     window._hideTierLadder = false;
+    window._tierLabelOverrides = {};
     // reset editing-quote pointer
     window._editingQuoteId = null;
     // clear customer fields if present
@@ -5739,6 +5775,11 @@ document.addEventListener('DOMContentLoaded', function() {
           delete top.formState.moduleOverrides;
         }
         top.formState.hideTierLadder = !!window._hideTierLadder;
+        if (window._tierLabelOverrides && Object.keys(window._tierLabelOverrides).length > 0) {
+          top.formState.tierLabelOverrides = Object.assign({}, window._tierLabelOverrides);
+        } else {
+          delete top.formState.tierLabelOverrides;
+        }
         localStorage.setItem('lio-quote-history', JSON.stringify(hist));
         if (typeof sbUpdateQuote === 'function' && top.ref) sbUpdateQuote(top.ref, top);
       } catch (e) { /* non-fatal */ }
@@ -5969,6 +6010,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // and the tier-ladder toggle reflect what was saved.
       window._moduleOverrides = (fs.moduleOverrides && typeof fs.moduleOverrides === 'object') ? JSON.parse(JSON.stringify(fs.moduleOverrides)) : {};
       window._hideTierLadder = !!fs.hideTierLadder;
+      window._tierLabelOverrides = (fs.tierLabelOverrides && typeof fs.tierLabelOverrides === 'object') ? Object.assign({}, fs.tierLabelOverrides) : {};
 
       // Show the wizard
       document.getElementById('lio-dashboard')?.classList.add('hidden');
