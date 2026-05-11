@@ -4513,20 +4513,34 @@ document.addEventListener('DOMContentLoaded', function() {
   // The factor is uniform across all agents — it scales `tier.price` (and
   // `tier.eur`/`tier.gbp` overrides if present) in-place. Sales reps can
   // still override individual modules afterwards in step 2.
-  const SEGMENT_FACTORS = {
-    fortune500:  { factor: 1.00, currency: 'usd', label: 'Fortune 500' },
-    dax40:       { factor: 1.00, currency: 'eur', label: 'DAX 40' },
-    midmarket:   { factor: 0.50, currency: 'usd', label: 'Mid Market (US)' },
-    mittelstand: { factor: 0.40, currency: 'eur', label: 'German Mittelstand' },
+  // Defaults overridable by admin via window._segmentFactorOverrides
+  // (saved to localStorage 'lio-segment-factors') — see lioAdminApplySegmentFactors below.
+  const SEGMENT_FACTORS_DEFAULTS = {
+    fortune500:  { factor: 1.50, currency: 'usd', label: 'Fortune 500' },
+    dax40:       { factor: 1.25, currency: 'eur', label: 'DAX 40' },
+    midmarket:   { factor: 0.85, currency: 'usd', label: 'Mid Market (US)' },
+    mittelstand: { factor: 0.70, currency: 'eur', label: 'German Mittelstand' },
     custom:      { factor: 1.00, currency: null,  label: 'Custom' }
   };
+  const SEGMENT_FACTORS = (() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('lio-segment-factors') || '{}');
+      const merged = JSON.parse(JSON.stringify(SEGMENT_FACTORS_DEFAULTS));
+      Object.keys(stored).forEach(k => {
+        if (merged[k] && typeof stored[k]?.factor === 'number' && stored[k].factor > 0) {
+          merged[k].factor = stored[k].factor;
+        }
+      });
+      return merged;
+    } catch (e) { return JSON.parse(JSON.stringify(SEGMENT_FACTORS_DEFAULTS)); }
+  })();
 
   const SEGMENTS = [
-    { key: 'fortune500',  name: 'Fortune 500',           currency: 'usd', icon: '🏛️',  desc: 'Global enterprise · $300K – $1M typical', range: '$300K – $1M', refRow: 'Fortune 500' },
-    { key: 'dax40',       name: 'DAX 40',                currency: 'eur', icon: '🇩🇪',  desc: 'German enterprise · €250K – €800K typical', range: '€250K – €800K', refRow: 'DAX 40' },
-    { key: 'midmarket',   name: 'Mid Market (US)',       currency: 'usd', icon: '🚀',  desc: 'Scaling US teams · $69K – $550K typical · ~50% of F500 prices', range: '$69K – $550K', refRow: 'Mid Market (US)' },
-    { key: 'mittelstand', name: 'German Mittelstand',    currency: 'eur', icon: '🛠️',  desc: 'Lean DE operations · €60K – €200K typical · ~40% of F500 prices', range: '€60K – €200K', refRow: 'German Mittelstand (DE)' },
-    { key: 'custom',      name: 'Custom',                currency: null,  icon: '✨',  desc: 'Blank slate · choose your own currency + modules', range: 'Custom', refRow: null }
+    { key: 'fortune500',  name: 'Fortune 500',           currency: 'usd', icon: '🏛️',  desc: 'Global enterprise · 150% baseline · premium pricing', range: '$450K – $1.5M', refRow: 'Fortune 500' },
+    { key: 'dax40',       name: 'DAX 40',                currency: 'eur', icon: '🇩🇪',  desc: 'German enterprise · 125% baseline', range: '€310K – €1M', refRow: 'DAX 40' },
+    { key: 'midmarket',   name: 'Mid Market (US)',       currency: 'usd', icon: '🚀',  desc: 'Scaling US teams · 85% of baseline', range: '$59K – $470K', refRow: 'Mid Market (US)' },
+    { key: 'mittelstand', name: 'German Mittelstand',    currency: 'eur', icon: '🛠️',  desc: 'Lean DE operations · 70% of baseline', range: '€42K – €140K', refRow: 'German Mittelstand (DE)' },
+    { key: 'custom',      name: 'Custom',                currency: null,  icon: '✨',  desc: 'Blank slate · use library prices unchanged', range: 'Custom', refRow: null }
   ];
 
   // ---------------------------

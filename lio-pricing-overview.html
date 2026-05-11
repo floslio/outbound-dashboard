@@ -1451,13 +1451,39 @@ input[type="checkbox"] { accent-color: #6366f1; }
   </div>
 </div>
 
+<!-- Segment Admin Modal — edit segment factors persisted to localStorage -->
+<div id="segment-admin-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/70 backdrop-blur-sm">
+  <div class="bg-[#12132a] border border-slate-700/50 rounded-2xl p-6 w-full max-w-lg mx-4 shadow-2xl">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-bold text-white">Admin · Segment factors</h3>
+      <button onclick="lioCloseSegmentAdmin()" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
+    </div>
+    <div class="text-xs text-slate-400 mb-4">Multipliers applied to every module tier when this segment is selected (1.00 = library default). Saved to your browser; reload-safe.</div>
+    <div id="segment-admin-rows" class="space-y-3 mb-4"></div>
+    <div class="flex items-center justify-between gap-3">
+      <button onclick="lioResetSegmentFactors()" class="px-3 py-2 text-xs bg-slate-700/30 hover:bg-slate-700/60 border border-slate-600 rounded text-slate-300">Reset to defaults</button>
+      <button onclick="lioSaveSegmentFactors()" class="px-4 py-2 text-xs bg-lio-500 hover:bg-lio-400 text-white rounded font-semibold">Save factors</button>
+    </div>
+  </div>
+</div>
+
 <!-- Quote Modal -->
 <div id="quote-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
   <div class="bg-[#12132a] border border-slate-700/50 rounded-2xl p-4 sm:p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex justify-between items-center mb-4">
       <h3 class="text-xl font-bold text-white">Create Quote</h3>
-      <button onclick="closeQuoteModal()" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="lioOpenSegmentAdmin()" class="px-3 py-1.5 text-xs bg-slate-700/50 hover:bg-slate-700 border border-slate-600 rounded text-slate-300 transition" title="Edit segment factors (admin)">⚙️ Admin</button>
+        <button onclick="closeQuoteModal()" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
+      </div>
     </div>
+
+    <!-- Customer Segment Picker — scales tier prices for this quote -->
+    <div class="mb-4 p-3 rounded-xl bg-slate-800/40 border border-slate-700/50">
+      <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-2">Customer Segment <span class="text-slate-500 normal-case text-[10px] tracking-normal">— scales tier prices for this quote (Fortune 500 = 150%, DAX = 125%, Mid Market = 85%, Mittelstand = 70%, Custom = 100%)</span></div>
+      <div id="quote-segment-pills" class="flex flex-wrap gap-2"></div>
+    </div>
+
     <div class="space-y-4">
       <div>
         <label class="text-xs text-slate-400 block mb-1">Lio Contact Person</label>
@@ -1564,6 +1590,21 @@ input[type="checkbox"] { accent-color: #6366f1; }
             <button type="button" onclick="addCustomPosition()" class="px-3 py-1 bg-lio-500/20 hover:bg-lio-500/30 border border-lio-500/40 rounded text-xs text-lio-300 transition">+ Add Position</button>
           </div>
           <div id="custom-positions-list" class="space-y-2"></div>
+        </div>
+
+        <!-- Per-Module PDF customization (description, features, tier ladder) -->
+        <div class="mt-3 p-3 rounded-lg bg-slate-800/30 border border-slate-700/50">
+          <div class="flex items-center justify-between mb-2 gap-2 flex-wrap">
+            <div>
+              <label class="text-xs text-slate-300 font-semibold">PDF customization per module</label>
+              <div class="text-[10px] text-slate-500">Tweak description, features and tier-ladder for any selected agent. Per-quote only — library defaults are not touched.</div>
+            </div>
+            <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+              <input type="checkbox" id="quote-hide-all-tier-ladders" class="w-4 h-4 rounded" onchange="window._hideTierLadder = this.checked;">
+              Hide every tier ladder on PDF
+            </label>
+          </div>
+          <div id="lio-modedit-host-dark" class="space-y-2"></div>
         </div>
 
         <!-- Pricing Range Reference (informational table for the PDF) -->
@@ -2624,6 +2665,88 @@ const modules = {
 };
 
 let currentCurrency = 'usd';
+
+// ===========================================================
+// CUSTOMER SEGMENT FACTORS — applied to module tier prices on
+// segment switch. Defaults below; admin can edit them via the
+// "Admin · Segment factors" panel and they're persisted to
+// localStorage (key: 'lio-segment-factors'). Per-module tier
+// overrides (window._moduleOverrides[k].tiers) win over the
+// segment-scaled baseline.
+// ===========================================================
+const SEGMENT_FACTORS_DEFAULTS = {
+  fortune500:  { factor: 1.50, currency: 'usd', label: 'Fortune 500' },
+  dax40:       { factor: 1.25, currency: 'eur', label: 'DAX 40' },
+  midmarket:   { factor: 0.85, currency: 'usd', label: 'Mid Market (US)' },
+  mittelstand: { factor: 0.70, currency: 'eur', label: 'German Mittelstand' },
+  custom:      { factor: 1.00, currency: null,  label: 'Custom' }
+};
+const SEGMENT_FACTORS = (() => {
+  try {
+    const stored = JSON.parse(localStorage.getItem('lio-segment-factors') || '{}');
+    const merged = JSON.parse(JSON.stringify(SEGMENT_FACTORS_DEFAULTS));
+    Object.keys(stored).forEach(k => {
+      if (merged[k] && typeof stored[k]?.factor === 'number' && stored[k].factor > 0) {
+        merged[k].factor = stored[k].factor;
+      }
+    });
+    return merged;
+  } catch (e) { return JSON.parse(JSON.stringify(SEGMENT_FACTORS_DEFAULTS)); }
+})();
+window._currentSegmentKey = null;
+
+// Snapshot the factory tier prices once so we can reset cleanly on segment change.
+window._modulesBaseline = null;
+function _ensureModulesBaseline() {
+  if (window._modulesBaseline) return;
+  window._modulesBaseline = {};
+  Object.keys(modules).forEach(k => {
+    window._modulesBaseline[k] = { tiers: JSON.parse(JSON.stringify(modules[k].tiers || [])) };
+  });
+}
+
+// Apply the segment's factor in-place on every tier (USD/EUR/GBP) and rebuild
+// any static <option>s the calculator's dropdowns rely on.
+function applySegmentPricing(segKey) {
+  _ensureModulesBaseline();
+  const seg = SEGMENT_FACTORS[segKey];
+  if (!seg) return;
+  const f = seg.factor;
+  Object.keys(window._modulesBaseline).forEach(k => {
+    if (!modules[k]) return;
+    modules[k].tiers = window._modulesBaseline[k].tiers.map(t => {
+      const out = { vol: t.vol, price: Math.max(0, Math.round(t.price * f)) };
+      if (t.eur != null) out.eur = Math.max(0, Math.round(t.eur * f / 500) * 500);
+      if (t.gbp != null) out.gbp = Math.max(0, Math.round(t.gbp * f / 500) * 500);
+      return out;
+    });
+  });
+  window._currentSegmentKey = segKey;
+  // Rebuild every legacy static <select id="calc-{k}-tier"> option list so the
+  // dropdowns reflect the new tier prices.
+  Object.keys(modules).forEach(k => {
+    const sel = document.getElementById('calc-' + k + '-tier');
+    if (!sel) return;
+    const prevIdx = sel.selectedIndex;
+    sel.innerHTML = modules[k].tiers.map(t =>
+      '<option value="' + t.price + '">' + (typeof fmtVol === 'function' ? fmtVol(k, t.vol) : t.vol) + ' — ' + (typeof fmtTierPrice === 'function' ? fmtTierPrice(t) : ('$' + t.price)) + '/yr</option>'
+    ).join('');
+    sel.selectedIndex = Math.min(prevIdx >= 0 ? prevIdx : 0, sel.options.length - 1);
+  });
+  // Refresh the calculator + the open Quote Modal table to reflect new prices
+  if (typeof calcUpdate === 'function') calcUpdate();
+  if (typeof populateQuotePricing === 'function' && !document.getElementById('quote-modal')?.classList.contains('hidden')) {
+    populateQuotePricing();
+  }
+}
+
+function resetModulesBaseline() {
+  if (!window._modulesBaseline) return;
+  Object.keys(window._modulesBaseline).forEach(k => {
+    if (modules[k]) modules[k].tiers = JSON.parse(JSON.stringify(window._modulesBaseline[k].tiers));
+  });
+  window._currentSegmentKey = null;
+}
 const currencyRates = { usd: 1, eur: 1/1.08, gbp: 1/1.18 };
 const currencySymbols = { usd: '$', eur: '€', gbp: '£' };
 
@@ -5053,13 +5176,18 @@ function generateQuoteData() {
       const displayPrice = fmtRaw(adjustedPrice);
       return `<tr style="border-bottom:1px solid #f1f5f9;${isSelected ? 'background:#f0fdf4;font-weight:600;' : ''}"><td style="padding:3px 8px;font-size:10px;color:#1e293b;">${isSelected ? '&#9654; ' : ''}${fmtVol(m.key, t.vol)}</td><td style="padding:3px 8px;font-size:10px;text-align:right;color:#1e293b;">${displayPrice}/yr</td></tr>`;
     }).join('');
+    // The tier-ladder block carries data-tier-ladder="1" data-modkey="${m.key}"
+    // so a post-processor can strip it (global) or per-module via the
+    // window._moduleOverrides[k].hideTiers flag set in the Quote Modal.
+    // Features list is rendered in full so the user controls how many bullets
+    // print via the per-module copy editor.
     return `<div style="margin-bottom:24px;page-break-inside:avoid;">
       <h3 style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 6px 0;">${m.name}</h3>
-      <p style="font-size:11px;color:#1e293b;margin:0 0 10px 0;line-height:1.5;">${m.desc}</p>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
-        ${m.features.slice(0, 4).map(f => `<span style="display:inline-block;background:#f0f0f0;color:#1e293b;padding:3px 8px;border-radius:6px;font-size:10px;">&#10003; ${f}</span>`).join('')}
-      </div>
-      <div style="margin-top:8px;">
+      ${m.desc ? `<p style="font-size:11px;color:#1e293b;margin:0 0 10px 0;line-height:1.5;white-space:pre-line;">${m.desc}</p>` : ''}
+      ${(m.features && m.features.length > 0) ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+        ${m.features.map(f => `<span style="display:inline-block;background:#f0f0f0;color:#1e293b;padding:3px 8px;border-radius:6px;font-size:10px;">&#10003; ${f}</span>`).join('')}
+      </div>` : ''}
+      <div data-tier-ladder="1" data-modkey="${m.key || ''}" style="margin-top:8px;">
         <div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers</div>
         <table style="width:100%;max-width:400px;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;font-size:10px;">
           <thead><tr style="background:#f8fafc;"><th style="padding:3px 8px;text-align:left;font-size:9px;color:#64748b;text-transform:uppercase;">Volume</th><th style="padding:3px 8px;text-align:right;font-size:9px;color:#64748b;text-transform:uppercase;">Price</th></tr></thead>
@@ -5879,6 +6007,381 @@ function animateCounters() {
 calcROI();
 updateSliderTotal();
 window.addEventListener('load', animateCounters);
+
+// =========================================================
+// PDF override layer (dark file parity with white wizard)
+//
+// Wraps generateQuoteData so per-quote per-module overrides
+// (desc / features / tiers / hideTiers) mutate modules[k] in
+// place during PDF generation, then restore the defaults. The
+// global window._hideTierLadder still wins when on.
+// =========================================================
+window._moduleOverrides = window._moduleOverrides || {};
+window._hideTierLadder = window._hideTierLadder || false;
+
+if (typeof window.generateQuoteData === 'function' && !window._origGenerateQuoteData) {
+  window._origGenerateQuoteData = window.generateQuoteData;
+  window.generateQuoteData = function () {
+    const ov = window._moduleOverrides || {};
+    const backup = {};
+    Object.keys(ov).forEach(k => {
+      if (modules[k]) {
+        backup[k] = { desc: modules[k].desc, features: modules[k].features, tiers: modules[k].tiers };
+        if (typeof ov[k].desc === 'string') modules[k].desc = ov[k].desc;
+        if (Array.isArray(ov[k].features)) modules[k].features = ov[k].features;
+        if (Array.isArray(ov[k].tiers) && ov[k].tiers.length > 0) modules[k].tiers = ov[k].tiers;
+      }
+    });
+    let result;
+    try {
+      result = window._origGenerateQuoteData.apply(this, arguments);
+    } finally {
+      Object.keys(backup).forEach(k => {
+        if (modules[k]) {
+          modules[k].desc = backup[k].desc;
+          modules[k].features = backup[k].features;
+          modules[k].tiers = backup[k].tiers;
+        }
+      });
+    }
+    if (result && result.html) {
+      if (window._hideTierLadder) {
+        result.html = result.html.replace(/<div data-tier-ladder="1"[^>]*>[\s\S]*?<\/table>\s*<\/div>/g, '');
+      } else {
+        Object.keys(ov).forEach(k => {
+          if (ov[k] && ov[k].hideTiers) {
+            const escKey = k.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+            const re = new RegExp('<div data-tier-ladder="1"[^>]*data-modkey="' + escKey + '"[^>]*>[\\s\\S]*?<\\/table>\\s*<\\/div>', 'g');
+            result.html = result.html.replace(re, '');
+          }
+        });
+      }
+    }
+    return result;
+  };
+}
+
+// Override-state helpers (used by the per-module editor below).
+function lioGetModuleDesc(k) {
+  const ov = window._moduleOverrides[k];
+  if (ov && typeof ov.desc === 'string') return ov.desc;
+  return modules[k]?.desc || '';
+}
+function lioGetModuleFeatures(k) {
+  const ov = window._moduleOverrides[k];
+  if (ov && Array.isArray(ov.features)) return ov.features.slice();
+  return (modules[k]?.features || []).slice();
+}
+function lioGetModuleTiers(k) {
+  const ov = window._moduleOverrides[k];
+  if (ov && Array.isArray(ov.tiers) && ov.tiers.length > 0) return JSON.parse(JSON.stringify(ov.tiers));
+  return JSON.parse(JSON.stringify(modules[k]?.tiers || []));
+}
+function lioGetModuleHideTiers(k) { return !!(window._moduleOverrides[k] && window._moduleOverrides[k].hideTiers); }
+function _ensureOv(k) { return (window._moduleOverrides[k] = window._moduleOverrides[k] || {}); }
+function _cleanupOv(k) {
+  if (window._moduleOverrides[k] && Object.keys(window._moduleOverrides[k]).length === 0) delete window._moduleOverrides[k];
+}
+function lioSetModuleDesc(k, v) {
+  _ensureOv(k);
+  if (v == null || v.trim() === '' || v === modules[k]?.desc) delete window._moduleOverrides[k].desc;
+  else window._moduleOverrides[k].desc = v;
+  _cleanupOv(k);
+}
+function lioSetModuleFeatures(k, list) {
+  _ensureOv(k);
+  const cleaned = (list || []).map(s => String(s).trim()).filter(Boolean);
+  const original = (modules[k]?.features || []).map(s => String(s).trim()).filter(Boolean);
+  const same = cleaned.length === original.length && cleaned.every((s, i) => s === original[i]);
+  if (cleaned.length === 0 || same) delete window._moduleOverrides[k].features;
+  else window._moduleOverrides[k].features = cleaned;
+  _cleanupOv(k);
+}
+function lioSetModuleTiers(k, tiers) {
+  _ensureOv(k);
+  const clean = (tiers || []).map(t => {
+    const out = { vol: String(t.vol || '').trim() || 'Tier', price: parseFloat(t.price) || 0 };
+    if (t.eur != null && t.eur !== '') { const e = parseFloat(t.eur); if (isFinite(e) && e > 0) out.eur = e; }
+    if (t.gbp != null && t.gbp !== '') { const g = parseFloat(t.gbp); if (isFinite(g) && g > 0) out.gbp = g; }
+    return out;
+  });
+  const def = JSON.parse(JSON.stringify(modules[k]?.tiers || []));
+  const same = clean.length === def.length && clean.every((t, i) => t.vol === def[i].vol && t.price === def[i].price && (t.eur || null) === (def[i].eur || null) && (t.gbp || null) === (def[i].gbp || null));
+  if (clean.length === 0 || same) delete window._moduleOverrides[k].tiers;
+  else window._moduleOverrides[k].tiers = clean;
+  _cleanupOv(k);
+}
+function lioSetModuleHideTiers(k, v) {
+  _ensureOv(k);
+  if (v) window._moduleOverrides[k].hideTiers = true;
+  else delete window._moduleOverrides[k].hideTiers;
+  _cleanupOv(k);
+}
+function lioResetModuleOverride(k) {
+  delete window._moduleOverrides[k];
+  renderModuleOverridesEditorDark();
+}
+
+// Module-icons map for the per-module editor card headers.
+const _DARK_MOD_ICONS = { gb2po: '🛒', ntpo: '✅', na: '🤝', sa: '🔍', oc: '📋', liox: '🧠', sm: '🏢', aa: '🔐', gr: '📦', inv: '🧾', pia: '📊', npa: '🎯', cna: '📄', aop: '🔧', clm: '📑', sh: '🏗️' };
+
+function renderModuleOverridesEditorDark() {
+  const host = document.getElementById('lio-modedit-host-dark');
+  if (!host) return;
+  const STD = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const selectedKeys = STD.filter(k => document.getElementById('check-' + k)?.checked);
+  if (selectedKeys.length === 0) {
+    host.innerHTML = '<div class="text-[11px] text-slate-500 italic py-2">Pick at least one module in the calculator behind this modal to edit its PDF copy.</div>';
+    return;
+  }
+  host.innerHTML = '';
+  selectedKeys.forEach(k => {
+    const m = modules[k]; if (!m) return;
+    const niceName = k === 'sm' ? 'Supplier Relationship Management' : (m.name || k);
+    const ov = window._moduleOverrides[k] || {};
+    const desc = lioGetModuleDesc(k);
+    const features = lioGetModuleFeatures(k);
+    const tiers = lioGetModuleTiers(k);
+    const hideTiers = !!ov.hideTiers;
+    const isEdited = !!(ov.desc !== undefined || ov.features || ov.tiers || ov.hideTiers);
+    const tierRowsHtml = tiers.map((t, i) =>
+      '<div class="grid grid-cols-12 gap-2 items-center" data-tier-i="' + i + '">' +
+        '<input type="text" class="col-span-4 bg-slate-900/50 border border-slate-700 rounded p-1.5 text-[11px] text-slate-200 outline-none dark-modedit-vol" data-i="' + i + '" placeholder="Volume label">' +
+        '<input type="number" class="col-span-3 bg-slate-900/50 border border-slate-700 rounded p-1.5 text-[11px] text-slate-200 outline-none dark-modedit-usd" data-i="' + i + '" min="0" step="100" placeholder="USD">' +
+        '<input type="number" class="col-span-2 bg-slate-900/50 border border-slate-700 rounded p-1.5 text-[11px] text-slate-200 outline-none dark-modedit-eur" data-i="' + i + '" min="0" step="100" placeholder="EUR">' +
+        '<input type="number" class="col-span-2 bg-slate-900/50 border border-slate-700 rounded p-1.5 text-[11px] text-slate-200 outline-none dark-modedit-gbp" data-i="' + i + '" min="0" step="100" placeholder="GBP">' +
+        '<button type="button" class="col-span-1 text-slate-500 hover:text-red-400 text-base dark-modedit-del" data-i="' + i + '" title="Remove tier">&times;</button>' +
+      '</div>'
+    ).join('');
+    const card = document.createElement('details');
+    card.className = 'rounded-lg border border-slate-700/50 bg-slate-900/30';
+    card.innerHTML =
+      '<summary class="cursor-pointer p-2.5 flex items-center justify-between gap-2 text-xs select-none">' +
+        '<div class="flex items-center gap-2">' +
+          '<span class="text-base">' + (_DARK_MOD_ICONS[k] || '⚙️') + '</span>' +
+          '<span class="font-semibold text-slate-200">' + niceName + '</span>' +
+          (isEdited ? '<span class="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded">Edited</span>' : '') +
+        '</div>' +
+        (isEdited ? '<button type="button" class="text-[10px] text-slate-400 hover:text-slate-200 underline" onclick="event.preventDefault(); event.stopPropagation(); lioResetModuleOverride(\'' + k + '\');">Reset</button>' : '<span class="text-[10px] text-slate-500">Click to edit</span>') +
+      '</summary>' +
+      '<div class="p-3 space-y-3 border-t border-slate-700/40">' +
+        '<div>' +
+          '<label class="text-[10px] uppercase tracking-wider text-slate-400 block mb-1">Description (multi-line OK)</label>' +
+          '<textarea data-act="desc" rows="2" class="w-full bg-slate-900/50 border border-slate-700 rounded p-2 text-xs text-slate-200 outline-none"></textarea>' +
+        '</div>' +
+        '<div>' +
+          '<label class="text-[10px] uppercase tracking-wider text-slate-400 block mb-1">Feature bullets — one per line</label>' +
+          '<textarea data-act="feat" rows="' + Math.max(3, features.length) + '" class="w-full bg-slate-900/50 border border-slate-700 rounded p-2 text-xs text-slate-200 outline-none"></textarea>' +
+        '</div>' +
+        '<div class="pt-2 border-t border-slate-700/40">' +
+          '<div class="flex items-center justify-between mb-2 gap-2 flex-wrap">' +
+            '<label class="flex items-center gap-2 text-xs text-slate-200"><input type="checkbox" data-act="hidetiers" class="w-4 h-4"' + (hideTiers ? ' checked' : '') + '> Hide tier ladder for this module on PDF</label>' +
+            '<div class="flex items-center gap-2">' +
+              '<button type="button" class="px-2 py-1 text-[11px] bg-slate-700/50 hover:bg-slate-700 border border-slate-600 rounded text-slate-200" data-act="resetTiers">Reset tiers</button>' +
+              '<button type="button" class="px-2 py-1 text-[11px] bg-slate-700/50 hover:bg-slate-700 border border-slate-600 rounded text-slate-200" data-act="addTier">+ Add tier</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="grid grid-cols-12 gap-2 text-[9px] uppercase tracking-wider text-slate-500 font-semibold mb-1' + (hideTiers ? ' opacity-40' : '') + '">' +
+            '<div class="col-span-4">Volume label</div><div class="col-span-3">USD</div><div class="col-span-2">EUR (opt.)</div><div class="col-span-2">GBP (opt.)</div><div class="col-span-1"></div>' +
+          '</div>' +
+          '<div class="space-y-1.5 dark-modedit-tier-rows' + (hideTiers ? ' opacity-40' : '') + '">' + tierRowsHtml + '</div>' +
+        '</div>' +
+      '</div>';
+    // Set values via property to avoid HTML escaping
+    card.querySelector('textarea[data-act="desc"]').value = desc;
+    card.querySelector('textarea[data-act="feat"]').value = features.join('\n');
+    const volInps = card.querySelectorAll('.dark-modedit-vol');
+    const usdInps = card.querySelectorAll('.dark-modedit-usd');
+    const eurInps = card.querySelectorAll('.dark-modedit-eur');
+    const gbpInps = card.querySelectorAll('.dark-modedit-gbp');
+    tiers.forEach((t, i) => {
+      if (volInps[i]) volInps[i].value = t.vol || '';
+      if (usdInps[i]) usdInps[i].value = t.price || '';
+      if (eurInps[i]) eurInps[i].value = t.eur || '';
+      if (gbpInps[i]) gbpInps[i].value = t.gbp || '';
+    });
+    // Wire input handlers
+    card.querySelector('textarea[data-act="desc"]').addEventListener('input', (e) => lioSetModuleDesc(k, e.target.value));
+    card.querySelector('textarea[data-act="feat"]').addEventListener('input', (e) => lioSetModuleFeatures(k, e.target.value.split(/\n+/)));
+    card.querySelector('input[data-act="hidetiers"]').addEventListener('change', (e) => {
+      lioSetModuleHideTiers(k, e.target.checked);
+      renderModuleOverridesEditorDark();
+    });
+    const readTiers = () => {
+      const out = [];
+      card.querySelectorAll('.dark-modedit-tier-rows > div[data-tier-i]').forEach(row => {
+        out.push({
+          vol: row.querySelector('.dark-modedit-vol')?.value || '',
+          price: row.querySelector('.dark-modedit-usd')?.value || '',
+          eur: row.querySelector('.dark-modedit-eur')?.value || '',
+          gbp: row.querySelector('.dark-modedit-gbp')?.value || ''
+        });
+      });
+      lioSetModuleTiers(k, out);
+    };
+    card.querySelectorAll('.dark-modedit-vol, .dark-modedit-usd, .dark-modedit-eur, .dark-modedit-gbp').forEach(inp => inp.addEventListener('input', readTiers));
+    card.querySelectorAll('.dark-modedit-del').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const current = lioGetModuleTiers(k);
+        current.splice(parseInt(btn.dataset.i), 1);
+        if (current.length === 0) current.push({ vol: 'Flat Rate', price: 0 });
+        lioSetModuleTiers(k, current);
+        renderModuleOverridesEditorDark();
+      });
+    });
+    card.querySelector('button[data-act="addTier"]').addEventListener('click', () => {
+      const current = lioGetModuleTiers(k);
+      current.push({ vol: 'New tier', price: 0 });
+      lioSetModuleTiers(k, current);
+      renderModuleOverridesEditorDark();
+    });
+    card.querySelector('button[data-act="resetTiers"]').addEventListener('click', () => {
+      if (window._moduleOverrides[k]) {
+        delete window._moduleOverrides[k].tiers;
+        _cleanupOv(k);
+      }
+      renderModuleOverridesEditorDark();
+    });
+    host.appendChild(card);
+  });
+}
+
+// Segment picker UI inside the Quote Modal — pills + active highlight.
+const _DARK_SEGMENT_META = {
+  fortune500:  { icon: '🏛️', desc: '150% baseline · USD' },
+  dax40:       { icon: '🇩🇪', desc: '125% baseline · EUR' },
+  midmarket:   { icon: '🚀', desc: '85% baseline · USD' },
+  mittelstand: { icon: '🛠️', desc: '70% baseline · EUR' },
+  custom:      { icon: '✨', desc: '100% baseline' }
+};
+function renderSegmentPicker() {
+  const host = document.getElementById('quote-segment-pills');
+  if (!host) return;
+  const active = window._currentSegmentKey;
+  host.innerHTML = Object.keys(SEGMENT_FACTORS).map(k => {
+    const seg = SEGMENT_FACTORS[k];
+    const meta = _DARK_SEGMENT_META[k] || { icon: '⚙️', desc: '' };
+    const isActive = active === k;
+    return '<button type="button" data-segkey="' + k + '" class="px-3 py-2 rounded-lg border text-left flex items-center gap-2 transition ' + (isActive ? 'bg-lio-500/10 border-lio-400 text-lio-200' : 'bg-slate-900/40 border-slate-700/50 text-slate-300 hover:border-slate-600') + '">' +
+      '<span class="text-base">' + meta.icon + '</span>' +
+      '<span class="text-xs font-semibold">' + seg.label + '</span>' +
+      '<span class="text-[10px] text-slate-500 ml-1">×' + seg.factor.toFixed(2) + '</span>' +
+    '</button>';
+  }).join('');
+  host.querySelectorAll('button[data-segkey]').forEach(b => {
+    b.addEventListener('click', () => {
+      const k = b.dataset.segkey;
+      applySegmentPricing(k);
+      renderSegmentPicker();
+      if (typeof populateQuotePricing === 'function') populateQuotePricing();
+      renderModuleOverridesEditorDark();
+    });
+  });
+}
+
+// Admin modal — edit segment factors and persist to localStorage.
+function lioOpenSegmentAdmin() {
+  const modal = document.getElementById('segment-admin-modal');
+  if (!modal) return;
+  modal.classList.remove('hidden'); modal.classList.add('flex');
+  const rowsHost = document.getElementById('segment-admin-rows');
+  rowsHost.innerHTML = Object.keys(SEGMENT_FACTORS).map(k => {
+    const seg = SEGMENT_FACTORS[k];
+    const def = SEGMENT_FACTORS_DEFAULTS[k];
+    return '<div class="grid grid-cols-12 gap-2 items-center">' +
+      '<div class="col-span-6 text-sm text-slate-200">' + seg.label + ' <span class="text-[10px] text-slate-500">(default ×' + def.factor.toFixed(2) + ')</span></div>' +
+      '<div class="col-span-4"><input type="number" data-segk="' + k + '" min="0.05" max="5" step="0.05" value="' + seg.factor.toFixed(2) + '" class="w-full bg-slate-900/50 border border-slate-700 rounded p-1.5 text-sm text-slate-200 outline-none"></div>' +
+      '<div class="col-span-2 text-[10px] text-slate-500">multiplier</div>' +
+    '</div>';
+  }).join('');
+}
+function lioCloseSegmentAdmin() {
+  const modal = document.getElementById('segment-admin-modal');
+  if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+}
+function lioSaveSegmentFactors() {
+  const updates = {};
+  document.querySelectorAll('#segment-admin-rows input[data-segk]').forEach(inp => {
+    const k = inp.dataset.segk;
+    const v = parseFloat(inp.value);
+    if (isFinite(v) && v > 0) {
+      SEGMENT_FACTORS[k].factor = v;
+      updates[k] = { factor: v };
+    }
+  });
+  localStorage.setItem('lio-segment-factors', JSON.stringify(updates));
+  // If a segment is currently active, re-apply it with the new factor.
+  if (window._currentSegmentKey) applySegmentPricing(window._currentSegmentKey);
+  lioCloseSegmentAdmin();
+  renderSegmentPicker();
+  if (typeof populateQuotePricing === 'function' && !document.getElementById('quote-modal')?.classList.contains('hidden')) populateQuotePricing();
+}
+function lioResetSegmentFactors() {
+  if (!confirm('Reset all segment factors to defaults?')) return;
+  Object.keys(SEGMENT_FACTORS_DEFAULTS).forEach(k => { SEGMENT_FACTORS[k].factor = SEGMENT_FACTORS_DEFAULTS[k].factor; });
+  localStorage.removeItem('lio-segment-factors');
+  if (window._currentSegmentKey) applySegmentPricing(window._currentSegmentKey);
+  lioOpenSegmentAdmin();
+  renderSegmentPicker();
+}
+
+// Hook the existing openQuoteModal to also render the segment picker + module-overrides editor.
+const _origOpenQuoteModal = window.openQuoteModal;
+if (typeof _origOpenQuoteModal === 'function') {
+  window.openQuoteModal = function () {
+    _origOpenQuoteModal.apply(this, arguments);
+    renderSegmentPicker();
+    renderModuleOverridesEditorDark();
+    const hideTiersCb = document.getElementById('quote-hide-all-tier-ladders');
+    if (hideTiersCb) hideTiersCb.checked = !!window._hideTierLadder;
+  };
+}
+
+// Hook saveQuoteToHistory (post-save patch) so segment + overrides land in formState.
+const _origSaveQuoteToHistory = window.saveQuoteToHistory;
+if (typeof _origSaveQuoteToHistory === 'function') {
+  window.saveQuoteToHistory = function (data) {
+    const result = _origSaveQuoteToHistory.apply(this, arguments);
+    setTimeout(() => {
+      try {
+        const hist = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
+        if (hist.length === 0) return;
+        const top = hist[0];
+        if (!top.formState) return;
+        if (window._currentSegmentKey) top.formState.segmentKey = window._currentSegmentKey;
+        if (window._moduleOverrides && Object.keys(window._moduleOverrides).length > 0) {
+          top.formState.moduleOverrides = JSON.parse(JSON.stringify(window._moduleOverrides));
+        } else { delete top.formState.moduleOverrides; }
+        top.formState.hideTierLadder = !!window._hideTierLadder;
+        localStorage.setItem('lio-quote-history', JSON.stringify(hist));
+        if (typeof sbUpdateQuote === 'function' && top.ref) sbUpdateQuote(top.ref, top);
+      } catch (e) { /* non-fatal */ }
+    }, 200);
+    return result;
+  };
+}
+
+// Restore on loadQuote — extend the existing flow.
+const _origLoadQuote = window.loadQuote;
+if (typeof _origLoadQuote === 'function') {
+  window.loadQuote = function (id) {
+    _origLoadQuote.apply(this, arguments);
+    setTimeout(() => {
+      try {
+        const hist = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
+        const entry = hist.find(h => h.id === id);
+        const fs = entry?.formState || {};
+        window._moduleOverrides = (fs.moduleOverrides && typeof fs.moduleOverrides === 'object') ? JSON.parse(JSON.stringify(fs.moduleOverrides)) : {};
+        window._hideTierLadder = !!fs.hideTierLadder;
+        if (fs.segmentKey) applySegmentPricing(fs.segmentKey);
+        renderSegmentPicker();
+        renderModuleOverridesEditorDark();
+        const hideTiersCb = document.getElementById('quote-hide-all-tier-ladders');
+        if (hideTiersCb) hideTiersCb.checked = !!window._hideTierLadder;
+      } catch (e) { /* non-fatal */ }
+    }, 400);
+  };
+}
 </script>
 <script>
 // Scroll reveal animations
