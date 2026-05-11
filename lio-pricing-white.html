@@ -3828,7 +3828,7 @@ function generateQuoteData() {
     // populated from per-quote overrides in window._moduleOverrides if set
     // (the wizard's wrapper around generateQuoteData applies them just
     // before this block runs).
-    return `<div style="margin-bottom:24px;page-break-inside:avoid;"><h3 style="font-size:14px;font-weight:700;margin:0 0 4px;">${m.name}</h3>${m.desc ? `<p style="font-size:11px;color:#1e293b;margin:0 0 8px;line-height:1.5;white-space:pre-line;">${m.desc}</p>` : ''}${(m.features && m.features.length > 0) ? `<div style="margin-bottom:10px;">${m.features.map(f=>`<span style="display:inline-block;background:#f1f5f9;padding:3px 8px;border-radius:4px;font-size:10px;margin:2px 2px 2px 0;">&#10003; ${f}</span>`).join('')}</div>` : ''}<div data-tier-ladder="1" style="margin-top:8px;"><div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers</div><table style="width:100%;max-width:400px;border-collapse:collapse;border:1px solid #e2e8f0;font-size:10px;"><thead><tr style="background:#f8fafc;"><th style="padding:3px 8px;text-align:left;font-size:9px;color:#64748b;text-transform:uppercase;">Volume</th><th style="padding:3px 8px;text-align:right;font-size:9px;color:#64748b;text-transform:uppercase;">Price</th></tr></thead><tbody>${tierRows}</tbody></table></div></div>`;
+    return `<div style="margin-bottom:24px;page-break-inside:avoid;"><h3 style="font-size:14px;font-weight:700;margin:0 0 4px;">${m.name}</h3>${m.desc ? `<p style="font-size:11px;color:#1e293b;margin:0 0 8px;line-height:1.5;white-space:pre-line;">${m.desc}</p>` : ''}${(m.features && m.features.length > 0) ? `<div style="margin-bottom:10px;">${m.features.map(f=>`<span style="display:inline-block;background:#f1f5f9;padding:3px 8px;border-radius:4px;font-size:10px;margin:2px 2px 2px 0;">&#10003; ${f}</span>`).join('')}</div>` : ''}<div data-tier-ladder="1" data-modkey="${m.key || ''}" style="margin-top:8px;"><div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers</div><table style="width:100%;max-width:400px;border-collapse:collapse;border:1px solid #e2e8f0;font-size:10px;"><thead><tr style="background:#f8fafc;"><th style="padding:3px 8px;text-align:left;font-size:9px;color:#64748b;text-transform:uppercase;">Volume</th><th style="padding:3px 8px;text-align:right;font-size:9px;color:#64748b;text-transform:uppercase;">Price</th></tr></thead><tbody>${tierRows}</tbody></table></div></div>`;
   }).join('');
 
   // ROI section (conditional) - calculate fresh from current inputs
@@ -5557,10 +5557,24 @@ document.addEventListener('DOMContentLoaded', function() {
       const ov = window._moduleOverrides[k] || {};
       const desc = (typeof ov.desc === 'string') ? ov.desc : (m.desc || '');
       const features = Array.isArray(ov.features) ? ov.features : (m.features || []);
-      const isCustomized = !!(window._moduleOverrides[k] && (typeof ov.desc === 'string' || Array.isArray(ov.features)));
+      const tiers = lioGetModuleTiers(k);
+      const hideTiers = !!ov.hideTiers;
+      const isCustomized = !!(window._moduleOverrides[k] && (typeof ov.desc === 'string' || Array.isArray(ov.features) || Array.isArray(ov.tiers) || ov.hideTiers));
+
+      // Build tier rows HTML
+      const tierRowsHtml = tiers.map((t, i) =>
+        '<div class="grid grid-cols-12 gap-2 items-center" data-tier-i="' + i + '">' +
+          '<input type="text" class="col-span-4 lio-input modlib-tier-vol" data-i="' + i + '" placeholder="Volume label (e.g. Up to 5,000)">' +
+          '<input type="number" class="col-span-3 lio-input modlib-tier-price" data-i="' + i + '" min="0" step="100" placeholder="USD">' +
+          '<input type="number" class="col-span-2 lio-input modlib-tier-eur" data-i="' + i + '" min="0" step="100" placeholder="EUR">' +
+          '<input type="number" class="col-span-2 lio-input modlib-tier-gbp" data-i="' + i + '" min="0" step="100" placeholder="GBP">' +
+          '<button type="button" class="col-span-1 text-slate-400 hover:text-red-500 text-base modlib-tier-del" data-i="' + i + '" title="Remove tier">&times;</button>' +
+        '</div>'
+      ).join('');
 
       const card = document.createElement('div');
       card.className = 'border border-slate-200 rounded-xl p-4 bg-white';
+      card.dataset.modkey = k;
       card.innerHTML =
         '<div class="flex items-center justify-between mb-3 gap-2 flex-wrap">' +
           '<div class="flex items-center gap-2">' +
@@ -5575,11 +5589,44 @@ document.addEventListener('DOMContentLoaded', function() {
         '<textarea data-act="desc" data-key="' + k + '" rows="2" class="lio-input" placeholder="One-paragraph description shown above the features in the PDF."></textarea>' +
         '<label class="lio-label mt-3">Feature bullets — one per line (any number of rows)</label>' +
         '<textarea data-act="feat" data-key="' + k + '" rows="' + Math.max(3, features.length) + '" class="lio-input"></textarea>' +
-        '<div class="text-[10px] text-slate-400 mt-1">Empty lines and bullets that are identical to the library default are auto-stripped on save.</div>';
-      // Set values via property to avoid HTML escaping issues
+        '<div class="text-[10px] text-slate-400 mt-1">Empty lines and bullets that are identical to the library default are auto-stripped on save.</div>' +
+        // ─── Tier ladder controls ──────────────────────────────────────
+        '<div class="mt-4 pt-3 border-t border-slate-100">' +
+          '<div class="flex items-center justify-between mb-2 gap-2 flex-wrap">' +
+            '<label class="flex items-center gap-2 text-sm text-slate-700">' +
+              '<input type="checkbox" data-act="hidetiers" data-key="' + k + '" class="w-4 h-4"' + (hideTiers ? ' checked' : '') + '> Hide the tier ladder for this module on the PDF' +
+            '</label>' +
+            '<div class="flex items-center gap-2">' +
+              '<button type="button" class="lio-btn lio-btn-ghost text-xs" data-act="resetTiers" data-key="' + k + '">Reset tiers</button>' +
+              '<button type="button" class="lio-btn lio-btn-ghost text-xs" data-act="addTier" data-key="' + k + '">+ Add tier</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="text-[10px] text-slate-400 mb-2">Edit any tier just for this quote — the per-tier table in the PDF will reflect your changes for this agent only. Empty currencies fall back to USD via the conversion rate.</div>' +
+          '<div class="grid grid-cols-12 gap-2 text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1' + (hideTiers ? ' opacity-40' : '') + '">' +
+            '<div class="col-span-4">Volume label</div>' +
+            '<div class="col-span-3">Price (USD)</div>' +
+            '<div class="col-span-2">EUR (opt.)</div>' +
+            '<div class="col-span-2">GBP (opt.)</div>' +
+            '<div class="col-span-1"></div>' +
+          '</div>' +
+          '<div class="space-y-1.5 modedit-tier-rows' + (hideTiers ? ' opacity-40' : '') + '">' + tierRowsHtml + '</div>' +
+        '</div>';
+
+      // Set values via property (avoid HTML escaping for arbitrary text)
       card.querySelector('textarea[data-act="desc"]').value = desc;
       card.querySelector('textarea[data-act="feat"]').value = features.join('\n');
-      // Wire input handlers
+      const tierVolInps = card.querySelectorAll('.modlib-tier-vol');
+      const tierUsdInps = card.querySelectorAll('.modlib-tier-price');
+      const tierEurInps = card.querySelectorAll('.modlib-tier-eur');
+      const tierGbpInps = card.querySelectorAll('.modlib-tier-gbp');
+      tiers.forEach((t, i) => {
+        if (tierVolInps[i]) tierVolInps[i].value = t.vol || '';
+        if (tierUsdInps[i]) tierUsdInps[i].value = t.price || '';
+        if (tierEurInps[i]) tierEurInps[i].value = t.eur || '';
+        if (tierGbpInps[i]) tierGbpInps[i].value = t.gbp || '';
+      });
+
+      // Wire description/features handlers
       card.querySelector('textarea[data-act="desc"]').addEventListener('input', (e) => {
         lioSetModuleDesc(e.target.dataset.key, e.target.value);
       });
@@ -5587,6 +5634,52 @@ document.addEventListener('DOMContentLoaded', function() {
         const lines = e.target.value.split(/\n+/);
         lioSetModuleFeatures(e.target.dataset.key, lines);
       });
+
+      // Hide tier ladder toggle
+      card.querySelector('input[data-act="hidetiers"]').addEventListener('change', (e) => {
+        lioSetModuleHideTiers(e.target.dataset.key, e.target.checked);
+        renderModuleOverridesEditor(); // re-render to dim the tier rows
+      });
+
+      // Helpers to read+save the current tier-table state
+      const readTiersFromCard = () => {
+        const newTiers = [];
+        card.querySelectorAll('.modedit-tier-rows > div[data-tier-i]').forEach(row => {
+          newTiers.push({
+            vol: row.querySelector('.modlib-tier-vol')?.value || '',
+            price: row.querySelector('.modlib-tier-price')?.value || '',
+            eur: row.querySelector('.modlib-tier-eur')?.value || '',
+            gbp: row.querySelector('.modlib-tier-gbp')?.value || ''
+          });
+        });
+        lioSetModuleTiers(k, newTiers);
+      };
+      card.querySelectorAll('.modlib-tier-vol, .modlib-tier-price, .modlib-tier-eur, .modlib-tier-gbp').forEach(inp => {
+        inp.addEventListener('input', readTiersFromCard);
+      });
+      card.querySelectorAll('.modlib-tier-del').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const current = lioGetModuleTiers(k);
+          current.splice(parseInt(btn.dataset.i), 1);
+          if (current.length === 0) current.push({ vol: 'Flat Rate', price: 0 });
+          lioSetModuleTiers(k, current);
+          renderModuleOverridesEditor();
+        });
+      });
+      card.querySelector('button[data-act="addTier"]').addEventListener('click', () => {
+        const current = lioGetModuleTiers(k);
+        current.push({ vol: 'New tier', price: 0 });
+        lioSetModuleTiers(k, current);
+        renderModuleOverridesEditor();
+      });
+      card.querySelector('button[data-act="resetTiers"]').addEventListener('click', () => {
+        if (window._moduleOverrides[k]) {
+          delete window._moduleOverrides[k].tiers;
+          if (Object.keys(window._moduleOverrides[k]).length === 0) delete window._moduleOverrides[k];
+        }
+        renderModuleOverridesEditor();
+      });
+
       const resetBtn = card.querySelector('button[data-act="reset"]');
       if (resetBtn) resetBtn.addEventListener('click', () => {
         lioResetModuleOverride(resetBtn.dataset.key);
@@ -6111,12 +6204,17 @@ document.addEventListener('DOMContentLoaded', function() {
       const backup = {};
       Object.keys(ov).forEach(k => {
         if (modules[k]) {
-          backup[k] = { desc: modules[k].desc, features: modules[k].features };
+          backup[k] = { desc: modules[k].desc, features: modules[k].features, tiers: modules[k].tiers };
           if (typeof ov[k].desc === 'string') {
             modules[k].desc = ov[k].desc;
           }
           if (Array.isArray(ov[k].features)) {
             modules[k].features = ov[k].features;
+          }
+          // Per-quote tier-ladder override — the user reshapes a module's tier
+          // table just for this PDF without touching the library defaults.
+          if (Array.isArray(ov[k].tiers) && ov[k].tiers.length > 0) {
+            modules[k].tiers = ov[k].tiers;
           }
         }
       });
@@ -6128,12 +6226,25 @@ document.addEventListener('DOMContentLoaded', function() {
           if (modules[k]) {
             modules[k].desc = backup[k].desc;
             modules[k].features = backup[k].features;
+            modules[k].tiers = backup[k].tiers;
           }
         });
       }
-      // If hideTierLadder is on, strip every tier-ladder block from the HTML
-      if (result && result.html && window._hideTierLadder) {
-        result.html = result.html.replace(/<div data-tier-ladder="1"[^>]*>[\s\S]*?<\/table>\s*<\/div>/g, '');
+      if (result && result.html) {
+        if (window._hideTierLadder) {
+          // Global toggle wins — strip every tier-ladder block.
+          result.html = result.html.replace(/<div data-tier-ladder="1"[^>]*>[\s\S]*?<\/table>\s*<\/div>/g, '');
+        } else {
+          // Per-module strip: any module with overrides[k].hideTiers === true
+          // gets its data-modkey="k" block removed.
+          Object.keys(ov).forEach(k => {
+            if (ov[k] && ov[k].hideTiers) {
+              const escKey = k.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+              const re = new RegExp('<div data-tier-ladder="1"[^>]*data-modkey="' + escKey + '"[^>]*>[\\s\\S]*?<\\/table>\\s*<\\/div>', 'g');
+              result.html = result.html.replace(re, '');
+            }
+          });
+        }
       }
       return result;
     };
@@ -6174,6 +6285,42 @@ document.addEventListener('DOMContentLoaded', function() {
   window.lioResetModuleOverride = function (k) {
     delete window._moduleOverrides[k];
     if (typeof renderModuleOverridesEditor === 'function') renderModuleOverridesEditor();
+  };
+  // Per-module tier-ladder helpers
+  window.lioGetModuleTiers = function (k) {
+    const ov = window._moduleOverrides[k];
+    if (ov && Array.isArray(ov.tiers) && ov.tiers.length > 0) return JSON.parse(JSON.stringify(ov.tiers));
+    return JSON.parse(JSON.stringify(modules[k]?.tiers || []));
+  };
+  window.lioSetModuleTiers = function (k, tiers) {
+    window._moduleOverrides[k] = window._moduleOverrides[k] || {};
+    const clean = (tiers || []).map(t => {
+      const out = { vol: String(t.vol || '').trim() || 'Tier', price: parseFloat(t.price) || 0 };
+      if (t.eur != null && t.eur !== '') { const e = parseFloat(t.eur); if (isFinite(e) && e > 0) out.eur = e; }
+      if (t.gbp != null && t.gbp !== '') { const g = parseFloat(t.gbp); if (isFinite(g) && g > 0) out.gbp = g; }
+      return out;
+    });
+    // Strip if identical to the library default — no need to persist a noop.
+    const def = JSON.parse(JSON.stringify(modules[k]?.tiers || []));
+    const same = clean.length === def.length && clean.every((t, i) => t.vol === def[i].vol && t.price === def[i].price && (t.eur || null) === (def[i].eur || null) && (t.gbp || null) === (def[i].gbp || null));
+    if (clean.length === 0 || same) {
+      delete window._moduleOverrides[k].tiers;
+      if (Object.keys(window._moduleOverrides[k]).length === 0) delete window._moduleOverrides[k];
+    } else {
+      window._moduleOverrides[k].tiers = clean;
+    }
+  };
+  window.lioGetModuleHideTiers = function (k) {
+    return !!(window._moduleOverrides[k] && window._moduleOverrides[k].hideTiers);
+  };
+  window.lioSetModuleHideTiers = function (k, v) {
+    window._moduleOverrides[k] = window._moduleOverrides[k] || {};
+    if (v) {
+      window._moduleOverrides[k].hideTiers = true;
+    } else {
+      delete window._moduleOverrides[k].hideTiers;
+      if (Object.keys(window._moduleOverrides[k]).length === 0) delete window._moduleOverrides[k];
+    }
   };
 
   function boot() {
