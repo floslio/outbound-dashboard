@@ -1561,19 +1561,19 @@ input[type="checkbox"] { accent-color: #6366f1; }
           </label>
         </div>
 
-        <!-- Global Agent Discount (lives right next to the bundle toggle so the user
-             can adjust both kinds of discount from the same panel). -->
+        <!-- Global Agent Discount — sits next to the bundle toggle. The user
+             types the desired %, then clicks "Apply" so the discount is only
+             written through once and never auto-fires mid-typing. -->
         <div class="mb-3 p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
           <div class="flex items-center justify-between gap-2 mb-2 flex-wrap">
             <label for="quote-exc-value" class="text-xs text-indigo-200 font-semibold">Global Agent Discount %</label>
-            <span class="text-[10px] text-slate-400">Applied to every agent's list price · empty/0 = no change</span>
+            <span class="text-[10px] text-slate-400">Type the % · then click Apply to push it to every agent</span>
           </div>
-          <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
-            <div class="flex items-center gap-2">
-              <input type="number" id="quote-exc-value" value="0" min="0" max="100" step="1" onchange="applyGlobalDiscount()" oninput="applyGlobalDiscount()" class="w-24 bg-slate-800/50 border border-slate-600 rounded-lg p-2 text-sm text-white outline-none text-right" placeholder="%">
-              <span class="text-xs text-slate-400">%</span>
-            </div>
-            <input type="text" id="quote-discount-label" placeholder="Discount label on PDF (e.g. Early-bird) · default: Line Discounts" oninput="updateQuotePricing()" class="flex-1 bg-slate-800/50 border border-slate-600 rounded-lg p-2 text-xs text-white outline-none placeholder-slate-500">
+          <div class="flex gap-2 items-center flex-wrap">
+            <input type="number" id="quote-exc-value" value="" min="0" max="100" step="1" placeholder="e.g. 10" class="w-24 bg-slate-800/50 border border-slate-600 rounded-lg p-2 text-sm text-white outline-none text-right">
+            <span class="text-xs text-slate-400">%</span>
+            <button type="button" onclick="applyGlobalDiscount()" class="px-3 py-2 bg-indigo-500/30 hover:bg-indigo-500/40 border border-indigo-500/40 rounded-lg text-xs text-indigo-200 font-semibold transition">Apply to all agents</button>
+            <button type="button" onclick="resetGlobalDiscount()" class="px-3 py-2 bg-slate-700/40 hover:bg-slate-700/60 border border-slate-600 rounded-lg text-xs text-slate-300 transition">Reset prices</button>
           </div>
         </div>
 
@@ -5008,21 +5008,66 @@ function toggleExcludeModule(key) {
   updateQuotePricing();
 }
 
+// Apply the global % to EVERY agent in one explicit pass. Fired by the Apply
+// button so the user controls when the recalc happens — no auto-trigger on
+// every keystroke, which caused mid-typing values like "1" to wipe prices.
 function applyGlobalDiscount() {
   const inputEl = document.getElementById('quote-exc-value');
   if (!inputEl) return;
   const rawVal = inputEl.value?.toString().trim();
   const globalPct = parseFloat(rawVal);
-  // Empty or zero — do NOT touch any prices. The user just focused/cleared the field.
-  if (rawVal === '' || rawVal == null || !isFinite(globalPct) || globalPct <= 0) return;
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
-  mods.forEach(key => {
-    const pctInput = document.getElementById('qd-' + key);
-    const priceInput = document.getElementById('qf-' + key);
-    if (!pctInput || !priceInput) return;
-    pctInput.value = globalPct;
-    applyDiscountPct(key);
+  if (rawVal === '' || rawVal == null || !isFinite(globalPct) || globalPct <= 0 || globalPct > 100) {
+    alert('Please enter a discount % between 0.1 and 100 before applying.');
+    return;
+  }
+  let touched = 0;
+  document.querySelectorAll('#quote-pricing-lines tr[data-mod]').forEach(row => {
+    const key = row.dataset.mod;
+    if (excludedModules[key]) return; // leave excluded rows untouched
+    const listCell = row.querySelector('td[data-list-price]');
+    if (!listCell) return;
+    const listPrice = parseFloat(listCell.getAttribute('data-list-price')) || 0;
+    if (listPrice <= 0) return;
+    const qfEl = document.getElementById('qf-' + key);
+    const qdEl = document.getElementById('qd-' + key);
+    if (!qfEl) return;
+    let discounted = listPrice * (1 - globalPct / 100);
+    if (discounted < 0) discounted = 0;
+    // Round to nearest 100 (non-USD) / 1 (USD). 500-step rounding was too
+    // coarse for low-priced flat-rate tiers (Lio X 4.500 €).
+    if (currentCurrency !== 'usd') discounted = Math.round(discounted / 100) * 100;
+    else discounted = Math.round(discounted);
+    qfEl.value = discounted;
+    if (qdEl) qdEl.value = globalPct;
+    discountMode[key] = 'pct';
+    touched++;
   });
+  if (touched > 0) {
+    if (typeof calcUpdate === 'function') calcUpdate();
+    updateQuotePricing();
+  } else {
+    alert('No active agents to apply the discount to. Select at least one module first.');
+  }
+}
+
+// Reset every agent's price back to its list price and clear discount fields.
+// Used by the "Reset prices" button next to the global discount input.
+function resetGlobalDiscount() {
+  document.querySelectorAll('#quote-pricing-lines tr[data-mod]').forEach(row => {
+    const key = row.dataset.mod;
+    const listCell = row.querySelector('td[data-list-price]');
+    if (!listCell) return;
+    const listPrice = parseFloat(listCell.getAttribute('data-list-price')) || 0;
+    const qfEl = document.getElementById('qf-' + key);
+    const qdEl = document.getElementById('qd-' + key);
+    if (qfEl && listPrice > 0) qfEl.value = listPrice;
+    if (qdEl) qdEl.value = '';
+    discountMode[key] = 'manual';
+  });
+  const globalEl = document.getElementById('quote-exc-value');
+  if (globalEl) globalEl.value = '';
+  if (typeof calcUpdate === 'function') calcUpdate();
+  updateQuotePricing();
 }
 
 
@@ -5263,16 +5308,9 @@ function generateQuoteData() {
   const lineDiscTotal = totalListPrice - totalSaas;
 
   const moduleRows = selectedMods.map(m => {
-    const listPrice = m.listPrice || m.price;
-    let priceDisplay;
-    if (hideDiscounts) {
-      // Show Your Price as the regular price, no strikethrough, no discount
-      priceDisplay = fmtRaw(m.price);
-    } else if (m.discountMode === 'pct' && m.discountPct > 0) {
-      priceDisplay = '<span style="text-decoration:line-through;color:#94a3b8;font-weight:400;margin-right:4px;">' + fmtRaw(listPrice) + '</span> <span style="color:#10b981;font-size:10px;">-' + m.discountPct + '%</span> ' + fmtRaw(m.price);
-    } else {
-      priceDisplay = fmtRaw(m.price);
-    }
+    // Line discounts are intentionally NOT surfaced on the PDF — the customer
+    // sees the final Your Price only, no strikethrough/percent badge.
+    const priceDisplay = fmtRaw(m.price);
     return `<tr style="border-bottom:1px solid #e5e7eb;">
       <td style="padding:10px 16px;font-weight:600;color:#1e293b;font-size:12px;">${m.name}</td>
       <td style="padding:10px 16px;color:#1e293b;font-size:11px;">${m.tier}</td>
@@ -5472,24 +5510,15 @@ function generateQuoteData() {
     </tbody>
   </table>
   <table style="width:100%;border-collapse:collapse;margin-bottom:32px;">
-    ${hideDiscounts ? `
-    <tr style="border-bottom:1px solid #e5e7eb;">
-      <td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Net SaaS Fee (annual)</td>
-      <td style="padding:8px 16px;text-align:right;font-weight:600;font-size:12px;">${fmtRaw(finalSaas)}</td>
-    </tr>
-    ` : `
     <tr style="border-bottom:1px solid #e5e7eb;">
       <td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">SaaS Subtotal</td>
-      <td style="padding:8px 16px;text-align:right;font-weight:600;font-size:12px;">${fmtRaw(totalListPrice)}</td>
+      <td style="padding:8px 16px;text-align:right;font-weight:600;font-size:12px;">${fmtRaw(totalSaas)}</td>
     </tr>
-    ${lineDiscTotal > 0 ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">' + discLabel + '</td><td style="padding:8px 16px;text-align:right;color:#dc2626;font-size:12px;">-' + fmtRaw(lineDiscTotal) + '</td></tr>' : ''}
-    ${bundle ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">Bundle Discount: ' + bundleName + ' (' + bundlePct + '%)</td><td style="padding:8px 16px;text-align:right;color:#dc2626;font-size:12px;">-' + fmtRaw(bundleSavings) + '</td></tr>' : ''}
-    ${excDiscount > 0 ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">Exclusive Discount' + (excType === 'pct' ? ' (' + excVal + '%)' : '') + '</td><td style="padding:8px 16px;text-align:right;color:#dc2626;font-size:12px;">-' + fmtRaw(excDiscount) + '</td></tr>' : ''}
-    <tr style="border-bottom:1px solid #e5e7eb;">
-      <td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Net SaaS Fee (annual)</td>
-      <td style="padding:8px 16px;text-align:right;font-size:12px;">${fmtRaw(finalSaas)}</td>
+    ${bundle ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">Bundle: ' + bundleName + ' (' + bundlePct + '%)</td><td style="padding:8px 16px;text-align:right;color:#10b981;font-size:12px;font-weight:600;">-' + fmtRaw(bundleSavings) + '</td></tr>' : ''}
+    <tr style="border-top:1px solid #cbd5e1;border-bottom:1px solid #e5e7eb;background:#f8fafc;">
+      <td style="padding:8px 16px;color:#1e293b;font-size:12px;font-weight:700;" colspan="2">Net SaaS Fee (annual)</td>
+      <td style="padding:8px 16px;text-align:right;font-size:13px;font-weight:700;">${fmtRaw(finalSaas)}</td>
     </tr>
-    `}
     <tr style="border-bottom:1px solid #e5e7eb;">
       <td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Customer Success (10%/yr)${!hideDiscounts && csDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (csDiscType === 'pct' ? csDiscVal + '%' : fmtRaw(csDisc)) + ' discount</span>' : ''}</td>
       <td style="padding:8px 16px;text-align:right;font-size:12px;">${fmtRaw(cs)}</td>
@@ -5510,7 +5539,6 @@ function generateQuoteData() {
       <td style="padding:8px 16px;font-size:12px;color:#1e293b;" colspan="2">Total First Year (incl. one-time fees)</td>
       <td style="padding:8px 16px;text-align:right;font-size:12px;color:#1e293b;">${fmtRaw(grandTotal)}</td>
     </tr>
-    ${!hideDiscounts && totalSavingsAll > 0 ? '<tr style="border-top:1px solid #e5e7eb;"><td style="padding:8px 16px;font-size:11px;font-weight:600;" colspan="2">Total Savings</td><td style="padding:8px 16px;text-align:right;font-weight:700;font-size:12px;color:#16a34a;">-' + fmtRaw(totalSavingsAll) + '</td></tr>' : ''}
   </table>
   </div>
   `}
@@ -6189,24 +6217,7 @@ function lioBuildPhaseBreakdownContent() {
   // still earns the full bundle discount.
   const allModKeys = mods.filter(m => !m.isCustom).map(m => m.key);
   const globalBundle = (typeof detectBundle === 'function') ? detectBundle(allModKeys) : null;
-  // ListPrice helper — read the original tier price from the Quote Modal's
-  // data-list-price attribute so we can show List → Discount → Net visually.
-  function _readListPrice(k) {
-    const td = document.querySelector('tr[data-mod="' + k + '"] td[data-list-price]');
-    return parseFloat(td?.getAttribute('data-list-price')) || 0;
-  }
-  // Pre-compute every item's list price, your-price, and line discount.
-  mods.forEach(m => {
-    if (m.isCustom) { m._list = m.price; m._lineDisc = 0; return; }
-    const lp = _readListPrice(m.key);
-    m._list = lp > 0 ? lp : m.price;
-    m._lineDisc = Math.max(0, m._list - m.price);
-  });
-  const totalListAll = mods.reduce((s, m) => s + m._list, 0);
-  const totalYourAll = mods.reduce((s, m) => s + m.price, 0);
-  const totalLineDiscount = Math.round(mods.reduce((s, m) => s + m._lineDisc, 0));
-  // Custom discount label from the Global Agent Discount section.
-  const discLabel = (document.getElementById('quote-discount-label')?.value || '').trim() || 'Line Discounts';
+  const totalSaasAll = mods.reduce((s, m) => s + m.price, 0);
   // Per-phase rate overrides.
   function _rate(phase, kind) {
     const ov = window._phaseRates && window._phaseRates[phase];
@@ -6216,45 +6227,39 @@ function lioBuildPhaseBreakdownContent() {
   // Shared column widths (fixed) — every phase table renders identical, so
   // tiers and prices stack vertically across phases.
   const COLGROUP = '<colgroup><col style="width:58%;"><col style="width:24%;"><col style="width:18%;"></colgroup>';
-  let grandList = 0, grandYour = 0, grandLineDisc = 0, grandBundle = 0, grandNet = 0, grandCs = 0, grandImpl = 0, grandTotal = 0;
+  let grandSubtotal = 0, grandBundle = 0, grandNet = 0, grandCs = 0, grandImpl = 0, grandTotal = 0, grandMonthly = 0;
   const phasesHtml = phases.map(p => {
     const items = groups[p];
-    const phaseList = items.reduce((s, m) => s + m._list, 0);
-    const phaseYour = items.reduce((s, m) => s + m.price, 0);
-    const phaseLineDisc = Math.round(items.reduce((s, m) => s + m._lineDisc, 0));
-    // Phase share of global bundle savings (proportional to phase Your-Price).
+    const subtotal = items.reduce((s, m) => s + m.price, 0); // Your Prices, already discounted
+    // Phase share of global bundle savings (proportional to phase SaaS).
     let phaseBundleSavings = 0;
-    if (globalBundle && totalYourAll > 0) {
-      const totalBundleSavings = totalYourAll * globalBundle.discount / 100;
-      phaseBundleSavings = Math.round(totalBundleSavings * (phaseYour / totalYourAll));
+    if (globalBundle && totalSaasAll > 0) {
+      const totalBundleSavings = totalSaasAll * globalBundle.discount / 100;
+      phaseBundleSavings = Math.round(totalBundleSavings * (subtotal / totalSaasAll));
     }
-    // Net SaaS Fee (annual) = list - lineDisc - bundle.
-    const phaseNet = phaseList - phaseLineDisc - phaseBundleSavings;
+    const phaseNet = subtotal - phaseBundleSavings;
     const csPct = _rate(p, 'cs');
     const implPct = _rate(p, 'impl');
     const cs = Math.round(phaseNet * csPct / 100);
     const impl = Math.round(phaseNet * implPct / 100);
     const phaseTotal = phaseNet + cs + impl;
-    grandList += phaseList;
-    grandYour += phaseYour;
-    grandLineDisc += phaseLineDisc;
+    const phaseMonthly = Math.round((phaseNet + cs) / 12); // recurring only, excl. one-time impl
+    grandSubtotal += subtotal;
     grandBundle += phaseBundleSavings;
     grandNet += phaseNet;
     grandCs += cs;
     grandImpl += impl;
     grandTotal += phaseTotal;
-    // Module rows — show LIST price as Annual Fee so the deductions below
-    // tell a clear story (List → minus discounts → Net).
+    grandMonthly += phaseMonthly;
+    // Module rows — show Your Price (qf-{key}) as the Annual Fee since we no
+    // longer surface line discounts on the PDF. Customer sees the final price.
     const rowsHtml = items.map(m =>
       '<tr style="border-bottom:1px solid #e5e7eb;">' +
         '<td style="padding:9px 14px;font-weight:600;color:#1e293b;font-size:12px;">' + m.name + '</td>' +
         '<td style="padding:9px 14px;color:#1e293b;font-size:11px;">' + (m.tier || '—') + '</td>' +
-        '<td style="padding:9px 14px;text-align:right;font-weight:600;color:#1e293b;font-size:12px;">' + fmtRaw(m._list) + '</td>' +
+        '<td style="padding:9px 14px;text-align:right;font-weight:600;color:#1e293b;font-size:12px;">' + fmtRaw(m.price) + '</td>' +
       '</tr>'
     ).join('');
-    const lineDiscRowHtml = phaseLineDisc > 0
-      ? '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#dc2626;font-weight:600;" colspan="2">' + discLabel + '</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#dc2626;font-weight:600;">-' + fmtRaw(phaseLineDisc) + '</td></tr>'
-      : '';
     const bundleRowHtml = (globalBundle && phaseBundleSavings > 0)
       ? '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#10b981;font-weight:600;" colspan="2">Bundle: ' + globalBundle.name + ' (' + globalBundle.discount + '%)</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#10b981;font-weight:600;">-' + fmtRaw(phaseBundleSavings) + '</td></tr>'
       : '';
@@ -6273,34 +6278,35 @@ function lioBuildPhaseBreakdownContent() {
           '<tbody>' + rowsHtml + '</tbody>' +
         '</table>' +
         '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">' + COLGROUP +
-          '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#475569;" colspan="2">SaaS Subtotal</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(phaseList) + '</td></tr>' +
-          lineDiscRowHtml +
+          '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#475569;" colspan="2">SaaS Subtotal</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(subtotal) + '</td></tr>' +
           bundleRowHtml +
           '<tr style="border-top:1px solid #cbd5e1;border-bottom:1px solid #f1f5f9;background:#f8fafc;"><td style="padding:8px 14px;font-size:11px;color:#1e293b;font-weight:700;" colspan="2">Net SaaS Fee (annual)</td><td style="padding:8px 14px;text-align:right;font-size:13px;color:#1e293b;font-weight:700;">' + fmtRaw(phaseNet) + '</td></tr>' +
           '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#475569;" colspan="2">Customer Success (' + csPct + '%/yr)</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(cs) + '</td></tr>' +
-          '<tr><td style="padding:6px 14px 10px;font-size:11px;color:#475569;" colspan="2">Implementation (' + implPct + '%) · one-time</td><td style="padding:6px 14px 10px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(impl) + '</td></tr>' +
+          '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#475569;" colspan="2">Implementation (' + implPct + '%) · one-time</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(impl) + '</td></tr>' +
+          '<tr><td style="padding:6px 14px 10px;font-size:11px;color:#475569;font-style:italic;" colspan="2">Monthly equivalent (SaaS + CS)</td><td style="padding:6px 14px 10px;text-align:right;font-size:11px;color:#475569;font-style:italic;">' + fmtRaw(phaseMonthly) + ' /mo</td></tr>' +
           '<tr style="border-top:1.5px solid #1e293b;"><td style="padding:9px 14px;font-size:11px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;" colspan="2">Phase ' + p + ' Total</td><td style="padding:9px 14px;text-align:right;font-size:14px;color:#1e293b;font-weight:800;">' + fmtRaw(phaseTotal) + '</td></tr>' +
         '</table>' +
       '</div>';
   }).join('');
-  // Subtle grand total — SaaS Total · (Discount label) · Bundle · Net SaaS Fee · CS · Impl · Total.
+  // Subtle grand total — SaaS Total · Bundle · Net SaaS Fee · CS · Impl · Monthly · Total.
   const totalLabel = phases.length > 1 ? 'Total · All Phases' : 'Total';
+  const totalMonthlyAll = Math.round((grandNet + grandCs) / 12);
   const grandHtml = '' +
     '<div style="margin-top:24px;padding-top:14px;border-top:1.5px solid #1e293b;page-break-inside:avoid;">' +
       '<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#475569;font-weight:600;margin-bottom:10px;">' + totalLabel + '</div>' +
       '<table style="width:100%;border-collapse:collapse;table-layout:fixed;"><colgroup><col style="width:70%;"><col style="width:30%;"></colgroup>' +
-        '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">SaaS Total</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandList) + '</td></tr>' +
-        (grandLineDisc > 0 ? '<tr><td style="padding:5px 0;font-size:11px;color:#dc2626;font-weight:600;">' + discLabel + '</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#dc2626;font-weight:600;">-' + fmtRaw(grandLineDisc) + '</td></tr>' : '') +
+        '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">SaaS Total</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandSubtotal) + '</td></tr>' +
         (grandBundle > 0 ? '<tr><td style="padding:5px 0;font-size:11px;color:#10b981;font-weight:600;">Bundle (' + (globalBundle ? globalBundle.name : '') + ')</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#10b981;font-weight:600;">-' + fmtRaw(grandBundle) + '</td></tr>' : '') +
         '<tr style="border-top:1px solid #cbd5e1;background:#f8fafc;"><td style="padding:8px 0;font-size:11px;color:#1e293b;font-weight:700;">Net SaaS Fee (annual)</td><td style="padding:8px 0;text-align:right;font-size:13px;color:#1e293b;font-weight:700;">' + fmtRaw(grandNet) + '</td></tr>' +
         '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">Customer Success</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandCs) + '</td></tr>' +
         '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">Implementation · one-time</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandImpl) + '</td></tr>' +
+        '<tr><td style="padding:5px 0 9px;font-size:11px;color:#475569;font-style:italic;">Monthly equivalent (SaaS + CS)</td><td style="padding:5px 0 9px;text-align:right;font-size:11px;color:#475569;font-style:italic;">' + fmtRaw(totalMonthlyAll) + ' /mo</td></tr>' +
         '<tr style="border-top:1px solid #cbd5e1;"><td style="padding:9px 0 4px;font-size:13px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Total</td><td style="padding:9px 0 4px;text-align:right;font-size:17px;color:#1e293b;font-weight:800;">' + fmtRaw(grandTotal) + '</td></tr>' +
       '</table>' +
     '</div>';
   return {
     innerHtml: '<h2 style="font-size:18px;font-weight:700;margin-bottom:18px;color:#1e293b;">Pricing Breakdown</h2>' + phasesHtml + grandHtml,
-    grandSubtotal: grandList, grandBundle, grandLineDisc, grandCs, grandImpl, grandTotal, grandNet
+    grandSubtotal, grandBundle, grandLineDisc: 0, grandCs, grandImpl, grandTotal, grandNet
   };
 }
 
@@ -6899,12 +6905,24 @@ function lioInstallSaveHookForPhases() {
           waivedBy: document.getElementById('quote-maint-waived')?.value || ''
         };
         top.formState.hideAdditionalAgents = !!document.getElementById('quote-hide-additional-agents')?.checked;
-        top.formState.discountLabel = document.getElementById('quote-discount-label')?.value || '';
         top.formState.phaseRates = {
           1: { cs: parseFloat(document.getElementById('quote-phase-cs-1')?.value) || null, impl: parseFloat(document.getElementById('quote-phase-impl-1')?.value) || null },
           2: { cs: parseFloat(document.getElementById('quote-phase-cs-2')?.value) || null, impl: parseFloat(document.getElementById('quote-phase-impl-2')?.value) || null },
           3: { cs: parseFloat(document.getElementById('quote-phase-cs-3')?.value) || null, impl: parseFloat(document.getElementById('quote-phase-impl-3')?.value) || null }
         };
+        // Round-trip the remaining UI state so reopening the quote restores
+        // EVERYTHING the user configured — including PDF customizations,
+        // tier-ladder visibility, currency, segment and excluded modules.
+        try { top.formState.moduleOverrides = JSON.parse(JSON.stringify(window._moduleOverrides || {})); } catch (e) { top.formState.moduleOverrides = {}; }
+        top.formState.hideTierLadderAll = !!window._hideTierLadder;
+        top.formState.currency = (typeof currentCurrency !== 'undefined') ? currentCurrency : 'usd';
+        top.formState.segmentKey = window._currentSegmentKey || null;
+        // excludedModules is a const at script scope, not on window — read it back
+        // from the DOM instead (strike-through rows in the pricing table).
+        top.formState.excludedModules = Array.from(document.querySelectorAll('#quote-pricing-lines tr[data-mod]'))
+          .filter(tr => tr.style.textDecoration === 'line-through')
+          .map(tr => tr.dataset.mod);
+        top.formState.globalDiscountPct = parseFloat(document.getElementById('quote-exc-value')?.value) || 0;
         localStorage.setItem('lio-quote-history', JSON.stringify(hist));
         if (typeof sbUpdateQuote === 'function' && top.ref) sbUpdateQuote(top.ref, top);
       } catch (e) { /* non-fatal */ }
@@ -6944,7 +6962,6 @@ function lioInstallLoadHookForPhases() {
         set('quote-maint-effective', m.effectiveFrom || '');
         set('quote-maint-waived', m.waivedBy || '');
         setC('quote-hide-additional-agents', !!fs.hideAdditionalAgents);
-        set('quote-discount-label', fs.discountLabel || '');
         const pr = fs.phaseRates || {};
         [1, 2, 3].forEach(pp => {
           const r = pr[pp] || {};
@@ -6955,6 +6972,35 @@ function lioInstallLoadHookForPhases() {
         const ratesEl = document.getElementById('quote-phase-rates');
         if (ratesEl) ratesEl.classList.toggle('hidden', !fs.phasesEnabled);
         if (typeof lioToggleMaintMode === 'function') setTimeout(lioToggleMaintMode, 50);
+        // Restore the remaining UI state captured by the save hook above.
+        try {
+          if (fs.moduleOverrides && typeof fs.moduleOverrides === 'object') {
+            window._moduleOverrides = JSON.parse(JSON.stringify(fs.moduleOverrides));
+          }
+        } catch (e) { /* keep current */ }
+        window._hideTierLadder = !!fs.hideTierLadderAll;
+        const hideTierCb = document.getElementById('quote-hide-all-tier-ladders');
+        if (hideTierCb) hideTierCb.checked = !!fs.hideTierLadderAll;
+        if (fs.currency && typeof setCurrency === 'function' && fs.currency !== currentCurrency) {
+          try { setCurrency(fs.currency); } catch (e) { /* non-fatal */ }
+        }
+        if (fs.segmentKey && typeof applySegment === 'function') {
+          try { applySegment(fs.segmentKey); } catch (e) { /* non-fatal */ }
+        }
+        // Re-apply excluded module strike-through after the table is populated.
+        if (Array.isArray(fs.excludedModules) && fs.excludedModules.length > 0) {
+          setTimeout(() => {
+            fs.excludedModules.forEach(k => {
+              const row = document.getElementById('qrow-' + k);
+              if (row && row.style.textDecoration !== 'line-through' && typeof toggleExcludeModule === 'function') {
+                toggleExcludeModule(k);
+              }
+            });
+          }, 250);
+        }
+        // Restore the typed global-discount % (just the input — user clicks
+        // Apply again if they want to re-push it; we never auto-write prices).
+        set('quote-exc-value', fs.globalDiscountPct || '');
         if (typeof lioRenderPhaseChips === 'function') lioRenderPhaseChips();
       } catch (e) { /* non-fatal */ }
     }, 500);
