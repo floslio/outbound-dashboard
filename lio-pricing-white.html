@@ -1108,7 +1108,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
         <div class="mt-3 p-3 rounded-lg bg-slate-50 border border-slate-200 lio-pm-white">
           <div class="flex items-center justify-between mb-3 gap-2 flex-wrap">
             <label class="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
-              <input type="checkbox" id="quote-phases-enabled" class="w-4 h-4 rounded" onchange="(window.lioRenderPhaseChips&&lioRenderPhaseChips())">
+              <input type="checkbox" id="quote-phases-enabled" class="w-4 h-4 rounded" onchange="(window.lioRenderPhaseChips&&lioRenderPhaseChips()); document.getElementById('quote-phase-rates')?.classList.toggle('hidden', !this.checked);">
               <span class="font-semibold">Split agents into phases</span>
               <span class="text-slate-400 font-normal">— Phase 1 / 2 / 3, each with its own Impl + CS subtotal</span>
             </label>
@@ -1124,6 +1124,36 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
             <input type="checkbox" id="quote-hide-additional-agents" class="w-4 h-4 rounded">
             <span class="font-semibold">Hide "Additional Agents to Showcase" section on PDF</span>
           </label>
+                    <div id="quote-phase-rates" class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3 mb-2 hidden">
+            <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold col-span-full">Per-Phase Customer Success & Implementation Rates <span class="normal-case tracking-normal text-slate-500">(empty = use defaults 10% / 15%)</span></div>
+            <div class="flex items-center gap-1.5 text-[11px]">
+              <span class="text-slate-700 font-semibold w-14">Phase 1:</span>
+              <span class="text-slate-400">CS</span>
+              <input type="number" id="quote-phase-cs-1" min="0" step="0.5" placeholder="10" class="w-12 bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[11px] text-slate-700 outline-none" oninput="(window.updateQuotePricing&&updateQuotePricing())">
+              <span class="text-slate-400">%</span>
+              <span class="text-slate-400 ml-2">Impl</span>
+              <input type="number" id="quote-phase-impl-1" min="0" step="0.5" placeholder="15" class="w-12 bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[11px] text-slate-700 outline-none" oninput="(window.updateQuotePricing&&updateQuotePricing())">
+              <span class="text-slate-400">%</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-[11px]">
+              <span class="text-slate-700 font-semibold w-14">Phase 2:</span>
+              <span class="text-slate-400">CS</span>
+              <input type="number" id="quote-phase-cs-2" min="0" step="0.5" placeholder="10" class="w-12 bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[11px] text-slate-700 outline-none" oninput="(window.updateQuotePricing&&updateQuotePricing())">
+              <span class="text-slate-400">%</span>
+              <span class="text-slate-400 ml-2">Impl</span>
+              <input type="number" id="quote-phase-impl-2" min="0" step="0.5" placeholder="15" class="w-12 bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[11px] text-slate-700 outline-none" oninput="(window.updateQuotePricing&&updateQuotePricing())">
+              <span class="text-slate-400">%</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-[11px]">
+              <span class="text-slate-700 font-semibold w-14">Phase 3:</span>
+              <span class="text-slate-400">CS</span>
+              <input type="number" id="quote-phase-cs-3" min="0" step="0.5" placeholder="10" class="w-12 bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[11px] text-slate-700 outline-none" oninput="(window.updateQuotePricing&&updateQuotePricing())">
+              <span class="text-slate-400">%</span>
+              <span class="text-slate-400 ml-2">Impl</span>
+              <input type="number" id="quote-phase-impl-3" min="0" step="0.5" placeholder="15" class="w-12 bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[11px] text-slate-700 outline-none" oninput="(window.updateQuotePricing&&updateQuotePricing())">
+              <span class="text-slate-400">%</span>
+            </div>
+          </div>
           <!-- Maintenance Fee -->
           <div class="border-t border-slate-200 pt-3 mt-2">
             <label class="flex items-center gap-2 text-xs text-slate-700 cursor-pointer mb-2">
@@ -3528,15 +3558,16 @@ function applyDiscountPct(key) {
   const priceInput = document.getElementById('qf-' + key);
   const listPriceEl = document.querySelector('tr[data-mod="' + key + '"] td[data-list-price]');
   const listPrice = parseFloat(listPriceEl?.getAttribute('data-list-price')) || 0;
-  const pct = parseFloat(pctInput.value) || 0;
-  if (pct > 0) {
+  const rawVal = pctInput?.value?.toString().trim();
+  const pct = parseFloat(rawVal);
+  if (isFinite(pct) && pct > 0) {
     let discounted = listPrice * (1 - pct / 100);
     if (currentCurrency !== 'usd') discounted = Math.round(discounted / 500) * 500;
     else discounted = Math.round(discounted);
     priceInput.value = discounted;
     discountMode[key] = 'pct';
   } else {
-    priceInput.value = listPrice;
+    // pct empty or 0 — DON'T wipe the user's manual price. Just clear the discount tag.
     discountMode[key] = 'manual';
   }
   // Keep calculator + wizard summary in sync with the new line-discount price.
@@ -3650,7 +3681,12 @@ function toggleExcludeModule(key) {
 }
 
 function applyGlobalDiscount() {
-  const globalPct = parseFloat(document.getElementById('quote-exc-value')?.value) || 0;
+  const inputEl = document.getElementById('quote-exc-value');
+  if (!inputEl) return;
+  const rawVal = inputEl.value?.toString().trim();
+  const globalPct = parseFloat(rawVal);
+  // Empty or zero — do NOT touch any prices. The user just focused/cleared the field.
+  if (rawVal === '' || rawVal == null || !isFinite(globalPct) || globalPct <= 0) return;
   const mods = LIO_ALL_MODKEYS.slice();
   mods.forEach(key => {
     const pctInput = document.getElementById('qd-' + key);
@@ -4580,15 +4616,33 @@ function lioBuildPhaseBreakdownContent() {
     (groups[p] = groups[p] || []).push(m);
   });
   const phases = Object.keys(groups).map(Number).sort();
-  let grandSubtotal = 0, grandCs = 0, grandImpl = 0, grandTotal = 0;
+  let grandSubtotal = 0, grandBundle = 0, grandCs = 0, grandImpl = 0, grandTotal = 0;
+  // Per-phase rate overrides: window._phaseRates = { 1: { cs: 8, impl: 12 }, 2: {...} }
+  function _rate(phase, kind) {
+    const ov = window._phaseRates && window._phaseRates[phase];
+    if (ov && ov[kind] != null && isFinite(ov[kind])) return parseFloat(ov[kind]);
+    return kind === 'cs' ? 10 : 15;
+  }
   const phasesHtml = phases.map(p => {
     const items = groups[p];
     let subtotal = 0;
     items.forEach(m => { subtotal += m.price; });
-    const cs = Math.round(subtotal * 0.10);
-    const impl = Math.round(subtotal * 0.15);
-    const phaseTotal = subtotal + cs + impl;
-    grandSubtotal += subtotal; grandCs += cs; grandImpl += impl; grandTotal += phaseTotal;
+    // Bundle detection on this phase's modules only.
+    const phaseModKeys = items.filter(m => !m.isCustom).map(m => m.key);
+    const phaseBundle = (typeof detectBundle === 'function') ? detectBundle(phaseModKeys) : null;
+    const bundleSavings = phaseBundle ? Math.round(subtotal * phaseBundle.discount / 100) : 0;
+    const netSubtotal = subtotal - bundleSavings;
+    // Per-phase CS / Impl rates with override fallbacks.
+    const csPct = _rate(p, 'cs');
+    const implPct = _rate(p, 'impl');
+    const cs = Math.round(netSubtotal * csPct / 100);
+    const impl = Math.round(netSubtotal * implPct / 100);
+    const phaseTotal = netSubtotal + cs + impl;
+    grandSubtotal += subtotal;
+    grandBundle += bundleSavings;
+    grandCs += cs;
+    grandImpl += impl;
+    grandTotal += phaseTotal;
     const rowsHtml = items.map(m =>
       '<tr style="border-bottom:1px solid #e5e7eb;">' +
         '<td style="padding:9px 14px;font-weight:600;color:#1e293b;font-size:12px;">' + m.name + '</td>' +
@@ -4596,6 +4650,9 @@ function lioBuildPhaseBreakdownContent() {
         '<td style="padding:9px 14px;text-align:right;font-weight:600;color:#1e293b;font-size:12px;">' + fmtRaw(m.price) + '</td>' +
       '</tr>'
     ).join('');
+    const bundleRowHtml = phaseBundle
+      ? '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#10b981;font-weight:600;" colspan="2">Bundle: ' + phaseBundle.name + ' (' + phaseBundle.discount + '%)</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#10b981;font-weight:600;">-' + fmtRaw(bundleSavings) + '</td></tr>'
+      : '';
     return '' +
       '<div style="margin-bottom:22px;page-break-inside:avoid;">' +
         '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">' +
@@ -4612,28 +4669,51 @@ function lioBuildPhaseBreakdownContent() {
         '</table>' +
         '<table style="width:100%;border-collapse:collapse;">' +
           '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#475569;" colspan="2">SaaS Subtotal</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(subtotal) + '</td></tr>' +
-          '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#475569;" colspan="2">Customer Success (10%/yr)</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(cs) + '</td></tr>' +
-          '<tr><td style="padding:6px 14px 10px;font-size:11px;color:#475569;" colspan="2">Implementation (15%) · one-time</td><td style="padding:6px 14px 10px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(impl) + '</td></tr>' +
+          bundleRowHtml +
+          '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#475569;" colspan="2">Customer Success (' + csPct + '%/yr)</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(cs) + '</td></tr>' +
+          '<tr><td style="padding:6px 14px 10px;font-size:11px;color:#475569;" colspan="2">Implementation (' + implPct + '%) · one-time</td><td style="padding:6px 14px 10px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(impl) + '</td></tr>' +
           '<tr style="border-top:1.5px solid #1e293b;"><td style="padding:9px 14px;font-size:11px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;" colspan="2">Phase ' + p + ' Total</td><td style="padding:9px 14px;text-align:right;font-size:14px;color:#1e293b;font-weight:800;">' + fmtRaw(phaseTotal) + '</td></tr>' +
         '</table>' +
       '</div>';
   }).join('');
-  // Subtle grand total: thin top border, breakdown rows, NO outer box. Used both for phases-on and single-block fallback.
+  // Subtle grand total — breakdown of SaaS / bundle savings / CS / Impl / total.
+  const totalLabel = phases.length > 1 ? 'Total · All Phases' : 'Total';
   const grandHtml = '' +
     '<div style="margin-top:24px;padding-top:14px;border-top:1.5px solid #1e293b;page-break-inside:avoid;">' +
-      '<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#475569;font-weight:600;margin-bottom:10px;">' + (phases.length > 1 ? 'Total · All Phases' : 'Total') + '</div>' +
+      '<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#475569;font-weight:600;margin-bottom:10px;">' + totalLabel + '</div>' +
       '<table style="width:100%;border-collapse:collapse;">' +
         '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">SaaS Total</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandSubtotal) + '</td></tr>' +
-        '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">Customer Success (10%/yr)</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandCs) + '</td></tr>' +
-        '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">Implementation (15%) · one-time</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandImpl) + '</td></tr>' +
+        (grandBundle > 0 ? '<tr><td style="padding:5px 0;font-size:11px;color:#10b981;font-weight:600;">Bundle Discounts</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#10b981;font-weight:600;">-' + fmtRaw(grandBundle) + '</td></tr>' : '') +
+        '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">Customer Success</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandCs) + '</td></tr>' +
+        '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">Implementation · one-time</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandImpl) + '</td></tr>' +
         '<tr style="border-top:1px solid #cbd5e1;"><td style="padding:9px 0 4px;font-size:13px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Total</td><td style="padding:9px 0 4px;text-align:right;font-size:17px;color:#1e293b;font-weight:800;">' + fmtRaw(grandTotal) + '</td></tr>' +
       '</table>' +
+      (grandBundle > 0 ? '<div style="margin-top:8px;text-align:right;font-size:10px;color:#10b981;font-weight:600;">Total bundle savings: ' + fmtRaw(grandBundle) + '</div>' : '') +
     '</div>';
   return {
     innerHtml: '<h2 style="font-size:18px;font-weight:700;margin-bottom:18px;color:#1e293b;">Pricing Breakdown</h2>' + phasesHtml + grandHtml,
-    grandSubtotal, grandCs, grandImpl, grandTotal
+    grandSubtotal, grandBundle, grandCs, grandImpl, grandTotal
   };
 }
+
+// Read per-phase rate inputs into window._phaseRates so lioBuildPhaseBreakdownContent picks them up.
+function lioReadPhaseRates() {
+  window._phaseRates = window._phaseRates || {};
+  [1, 2, 3].forEach(p => {
+    const csEl = document.getElementById('quote-phase-cs-' + p);
+    const implEl = document.getElementById('quote-phase-impl-' + p);
+    window._phaseRates[p] = window._phaseRates[p] || {};
+    const csRaw = csEl?.value?.toString().trim();
+    const implRaw = implEl?.value?.toString().trim();
+    window._phaseRates[p].cs = (csRaw === '' || csRaw == null) ? null : (parseFloat(csRaw) || null);
+    window._phaseRates[p].impl = (implRaw === '' || implRaw == null) ? null : (parseFloat(implRaw) || null);
+  });
+}
+// Patch the post-processor to read phase rates before building the breakdown.
+if (typeof window._origInstallQuoteDataPostProcessor === 'undefined') {
+  window._origInstallQuoteDataPostProcessor = lioInstallQuoteDataPostProcessor;
+}
+
 
 function lioBuildImplStartDateHtml() {
   const v = document.getElementById('quote-impl-start')?.value || '';
@@ -4703,6 +4783,7 @@ function lioInstallQuoteDataPostProcessor() {
     const result = orig.apply(this, arguments);
     if (!result || !result.html) return result;
     const phasesOn = lioPhasesEnabled();
+    if (phasesOn && typeof lioReadPhaseRates === 'function') lioReadPhaseRates();
     const implDate = document.getElementById('quote-impl-start')?.value || '';
     const maintEnabled = !!document.getElementById('quote-maint-on')?.checked;
     const hideAddAgents = !!document.getElementById('quote-hide-additional-agents')?.checked;
@@ -6720,6 +6801,11 @@ function lioInstallSaveHookForPhases() {
           waivedBy: document.getElementById('quote-maint-waived')?.value || ''
         };
         top.formState.hideAdditionalAgents = !!document.getElementById('quote-hide-additional-agents')?.checked;
+        top.formState.phaseRates = {
+          1: { cs: parseFloat(document.getElementById('quote-phase-cs-1')?.value) || null, impl: parseFloat(document.getElementById('quote-phase-impl-1')?.value) || null },
+          2: { cs: parseFloat(document.getElementById('quote-phase-cs-2')?.value) || null, impl: parseFloat(document.getElementById('quote-phase-impl-2')?.value) || null },
+          3: { cs: parseFloat(document.getElementById('quote-phase-cs-3')?.value) || null, impl: parseFloat(document.getElementById('quote-phase-impl-3')?.value) || null }
+        };
         localStorage.setItem('lio-quote-history', JSON.stringify(hist));
         if (typeof sbUpdateQuote === 'function' && top.ref) sbUpdateQuote(top.ref, top);
       } catch (e) { /* non-fatal */ }
@@ -6759,6 +6845,15 @@ function lioInstallLoadHookForPhases() {
         set('quote-maint-effective', m.effectiveFrom || '');
         set('quote-maint-waived', m.waivedBy || '');
         setC('quote-hide-additional-agents', !!fs.hideAdditionalAgents);
+        const pr = fs.phaseRates || {};
+        [1, 2, 3].forEach(pp => {
+          const r = pr[pp] || {};
+          set('quote-phase-cs-' + pp, r.cs != null && isFinite(r.cs) ? r.cs : '');
+          set('quote-phase-impl-' + pp, r.impl != null && isFinite(r.impl) ? r.impl : '');
+        });
+        // Show rates panel if phases were enabled
+        const ratesEl = document.getElementById('quote-phase-rates');
+        if (ratesEl) ratesEl.classList.toggle('hidden', !fs.phasesEnabled);
         if (typeof lioToggleMaintMode === 'function') setTimeout(lioToggleMaintMode, 50);
         if (typeof lioRenderPhaseChips === 'function') lioRenderPhaseChips();
       } catch (e) { /* non-fatal */ }
