@@ -1561,6 +1561,22 @@ input[type="checkbox"] { accent-color: #6366f1; }
           </label>
         </div>
 
+        <!-- Global Agent Discount (lives right next to the bundle toggle so the user
+             can adjust both kinds of discount from the same panel). -->
+        <div class="mb-3 p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+          <div class="flex items-center justify-between gap-2 mb-2 flex-wrap">
+            <label for="quote-exc-value" class="text-xs text-indigo-200 font-semibold">Global Agent Discount %</label>
+            <span class="text-[10px] text-slate-400">Applied to every agent's list price · empty/0 = no change</span>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+            <div class="flex items-center gap-2">
+              <input type="number" id="quote-exc-value" value="0" min="0" max="100" step="1" onchange="applyGlobalDiscount()" oninput="applyGlobalDiscount()" class="w-24 bg-slate-800/50 border border-slate-600 rounded-lg p-2 text-sm text-white outline-none text-right" placeholder="%">
+              <span class="text-xs text-slate-400">%</span>
+            </div>
+            <input type="text" id="quote-discount-label" placeholder="Discount label on PDF (e.g. Early-bird) · default: Line Discounts" oninput="updateQuotePricing()" class="flex-1 bg-slate-800/50 border border-slate-600 rounded-lg p-2 text-xs text-white outline-none placeholder-slate-500">
+          </div>
+        </div>
+
         <!-- Line-by-line pricing table -->
         <div class="rounded-lg border border-slate-700/50 overflow-hidden overflow-x-auto">
           <table class="w-full text-sm min-w-[500px]">
@@ -1714,19 +1730,6 @@ input[type="checkbox"] { accent-color: #6366f1; }
           <div class="text-[10px] text-slate-500 mb-2">Editable reference table (Fortune 500 / DAX 40 / Mid Market / Mittelstand). Used as additional context in the PDF when the checkbox is on.</div>
           <input type="text" id="pricing-ref-title" value="Typical Yearly SaaS Fee Ranges" class="w-full bg-slate-900/50 border border-slate-700 rounded p-1.5 text-xs text-slate-200 outline-none mb-2" placeholder="Section title">
           <div id="pricing-ref-table-wrap" class="overflow-x-auto"></div>
-        </div>
-
-        <!-- Global Agent Discount -->
-        <div class="mt-3 p-3 rounded-lg bg-slate-800/30 border border-slate-700/50">
-          <label class="text-xs text-slate-400 block mb-2">Global Agent Discount %</label>
-          <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center mb-2">
-            <input type="number" id="quote-exc-value" value="0" min="0" max="100" step="1" onchange="applyGlobalDiscount()" oninput="applyGlobalDiscount()" class="w-full sm:w-24 bg-slate-800/50 border border-slate-600 rounded-lg p-2 text-sm text-white outline-none text-right" placeholder="%">
-            <span class="text-xs text-slate-500">Applied to all modules — empty/0 = no change</span>
-          </div>
-          <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
-            <label class="text-[11px] text-slate-400 whitespace-nowrap sm:w-auto">Discount label (PDF):</label>
-            <input type="text" id="quote-discount-label" placeholder="e.g. Early-bird discount · empty = default 'Line Discounts'" class="flex-1 bg-slate-800/50 border border-slate-600 rounded-lg p-2 text-xs text-white outline-none">
-          </div>
         </div>
 
         <!-- Grand Total Preview -->
@@ -5247,6 +5250,9 @@ function generateQuoteData() {
 
   // Hide discounts option
   const hideDiscounts = document.getElementById('quote-hide-discounts')?.checked || false;
+  // Custom discount label (default 'Line Discounts'). Same field used by the
+  // phase breakdown so both views render with the same label.
+  const discLabel = (document.getElementById('quote-discount-label')?.value || '').trim() || 'Line Discounts';
 
   // Calculate savings for display
   let totalListPrice = 0;
@@ -5476,7 +5482,7 @@ function generateQuoteData() {
       <td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">SaaS Subtotal</td>
       <td style="padding:8px 16px;text-align:right;font-weight:600;font-size:12px;">${fmtRaw(totalListPrice)}</td>
     </tr>
-    ${lineDiscTotal > 0 ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">Line Discounts</td><td style="padding:8px 16px;text-align:right;color:#dc2626;font-size:12px;">-' + fmtRaw(lineDiscTotal) + '</td></tr>' : ''}
+    ${lineDiscTotal > 0 ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">' + discLabel + '</td><td style="padding:8px 16px;text-align:right;color:#dc2626;font-size:12px;">-' + fmtRaw(lineDiscTotal) + '</td></tr>' : ''}
     ${bundle ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">Bundle Discount: ' + bundleName + ' (' + bundlePct + '%)</td><td style="padding:8px 16px;text-align:right;color:#dc2626;font-size:12px;">-' + fmtRaw(bundleSavings) + '</td></tr>' : ''}
     ${excDiscount > 0 ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:11px;" colspan="2">Exclusive Discount' + (excType === 'pct' ? ' (' + excVal + '%)' : '') + '</td><td style="padding:8px 16px;text-align:right;color:#dc2626;font-size:12px;">-' + fmtRaw(excDiscount) + '</td></tr>' : ''}
     <tr style="border-bottom:1px solid #e5e7eb;">
@@ -6183,20 +6189,22 @@ function lioBuildPhaseBreakdownContent() {
   // still earns the full bundle discount.
   const allModKeys = mods.filter(m => !m.isCustom).map(m => m.key);
   const globalBundle = (typeof detectBundle === 'function') ? detectBundle(allModKeys) : null;
-  let totalSaasAll = 0;
-  mods.forEach(m => { totalSaasAll += m.price; });
-  // Line discounts (manual price < list price) — readable by reading data-list-price.
+  // ListPrice helper — read the original tier price from the Quote Modal's
+  // data-list-price attribute so we can show List → Discount → Net visually.
   function _readListPrice(k) {
     const td = document.querySelector('tr[data-mod="' + k + '"] td[data-list-price]');
     return parseFloat(td?.getAttribute('data-list-price')) || 0;
   }
-  let totalLineDiscount = 0;
+  // Pre-compute every item's list price, your-price, and line discount.
   mods.forEach(m => {
-    if (m.isCustom) return;
+    if (m.isCustom) { m._list = m.price; m._lineDisc = 0; return; }
     const lp = _readListPrice(m.key);
-    if (lp > 0 && m.price < lp) totalLineDiscount += (lp - m.price);
+    m._list = lp > 0 ? lp : m.price;
+    m._lineDisc = Math.max(0, m._list - m.price);
   });
-  totalLineDiscount = Math.round(totalLineDiscount);
+  const totalListAll = mods.reduce((s, m) => s + m._list, 0);
+  const totalYourAll = mods.reduce((s, m) => s + m.price, 0);
+  const totalLineDiscount = Math.round(mods.reduce((s, m) => s + m._lineDisc, 0));
   // Custom discount label from the Global Agent Discount section.
   const discLabel = (document.getElementById('quote-discount-label')?.value || '').trim() || 'Line Discounts';
   // Per-phase rate overrides.
@@ -6205,41 +6213,48 @@ function lioBuildPhaseBreakdownContent() {
     if (ov && ov[kind] != null && isFinite(ov[kind])) return parseFloat(ov[kind]);
     return kind === 'cs' ? 10 : 15;
   }
-  let grandSubtotal = 0, grandBundle = 0, grandLineDisc = 0, grandCs = 0, grandImpl = 0, grandTotal = 0;
+  // Shared column widths (fixed) — every phase table renders identical, so
+  // tiers and prices stack vertically across phases.
+  const COLGROUP = '<colgroup><col style="width:58%;"><col style="width:24%;"><col style="width:18%;"></colgroup>';
+  let grandList = 0, grandYour = 0, grandLineDisc = 0, grandBundle = 0, grandNet = 0, grandCs = 0, grandImpl = 0, grandTotal = 0;
   const phasesHtml = phases.map(p => {
     const items = groups[p];
-    let subtotal = 0;
-    items.forEach(m => { subtotal += m.price; });
-    // Phase share of global bundle savings (proportional to phase SaaS).
+    const phaseList = items.reduce((s, m) => s + m._list, 0);
+    const phaseYour = items.reduce((s, m) => s + m.price, 0);
+    const phaseLineDisc = Math.round(items.reduce((s, m) => s + m._lineDisc, 0));
+    // Phase share of global bundle savings (proportional to phase Your-Price).
     let phaseBundleSavings = 0;
-    if (globalBundle && totalSaasAll > 0) {
-      const totalBundleSavings = totalSaasAll * globalBundle.discount / 100;
-      phaseBundleSavings = Math.round(totalBundleSavings * (subtotal / totalSaasAll));
+    if (globalBundle && totalYourAll > 0) {
+      const totalBundleSavings = totalYourAll * globalBundle.discount / 100;
+      phaseBundleSavings = Math.round(totalBundleSavings * (phaseYour / totalYourAll));
     }
-    // Phase share of line discounts (proportional to phase SaaS).
-    let phaseLineDisc = 0;
-    if (totalLineDiscount > 0 && totalSaasAll > 0) {
-      phaseLineDisc = Math.round(totalLineDiscount * (subtotal / totalSaasAll));
-    }
-    const netSubtotal = subtotal - phaseBundleSavings; // CS/Impl computed on NET (after bundle)
+    // Net SaaS Fee (annual) = list - lineDisc - bundle.
+    const phaseNet = phaseList - phaseLineDisc - phaseBundleSavings;
     const csPct = _rate(p, 'cs');
     const implPct = _rate(p, 'impl');
-    const cs = Math.round(netSubtotal * csPct / 100);
-    const impl = Math.round(netSubtotal * implPct / 100);
-    const phaseTotal = netSubtotal + cs + impl;
-    grandSubtotal += subtotal;
-    grandBundle += phaseBundleSavings;
+    const cs = Math.round(phaseNet * csPct / 100);
+    const impl = Math.round(phaseNet * implPct / 100);
+    const phaseTotal = phaseNet + cs + impl;
+    grandList += phaseList;
+    grandYour += phaseYour;
     grandLineDisc += phaseLineDisc;
+    grandBundle += phaseBundleSavings;
+    grandNet += phaseNet;
     grandCs += cs;
     grandImpl += impl;
     grandTotal += phaseTotal;
+    // Module rows — show LIST price as Annual Fee so the deductions below
+    // tell a clear story (List → minus discounts → Net).
     const rowsHtml = items.map(m =>
       '<tr style="border-bottom:1px solid #e5e7eb;">' +
         '<td style="padding:9px 14px;font-weight:600;color:#1e293b;font-size:12px;">' + m.name + '</td>' +
         '<td style="padding:9px 14px;color:#1e293b;font-size:11px;">' + (m.tier || '—') + '</td>' +
-        '<td style="padding:9px 14px;text-align:right;font-weight:600;color:#1e293b;font-size:12px;">' + fmtRaw(m.price) + '</td>' +
+        '<td style="padding:9px 14px;text-align:right;font-weight:600;color:#1e293b;font-size:12px;">' + fmtRaw(m._list) + '</td>' +
       '</tr>'
     ).join('');
+    const lineDiscRowHtml = phaseLineDisc > 0
+      ? '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#dc2626;font-weight:600;" colspan="2">' + discLabel + '</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#dc2626;font-weight:600;">-' + fmtRaw(phaseLineDisc) + '</td></tr>'
+      : '';
     const bundleRowHtml = (globalBundle && phaseBundleSavings > 0)
       ? '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#10b981;font-weight:600;" colspan="2">Bundle: ' + globalBundle.name + ' (' + globalBundle.discount + '%)</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#10b981;font-weight:600;">-' + fmtRaw(phaseBundleSavings) + '</td></tr>'
       : '';
@@ -6249,7 +6264,7 @@ function lioBuildPhaseBreakdownContent() {
           '<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#94a3b8;font-weight:600;">Phase ' + p + '</div>' +
           '<div style="flex:1;border-top:1px solid #e2e8f0;"></div>' +
         '</div>' +
-        '<table style="width:100%;border-collapse:collapse;">' +
+        '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">' + COLGROUP +
           '<thead><tr style="background:#fafafa;border-bottom:1.5px solid #e2e8f0;">' +
             '<th style="padding:8px 14px;text-align:left;font-size:10px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Module</th>' +
             '<th style="padding:8px 14px;text-align:left;font-size:10px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Tier</th>' +
@@ -6257,24 +6272,27 @@ function lioBuildPhaseBreakdownContent() {
           '</tr></thead>' +
           '<tbody>' + rowsHtml + '</tbody>' +
         '</table>' +
-        '<table style="width:100%;border-collapse:collapse;">' +
-          '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#475569;" colspan="2">SaaS Subtotal</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(subtotal) + '</td></tr>' +
+        '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">' + COLGROUP +
+          '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#475569;" colspan="2">SaaS Subtotal</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(phaseList) + '</td></tr>' +
+          lineDiscRowHtml +
           bundleRowHtml +
+          '<tr style="border-top:1px solid #cbd5e1;border-bottom:1px solid #f1f5f9;background:#f8fafc;"><td style="padding:8px 14px;font-size:11px;color:#1e293b;font-weight:700;" colspan="2">Net SaaS Fee (annual)</td><td style="padding:8px 14px;text-align:right;font-size:13px;color:#1e293b;font-weight:700;">' + fmtRaw(phaseNet) + '</td></tr>' +
           '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#475569;" colspan="2">Customer Success (' + csPct + '%/yr)</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(cs) + '</td></tr>' +
           '<tr><td style="padding:6px 14px 10px;font-size:11px;color:#475569;" colspan="2">Implementation (' + implPct + '%) · one-time</td><td style="padding:6px 14px 10px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(impl) + '</td></tr>' +
           '<tr style="border-top:1.5px solid #1e293b;"><td style="padding:9px 14px;font-size:11px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;" colspan="2">Phase ' + p + ' Total</td><td style="padding:9px 14px;text-align:right;font-size:14px;color:#1e293b;font-weight:800;">' + fmtRaw(phaseTotal) + '</td></tr>' +
         '</table>' +
       '</div>';
   }).join('');
-  // Subtle grand total — Saas Total · (Line discounts) · Bundle · CS · Impl · Total.
+  // Subtle grand total — SaaS Total · (Discount label) · Bundle · Net SaaS Fee · CS · Impl · Total.
   const totalLabel = phases.length > 1 ? 'Total · All Phases' : 'Total';
   const grandHtml = '' +
     '<div style="margin-top:24px;padding-top:14px;border-top:1.5px solid #1e293b;page-break-inside:avoid;">' +
       '<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#475569;font-weight:600;margin-bottom:10px;">' + totalLabel + '</div>' +
-      '<table style="width:100%;border-collapse:collapse;">' +
-        '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">SaaS Total</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandSubtotal) + '</td></tr>' +
+      '<table style="width:100%;border-collapse:collapse;table-layout:fixed;"><colgroup><col style="width:70%;"><col style="width:30%;"></colgroup>' +
+        '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">SaaS Total</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandList) + '</td></tr>' +
         (grandLineDisc > 0 ? '<tr><td style="padding:5px 0;font-size:11px;color:#dc2626;font-weight:600;">' + discLabel + '</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#dc2626;font-weight:600;">-' + fmtRaw(grandLineDisc) + '</td></tr>' : '') +
         (grandBundle > 0 ? '<tr><td style="padding:5px 0;font-size:11px;color:#10b981;font-weight:600;">Bundle (' + (globalBundle ? globalBundle.name : '') + ')</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#10b981;font-weight:600;">-' + fmtRaw(grandBundle) + '</td></tr>' : '') +
+        '<tr style="border-top:1px solid #cbd5e1;background:#f8fafc;"><td style="padding:8px 0;font-size:11px;color:#1e293b;font-weight:700;">Net SaaS Fee (annual)</td><td style="padding:8px 0;text-align:right;font-size:13px;color:#1e293b;font-weight:700;">' + fmtRaw(grandNet) + '</td></tr>' +
         '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">Customer Success</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandCs) + '</td></tr>' +
         '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">Implementation · one-time</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandImpl) + '</td></tr>' +
         '<tr style="border-top:1px solid #cbd5e1;"><td style="padding:9px 0 4px;font-size:13px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Total</td><td style="padding:9px 0 4px;text-align:right;font-size:17px;color:#1e293b;font-weight:800;">' + fmtRaw(grandTotal) + '</td></tr>' +
@@ -6282,7 +6300,7 @@ function lioBuildPhaseBreakdownContent() {
     '</div>';
   return {
     innerHtml: '<h2 style="font-size:18px;font-weight:700;margin-bottom:18px;color:#1e293b;">Pricing Breakdown</h2>' + phasesHtml + grandHtml,
-    grandSubtotal, grandBundle, grandLineDisc, grandCs, grandImpl, grandTotal
+    grandSubtotal: grandList, grandBundle, grandLineDisc, grandCs, grandImpl, grandTotal, grandNet
   };
 }
 
