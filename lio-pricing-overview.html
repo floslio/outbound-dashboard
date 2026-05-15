@@ -1608,15 +1608,27 @@ input[type="checkbox"] { accent-color: #6366f1; }
           </div>
           <div class="text-[10px] text-slate-500 mb-3">When phases are on, each module row gets P1 / P2 / P3 chips. The PDF shows a separate breakdown per phase plus a grand total at the end.</div>
 
+          <!-- Hide additional-agents showcase -->
+          <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer mb-2 mt-1">
+            <input type="checkbox" id="quote-hide-additional-agents" class="w-4 h-4 rounded">
+            <span class="font-semibold">Hide "Additional Agents to Showcase" section on PDF</span>
+          </label>
           <!-- Maintenance Fee -->
           <div class="border-t border-slate-700/40 pt-3 mt-2">
             <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer mb-2">
               <input type="checkbox" id="quote-maint-on" class="w-4 h-4 rounded">
               <span class="font-semibold">Include Maintenance Fee</span>
-              <span class="text-slate-500 font-normal">— 20% of SaaS subtotal · informational · NOT in Total</span>
+              <span class="text-slate-500 font-normal">— informational · NOT in Total</span>
             </label>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
               <div class="flex items-center gap-2">
+                <label class="text-[11px] text-slate-400 whitespace-nowrap">Mode:</label>
+                <select id="quote-maint-mode" class="bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 outline-none" onchange="lioToggleMaintMode()">
+                  <option value="pct">20% of SaaS</option>
+                  <option value="abs">Absolute amount</option>
+                </select>
+              </div>
+              <div id="quote-maint-row-disc" class="flex items-center gap-2">
                 <label class="text-[11px] text-slate-400 whitespace-nowrap">Discount:</label>
                 <input type="number" id="quote-maint-disc" value="0" min="0" step="1" class="w-20 bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 outline-none">
                 <select id="quote-maint-disc-type" class="bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 outline-none">
@@ -1624,7 +1636,10 @@ input[type="checkbox"] { accent-color: #6366f1; }
                   <option value="fixed">$</option>
                 </select>
               </div>
-              <div></div>
+              <div id="quote-maint-row-abs" class="flex items-center gap-2" style="display:none;">
+                <label class="text-[11px] text-slate-400 whitespace-nowrap">Amount:</label>
+                <input type="number" id="quote-maint-abs-amount" value="0" min="0" step="100" placeholder="e.g. 5000" class="flex-1 bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 outline-none">
+              </div>
               <div class="flex items-center gap-2">
                 <label class="text-[11px] text-slate-400 whitespace-nowrap">Effective from:</label>
                 <input type="date" id="quote-maint-effective" class="flex-1 bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 outline-none">
@@ -5334,7 +5349,7 @@ function generateQuoteData() {
   });
 
   const additionalAgentsPdf = additionalAgents.length > 0 ? `
-  <div style="margin-top:32px;page-break-before:auto;">
+  <div data-additional-agents="1" style="margin-top:32px;page-break-before:auto;">
     <div style="margin-bottom:16px;">
       <h2 style="font-size:20px;font-weight:700;color:#1e293b;margin:0;">More Ways Agents Can Automate Your Procurement</h2>
     </div>
@@ -6186,24 +6201,35 @@ function lioBuildImplStartDateHtml() {
 function lioBuildMaintenanceBlockHtml(saasBaseForMaint) {
   const enabled = document.getElementById('quote-maint-on')?.checked;
   if (!enabled) return '';
-  const discVal = parseFloat(document.getElementById('quote-maint-disc')?.value) || 0;
-  const discType = document.getElementById('quote-maint-disc-type')?.value || 'pct';
-  let baseAmount = saasBaseForMaint * 0.20;
-  let discAmount = 0;
-  if (discVal > 0) {
-    discAmount = discType === 'pct' ? baseAmount * (discVal / 100) : discVal;
+  const mode = document.getElementById('quote-maint-mode')?.value || 'pct';
+  let finalAmount = 0;
+  let label = '';
+  if (mode === 'abs') {
+    // Absolute mode — user types the exact maintenance amount. No "20% of SaaS" copy.
+    finalAmount = parseFloat(document.getElementById('quote-maint-abs-amount')?.value) || 0;
+    label = 'Maintenance';
+  } else {
+    // Percentage-of-SaaS mode (default) — optional discount.
+    const discVal = parseFloat(document.getElementById('quote-maint-disc')?.value) || 0;
+    const discType = document.getElementById('quote-maint-disc-type')?.value || 'pct';
+    let baseAmount = saasBaseForMaint * 0.20;
+    let discAmount = 0;
+    if (discVal > 0) {
+      discAmount = discType === 'pct' ? baseAmount * (discVal / 100) : discVal;
+    }
+    finalAmount = Math.max(0, baseAmount - discAmount);
+    const discountNote = discVal > 0
+      ? (discType === 'pct' ? ' · incl. ' + discVal + '% discount' : ' · incl. ' + fmtRaw(discVal) + ' discount')
+      : '';
+    label = 'Maintenance · 20% of SaaS subtotal' + discountNote;
   }
-  const finalAmount = Math.max(0, baseAmount - discAmount);
   const effectiveFrom = document.getElementById('quote-maint-effective')?.value || '';
   const waivedBy = document.getElementById('quote-maint-waived')?.value || '';
   const fd = (d) => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
-  const discountNote = discVal > 0
-    ? (discType === 'pct' ? ' · incl. ' + discVal + '% discount' : ' · incl. ' + fmtRaw(discVal) + ' discount')
-    : '';
   return '<div style="margin-top:28px;padding:14px 16px;border:1px solid #e2e8f0;border-radius:8px;background:#fafafa;page-break-inside:avoid;">' +
     '<div style="font-size:10px;text-transform:uppercase;color:#64748b;letter-spacing:1.5px;margin-bottom:6px;font-weight:600;">Annual Maintenance Fee · not included in Total</div>' +
     '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:#1e293b;margin-bottom:6px;">' +
-      '<span>Maintenance · 20% of SaaS subtotal' + discountNote + '</span>' +
+      '<span>' + label + '</span>' +
       '<span style="font-weight:700;font-size:14px;">' + fmtRaw(Math.round(finalAmount)) + '</span>' +
     '</div>' +
     (effectiveFrom || waivedBy ? '<div style="font-size:10.5px;color:#475569;line-height:1.7;border-top:1px solid #e2e8f0;padding-top:8px;margin-top:4px;">' +
@@ -6211,6 +6237,15 @@ function lioBuildMaintenanceBlockHtml(saasBaseForMaint) {
       (waivedBy ? 'If the contract is signed by <strong style="color:#1e293b;">' + fd(waivedBy) + '</strong>, the maintenance fee will not be charged.' : '') +
     '</div>' : '') +
   '</div>';
+}
+
+// UI helper — show/hide the right input row based on the maintenance mode.
+function lioToggleMaintMode() {
+  const mode = document.getElementById('quote-maint-mode')?.value || 'pct';
+  const discRow = document.getElementById('quote-maint-row-disc');
+  const absRow = document.getElementById('quote-maint-row-abs');
+  if (discRow) discRow.style.display = (mode === 'abs') ? 'none' : 'flex';
+  if (absRow) absRow.style.display = (mode === 'abs') ? 'flex' : 'none';
 }
 
 function lioInstallQuoteDataPostProcessor() {
@@ -6223,17 +6258,19 @@ function lioInstallQuoteDataPostProcessor() {
     const phasesOn = lioPhasesEnabled();
     const implDate = document.getElementById('quote-impl-start')?.value || '';
     const maintEnabled = !!document.getElementById('quote-maint-on')?.checked;
+    const hideAddAgents = !!document.getElementById('quote-hide-additional-agents')?.checked;
     // Robust regex: match the legacy pricing-breakdown wrapper that ends with </table></div>.
     // Module Details section starts further down and is unaffected.
     const re = /<div data-pricing-breakdown="1">[\s\S]*?<\/table>\s*<\/div>/;
     if (phasesOn) {
       const built = lioBuildPhaseBreakdownContent();
-      if (!built) return result;
-      let block = '<div data-pricing-breakdown="1">' + built.innerHtml;
-      if (implDate) block += lioBuildImplStartDateHtml();
-      if (maintEnabled) block += lioBuildMaintenanceBlockHtml(built.grandSubtotal);
-      block += '</div>';
-      result.html = result.html.replace(re, block);
+      if (built) {
+        let block = '<div data-pricing-breakdown="1">' + built.innerHtml;
+        if (implDate) block += lioBuildImplStartDateHtml();
+        if (maintEnabled) block += lioBuildMaintenanceBlockHtml(built.grandSubtotal);
+        block += '</div>';
+        result.html = result.html.replace(re, block);
+      }
     } else if (implDate || maintEnabled) {
       // Append extras AFTER the legacy pricing-breakdown div (keep legacy single block as-is).
       let extras = '';
@@ -6244,6 +6281,10 @@ function lioInstallQuoteDataPostProcessor() {
         extras += lioBuildMaintenanceBlockHtml(saas);
       }
       result.html = result.html.replace(re, function (m) { return m + extras; });
+    }
+    // Strip Additional Agents showcase block when toggle is on.
+    if (hideAddAgents) {
+      result.html = result.html.replace(/<div[^>]*data-additional-agents="1"[\s\S]*?<\/div>\s*<\/div>/g, '');
     }
     return result;
   };
@@ -6714,11 +6755,14 @@ function lioInstallSaveHookForPhases() {
         top.formState.implStartDate = document.getElementById('quote-impl-start')?.value || '';
         top.formState.maintenance = {
           enabled: !!document.getElementById('quote-maint-on')?.checked,
+          mode: document.getElementById('quote-maint-mode')?.value || 'pct',
+          absAmount: parseFloat(document.getElementById('quote-maint-abs-amount')?.value) || 0,
           discount: parseFloat(document.getElementById('quote-maint-disc')?.value) || 0,
           discountType: document.getElementById('quote-maint-disc-type')?.value || 'pct',
           effectiveFrom: document.getElementById('quote-maint-effective')?.value || '',
           waivedBy: document.getElementById('quote-maint-waived')?.value || ''
         };
+        top.formState.hideAdditionalAgents = !!document.getElementById('quote-hide-additional-agents')?.checked;
         localStorage.setItem('lio-quote-history', JSON.stringify(hist));
         if (typeof sbUpdateQuote === 'function' && top.ref) sbUpdateQuote(top.ref, top);
       } catch (e) { /* non-fatal */ }
@@ -6751,10 +6795,14 @@ function lioInstallLoadHookForPhases() {
         const set = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.value = v; };
         const setC = (id, v) => { const el = document.getElementById(id); if (el) el.checked = !!v; };
         setC('quote-maint-on', m.enabled);
+        set('quote-maint-mode', m.mode || 'pct');
+        set('quote-maint-abs-amount', m.absAmount || 0);
         set('quote-maint-disc', m.discount || 0);
         set('quote-maint-disc-type', m.discountType || 'pct');
         set('quote-maint-effective', m.effectiveFrom || '');
         set('quote-maint-waived', m.waivedBy || '');
+        setC('quote-hide-additional-agents', !!fs.hideAdditionalAgents);
+        if (typeof lioToggleMaintMode === 'function') setTimeout(lioToggleMaintMode, 50);
         if (typeof lioRenderPhaseChips === 'function') lioRenderPhaseChips();
       } catch (e) { /* non-fatal */ }
     }, 500);
