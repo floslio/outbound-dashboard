@@ -1197,9 +1197,13 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
         <!-- Global Agent Discount -->
         <div class="mt-3 p-3 rounded-lg bg-slate-50 border border-slate-200">
           <label class="text-xs text-slate-500 block mb-2">Global Agent Discount %</label>
-          <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+          <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center mb-2">
             <input type="number" id="quote-exc-value" value="0" min="0" max="100" step="1" onchange="applyGlobalDiscount()" oninput="applyGlobalDiscount()" class="w-full sm:w-24 border border-slate-200 rounded-lg p-2 text-sm outline-none text-right focus:ring-2 focus:ring-lio-200" placeholder="%">
-            <span class="text-xs text-slate-400">Applied to all modules</span>
+            <span class="text-xs text-slate-400">Applied to all modules — empty/0 = no change</span>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+            <label class="text-[11px] text-slate-500 whitespace-nowrap">Discount label (PDF):</label>
+            <input type="text" id="quote-discount-label" placeholder="e.g. Early-bird discount · empty = default 'Line Discounts'" class="flex-1 border border-slate-200 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-lio-200">
           </div>
         </div>
 
@@ -3556,21 +3560,25 @@ function populateQuotePricing() {
 function applyDiscountPct(key) {
   const pctInput = document.getElementById('qd-' + key);
   const priceInput = document.getElementById('qf-' + key);
+  if (!pctInput || !priceInput) return;
   const listPriceEl = document.querySelector('tr[data-mod="' + key + '"] td[data-list-price]');
   const listPrice = parseFloat(listPriceEl?.getAttribute('data-list-price')) || 0;
-  const rawVal = pctInput?.value?.toString().trim();
+  const rawVal = pctInput.value?.toString().trim();
   const pct = parseFloat(rawVal);
-  if (isFinite(pct) && pct > 0) {
-    let discounted = listPrice * (1 - pct / 100);
+  // Defensive: only override the price when we actually have a positive list price AND
+  // a positive discount. Otherwise the calculation produces 0 and would wipe the user's
+  // manual edits (root cause of the "Global Discount turns everything to 0€" bug).
+  if (isFinite(pct) && pct > 0 && listPrice > 0) {
+    let discounted = listPrice * (1 - Math.min(100, pct) / 100);
+    if (discounted < 0) discounted = 0;
     if (currentCurrency !== 'usd') discounted = Math.round(discounted / 500) * 500;
     else discounted = Math.round(discounted);
     priceInput.value = discounted;
     discountMode[key] = 'pct';
   } else {
-    // pct empty or 0 — DON'T wipe the user's manual price. Just clear the discount tag.
+    // pct empty or 0 OR list price missing — leave the user's price as-is.
     discountMode[key] = 'manual';
   }
-  // Keep calculator + wizard summary in sync with the new line-discount price.
   if (typeof calcUpdate === 'function') calcUpdate();
   updateQuotePricing();
 }
@@ -4616,30 +4624,59 @@ function lioBuildPhaseBreakdownContent() {
     (groups[p] = groups[p] || []).push(m);
   });
   const phases = Object.keys(groups).map(Number).sort();
-  let grandSubtotal = 0, grandBundle = 0, grandCs = 0, grandImpl = 0, grandTotal = 0;
-  // Per-phase rate overrides: window._phaseRates = { 1: { cs: 8, impl: 12 }, 2: {...} }
+  // GLOBAL bundle detection across ALL selected non-custom modules — picks the
+  // best (highest-discount) match. The savings are distributed proportionally
+  // across phases by their share of SaaS, so splitting a bundle across phases
+  // still earns the full bundle discount.
+  const allModKeys = mods.filter(m => !m.isCustom).map(m => m.key);
+  const globalBundle = (typeof detectBundle === 'function') ? detectBundle(allModKeys) : null;
+  let totalSaasAll = 0;
+  mods.forEach(m => { totalSaasAll += m.price; });
+  // Line discounts (manual price < list price) — readable by reading data-list-price.
+  function _readListPrice(k) {
+    const td = document.querySelector('tr[data-mod="' + k + '"] td[data-list-price]');
+    return parseFloat(td?.getAttribute('data-list-price')) || 0;
+  }
+  let totalLineDiscount = 0;
+  mods.forEach(m => {
+    if (m.isCustom) return;
+    const lp = _readListPrice(m.key);
+    if (lp > 0 && m.price < lp) totalLineDiscount += (lp - m.price);
+  });
+  totalLineDiscount = Math.round(totalLineDiscount);
+  // Custom discount label from the Global Agent Discount section.
+  const discLabel = (document.getElementById('quote-discount-label')?.value || '').trim() || 'Line Discounts';
+  // Per-phase rate overrides.
   function _rate(phase, kind) {
     const ov = window._phaseRates && window._phaseRates[phase];
     if (ov && ov[kind] != null && isFinite(ov[kind])) return parseFloat(ov[kind]);
     return kind === 'cs' ? 10 : 15;
   }
+  let grandSubtotal = 0, grandBundle = 0, grandLineDisc = 0, grandCs = 0, grandImpl = 0, grandTotal = 0;
   const phasesHtml = phases.map(p => {
     const items = groups[p];
     let subtotal = 0;
     items.forEach(m => { subtotal += m.price; });
-    // Bundle detection on this phase's modules only.
-    const phaseModKeys = items.filter(m => !m.isCustom).map(m => m.key);
-    const phaseBundle = (typeof detectBundle === 'function') ? detectBundle(phaseModKeys) : null;
-    const bundleSavings = phaseBundle ? Math.round(subtotal * phaseBundle.discount / 100) : 0;
-    const netSubtotal = subtotal - bundleSavings;
-    // Per-phase CS / Impl rates with override fallbacks.
+    // Phase share of global bundle savings (proportional to phase SaaS).
+    let phaseBundleSavings = 0;
+    if (globalBundle && totalSaasAll > 0) {
+      const totalBundleSavings = totalSaasAll * globalBundle.discount / 100;
+      phaseBundleSavings = Math.round(totalBundleSavings * (subtotal / totalSaasAll));
+    }
+    // Phase share of line discounts (proportional to phase SaaS).
+    let phaseLineDisc = 0;
+    if (totalLineDiscount > 0 && totalSaasAll > 0) {
+      phaseLineDisc = Math.round(totalLineDiscount * (subtotal / totalSaasAll));
+    }
+    const netSubtotal = subtotal - phaseBundleSavings; // CS/Impl computed on NET (after bundle)
     const csPct = _rate(p, 'cs');
     const implPct = _rate(p, 'impl');
     const cs = Math.round(netSubtotal * csPct / 100);
     const impl = Math.round(netSubtotal * implPct / 100);
     const phaseTotal = netSubtotal + cs + impl;
     grandSubtotal += subtotal;
-    grandBundle += bundleSavings;
+    grandBundle += phaseBundleSavings;
+    grandLineDisc += phaseLineDisc;
     grandCs += cs;
     grandImpl += impl;
     grandTotal += phaseTotal;
@@ -4650,8 +4687,8 @@ function lioBuildPhaseBreakdownContent() {
         '<td style="padding:9px 14px;text-align:right;font-weight:600;color:#1e293b;font-size:12px;">' + fmtRaw(m.price) + '</td>' +
       '</tr>'
     ).join('');
-    const bundleRowHtml = phaseBundle
-      ? '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#10b981;font-weight:600;" colspan="2">Bundle: ' + phaseBundle.name + ' (' + phaseBundle.discount + '%)</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#10b981;font-weight:600;">-' + fmtRaw(bundleSavings) + '</td></tr>'
+    const bundleRowHtml = (globalBundle && phaseBundleSavings > 0)
+      ? '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#10b981;font-weight:600;" colspan="2">Bundle: ' + globalBundle.name + ' (' + globalBundle.discount + '%)</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#10b981;font-weight:600;">-' + fmtRaw(phaseBundleSavings) + '</td></tr>'
       : '';
     return '' +
       '<div style="margin-bottom:22px;page-break-inside:avoid;">' +
@@ -4676,23 +4713,23 @@ function lioBuildPhaseBreakdownContent() {
         '</table>' +
       '</div>';
   }).join('');
-  // Subtle grand total — breakdown of SaaS / bundle savings / CS / Impl / total.
+  // Subtle grand total — Saas Total · (Line discounts) · Bundle · CS · Impl · Total.
   const totalLabel = phases.length > 1 ? 'Total · All Phases' : 'Total';
   const grandHtml = '' +
     '<div style="margin-top:24px;padding-top:14px;border-top:1.5px solid #1e293b;page-break-inside:avoid;">' +
       '<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#475569;font-weight:600;margin-bottom:10px;">' + totalLabel + '</div>' +
       '<table style="width:100%;border-collapse:collapse;">' +
         '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">SaaS Total</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandSubtotal) + '</td></tr>' +
-        (grandBundle > 0 ? '<tr><td style="padding:5px 0;font-size:11px;color:#10b981;font-weight:600;">Bundle Discounts</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#10b981;font-weight:600;">-' + fmtRaw(grandBundle) + '</td></tr>' : '') +
+        (grandLineDisc > 0 ? '<tr><td style="padding:5px 0;font-size:11px;color:#dc2626;font-weight:600;">' + discLabel + '</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#dc2626;font-weight:600;">-' + fmtRaw(grandLineDisc) + '</td></tr>' : '') +
+        (grandBundle > 0 ? '<tr><td style="padding:5px 0;font-size:11px;color:#10b981;font-weight:600;">Bundle (' + (globalBundle ? globalBundle.name : '') + ')</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#10b981;font-weight:600;">-' + fmtRaw(grandBundle) + '</td></tr>' : '') +
         '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">Customer Success</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandCs) + '</td></tr>' +
         '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">Implementation · one-time</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandImpl) + '</td></tr>' +
         '<tr style="border-top:1px solid #cbd5e1;"><td style="padding:9px 0 4px;font-size:13px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Total</td><td style="padding:9px 0 4px;text-align:right;font-size:17px;color:#1e293b;font-weight:800;">' + fmtRaw(grandTotal) + '</td></tr>' +
       '</table>' +
-      (grandBundle > 0 ? '<div style="margin-top:8px;text-align:right;font-size:10px;color:#10b981;font-weight:600;">Total bundle savings: ' + fmtRaw(grandBundle) + '</div>' : '') +
     '</div>';
   return {
     innerHtml: '<h2 style="font-size:18px;font-weight:700;margin-bottom:18px;color:#1e293b;">Pricing Breakdown</h2>' + phasesHtml + grandHtml,
-    grandSubtotal, grandBundle, grandCs, grandImpl, grandTotal
+    grandSubtotal, grandBundle, grandLineDisc, grandCs, grandImpl, grandTotal
   };
 }
 
@@ -6801,6 +6838,7 @@ function lioInstallSaveHookForPhases() {
           waivedBy: document.getElementById('quote-maint-waived')?.value || ''
         };
         top.formState.hideAdditionalAgents = !!document.getElementById('quote-hide-additional-agents')?.checked;
+        top.formState.discountLabel = document.getElementById('quote-discount-label')?.value || '';
         top.formState.phaseRates = {
           1: { cs: parseFloat(document.getElementById('quote-phase-cs-1')?.value) || null, impl: parseFloat(document.getElementById('quote-phase-impl-1')?.value) || null },
           2: { cs: parseFloat(document.getElementById('quote-phase-cs-2')?.value) || null, impl: parseFloat(document.getElementById('quote-phase-impl-2')?.value) || null },
@@ -6845,6 +6883,7 @@ function lioInstallLoadHookForPhases() {
         set('quote-maint-effective', m.effectiveFrom || '');
         set('quote-maint-waived', m.waivedBy || '');
         setC('quote-hide-additional-agents', !!fs.hideAdditionalAgents);
+        set('quote-discount-label', fs.discountLabel || '');
         const pr = fs.phaseRates || {};
         [1, 2, 3].forEach(pp => {
           const r = pr[pp] || {};
