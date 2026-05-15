@@ -997,6 +997,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
           <option value="stefan">Stefan Schweiger</option>
           <option value="lasse">Lasse Fehl</option>
           <option value="niklas">Niklas Marxer</option>
+          <option value="joachim">Joachim Strauss</option>
           <option value="temoc">Temoc Chavero</option>
         </select>
       </div>
@@ -1289,7 +1290,8 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
                 <option value="stefan">Stefan Schweiger</option>
                 <option value="lasse">Lasse Fehl</option>
                 <option value="niklas">Niklas Marxer</option>
-                <option value="temoc">Temoc Chavero</option>
+                <option value="joachim">Joachim Strauss</option>
+          <option value="temoc">Temoc Chavero</option>
               </select>
             </div>
           </div>
@@ -2359,6 +2361,7 @@ function buildROIPdfHtml() {
     stefan: { name: 'Stefan Schweiger', email: 'stefan.schweiger@lio.ai', phone: '' },
     lasse: { name: 'Lasse Fehl', email: 'lasse.fehl@lio.ai', phone: '' },
     niklas: { name: 'Niklas Marxer', email: 'niklas.marxer@lio.ai', phone: '' },
+    joachim: { name: 'Joachim Strauss', email: 'joachim.strauss@lio.ai', phone: '' },
     temoc: { name: 'Temoc Chavero', email: 'temoc.chavero@lio.ai', phone: '' }
   };
   const lioSender = lioContactsMap[lioContactKey] || lioContactsMap.florian;
@@ -3110,9 +3113,11 @@ async function downloadAdvancedRoiPDF() {
     till: { name: 'Till Wagner', email: 'till.wagner@lio.ai' },
     lukas: { name: 'Lukas Heinzmann', email: 'lukas.heinzmann@lio.ai' },
     moritz: { name: 'Moritz Medinger', email: 'moritz.medinger@lio.ai' },
+    joachim: { name: 'Joachim Strauss', email: 'joachim.strauss@lio.ai' },
     stefan: { name: 'Stefan Schweiger', email: 'stefan.schweiger@lio.ai' },
     lasse: { name: 'Lasse Fehl', email: 'lasse.fehl@lio.ai' },
     niklas: { name: 'Niklas Marxer', email: 'niklas.marxer@lio.ai' },
+    joachim: { name: 'Joachim Strauss', email: 'joachim.strauss@lio.ai' },
     temoc: { name: 'Temoc Chavero', email: 'temoc.chavero@lio.ai' }
   };
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -3823,9 +3828,11 @@ function generateQuoteData() {
     till: { name: 'Till Wagner', email: 'till.wagner@lio.ai' },
     lukas: { name: 'Lukas Heinzmann', email: 'lukas.heinzmann@lio.ai' },
     moritz: { name: 'Moritz Medinger', email: 'moritz.medinger@lio.ai' },
+    joachim: { name: 'Joachim Strauss', email: 'joachim.strauss@lio.ai' },
     stefan: { name: 'Stefan Schweiger', email: 'stefan.schweiger@lio.ai' },
     lasse: { name: 'Lasse Fehl', email: 'lasse.fehl@lio.ai' },
     niklas: { name: 'Niklas Marxer', email: 'niklas.marxer@lio.ai' },
+    joachim: { name: 'Joachim Strauss', email: 'joachim.strauss@lio.ai' },
     temoc: { name: 'Temoc Chavero', email: 'temoc.chavero@lio.ai' }
   };
   const lioContactKey = document.getElementById('quote-lio-contact')?.value || 'florian';
@@ -4548,17 +4555,17 @@ function lioGetActiveSelections() {
   return out;
 }
 
-// Build the phase-by-phase HTML that REPLACES the legacy pricing-breakdown section.
-function lioBuildPhaseBreakdownHtml() {
+// Build the phase content block. Returns { innerHtml, grandSubtotal, grandCs, grandImpl, grandTotal }.
+function lioBuildPhaseBreakdownContent() {
   const mods = lioGetActiveSelections();
-  if (mods.length === 0) return { html: '', grandTotal: 0, grandSubtotal: 0 };
+  if (mods.length === 0) return null;
   const groups = {};
   mods.forEach(m => {
     const p = m.isCustom ? 1 : lioGetPhase(m.key);
     (groups[p] = groups[p] || []).push(m);
   });
   const phases = Object.keys(groups).map(Number).sort();
-  let grandSubtotal = 0, grandTotal = 0;
+  let grandSubtotal = 0, grandCs = 0, grandImpl = 0, grandTotal = 0;
   const phasesHtml = phases.map(p => {
     const items = groups[p];
     let subtotal = 0;
@@ -4566,8 +4573,7 @@ function lioBuildPhaseBreakdownHtml() {
     const cs = Math.round(subtotal * 0.10);
     const impl = Math.round(subtotal * 0.15);
     const phaseTotal = subtotal + cs + impl;
-    grandSubtotal += subtotal;
-    grandTotal += phaseTotal;
+    grandSubtotal += subtotal; grandCs += cs; grandImpl += impl; grandTotal += phaseTotal;
     const rowsHtml = items.map(m =>
       '<tr style="border-bottom:1px solid #e5e7eb;">' +
         '<td style="padding:9px 14px;font-weight:600;color:#1e293b;font-size:12px;">' + m.name + '</td>' +
@@ -4581,7 +4587,7 @@ function lioBuildPhaseBreakdownHtml() {
           '<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#94a3b8;font-weight:600;">Phase ' + p + '</div>' +
           '<div style="flex:1;border-top:1px solid #e2e8f0;"></div>' +
         '</div>' +
-        '<table style="width:100%;border-collapse:collapse;margin-bottom:0;">' +
+        '<table style="width:100%;border-collapse:collapse;">' +
           '<thead><tr style="background:#fafafa;border-bottom:1.5px solid #e2e8f0;">' +
             '<th style="padding:8px 14px;text-align:left;font-size:10px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Module</th>' +
             '<th style="padding:8px 14px;text-align:left;font-size:10px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Tier</th>' +
@@ -4589,26 +4595,29 @@ function lioBuildPhaseBreakdownHtml() {
           '</tr></thead>' +
           '<tbody>' + rowsHtml + '</tbody>' +
         '</table>' +
-        '<table style="width:100%;border-collapse:collapse;margin-top:0;">' +
-          '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#1e293b;" colspan="2">SaaS Subtotal</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:600;">' + fmtRaw(subtotal) + '</td></tr>' +
-          '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#1e293b;" colspan="2">Customer Success (10%/yr)</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;">' + fmtRaw(cs) + '</td></tr>' +
-          '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#1e293b;" colspan="2">Implementation (15%) · one-time</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;">' + fmtRaw(impl) + '</td></tr>' +
-          '<tr style="border-top:2px solid #1e293b;"><td style="padding:10px 14px;font-size:12px;font-weight:800;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;" colspan="2">Phase ' + p + ' Total</td><td style="padding:10px 14px;text-align:right;font-size:14px;font-weight:800;color:#1e293b;">' + fmtRaw(phaseTotal) + '</td></tr>' +
+        '<table style="width:100%;border-collapse:collapse;">' +
+          '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#475569;" colspan="2">SaaS Subtotal</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(subtotal) + '</td></tr>' +
+          '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#475569;" colspan="2">Customer Success (10%/yr)</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(cs) + '</td></tr>' +
+          '<tr><td style="padding:6px 14px 10px;font-size:11px;color:#475569;" colspan="2">Implementation (15%) · one-time</td><td style="padding:6px 14px 10px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(impl) + '</td></tr>' +
+          '<tr style="border-top:1.5px solid #1e293b;"><td style="padding:9px 14px;font-size:11px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;" colspan="2">Phase ' + p + ' Total</td><td style="padding:9px 14px;text-align:right;font-size:14px;color:#1e293b;font-weight:800;">' + fmtRaw(phaseTotal) + '</td></tr>' +
         '</table>' +
       '</div>';
   }).join('');
-  const grandHtml =
-    '<div style="margin-top:14px;padding:16px 18px;border:2px solid #1e293b;border-radius:10px;display:flex;justify-content:space-between;align-items:center;page-break-inside:avoid;">' +
-      '<div style="font-size:13px;font-weight:800;color:#1e293b;text-transform:uppercase;letter-spacing:1.5px;">Total · All Phases</div>' +
-      '<div style="font-size:22px;font-weight:800;color:#1e293b;">' + fmtRaw(grandTotal) + '</div>' +
+  // Subtle grand total: thin top border, breakdown rows, NO outer box. Used both for phases-on and single-block fallback.
+  const grandHtml = '' +
+    '<div style="margin-top:24px;padding-top:14px;border-top:1.5px solid #1e293b;page-break-inside:avoid;">' +
+      '<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#475569;font-weight:600;margin-bottom:10px;">' + (phases.length > 1 ? 'Total · All Phases' : 'Total') + '</div>' +
+      '<table style="width:100%;border-collapse:collapse;">' +
+        '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">SaaS Total</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandSubtotal) + '</td></tr>' +
+        '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">Customer Success (10%/yr)</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandCs) + '</td></tr>' +
+        '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">Implementation (15%) · one-time</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandImpl) + '</td></tr>' +
+        '<tr style="border-top:1px solid #cbd5e1;"><td style="padding:9px 0 4px;font-size:13px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Total</td><td style="padding:9px 0 4px;text-align:right;font-size:17px;color:#1e293b;font-weight:800;">' + fmtRaw(grandTotal) + '</td></tr>' +
+      '</table>' +
     '</div>';
-  const html =
-    '<div data-pricing-breakdown="1">' +
-      '<h2 style="font-size:18px;font-weight:700;margin-bottom:18px;color:#1e293b;">Pricing Breakdown</h2>' +
-      phasesHtml +
-      grandHtml +
-    '</div>';
-  return { html, grandTotal, grandSubtotal };
+  return {
+    innerHtml: '<h2 style="font-size:18px;font-weight:700;margin-bottom:18px;color:#1e293b;">Pricing Breakdown</h2>' + phasesHtml + grandHtml,
+    grandSubtotal, grandCs, grandImpl, grandTotal
+  };
 }
 
 function lioBuildImplStartDateHtml() {
@@ -4617,7 +4626,7 @@ function lioBuildImplStartDateHtml() {
   try {
     const d = new Date(v + 'T00:00:00');
     const formatted = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    return '<div style="margin-bottom:14px;font-size:12px;color:#475569;page-break-inside:avoid;">Implementation start: <strong style="color:#1e293b;">' + formatted + '</strong></div>';
+    return '<div style="margin-top:24px;padding:12px 0;border-top:1px solid #f1f5f9;font-size:12px;color:#475569;page-break-inside:avoid;">Implementation start: <strong style="color:#1e293b;font-weight:600;">' + formatted + '</strong></div>';
   } catch (e) { return ''; }
 }
 
@@ -4638,11 +4647,11 @@ function lioBuildMaintenanceBlockHtml(saasBaseForMaint) {
   const discountNote = discVal > 0
     ? (discType === 'pct' ? ' · incl. ' + discVal + '% discount' : ' · incl. ' + fmtRaw(discVal) + ' discount')
     : '';
-  return '<div style="margin-top:20px;padding:16px 18px;border:1px solid #e2e8f0;border-radius:10px;background:#fafafa;page-break-inside:avoid;">' +
-    '<div style="font-size:10px;text-transform:uppercase;color:#64748b;letter-spacing:1.5px;margin-bottom:8px;font-weight:600;">Annual Maintenance Fee · not included in Total</div>' +
-    '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:#1e293b;margin-bottom:8px;">' +
+  return '<div style="margin-top:28px;padding:14px 16px;border:1px solid #e2e8f0;border-radius:8px;background:#fafafa;page-break-inside:avoid;">' +
+    '<div style="font-size:10px;text-transform:uppercase;color:#64748b;letter-spacing:1.5px;margin-bottom:6px;font-weight:600;">Annual Maintenance Fee · not included in Total</div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:#1e293b;margin-bottom:6px;">' +
       '<span>Maintenance · 20% of SaaS subtotal' + discountNote + '</span>' +
-      '<span style="font-weight:700;font-size:15px;">' + fmtRaw(Math.round(finalAmount)) + '</span>' +
+      '<span style="font-weight:700;font-size:14px;">' + fmtRaw(Math.round(finalAmount)) + '</span>' +
     '</div>' +
     (effectiveFrom || waivedBy ? '<div style="font-size:10.5px;color:#475569;line-height:1.7;border-top:1px solid #e2e8f0;padding-top:8px;margin-top:4px;">' +
       (effectiveFrom ? 'This maintenance fee takes effect from <strong style="color:#1e293b;">' + fd(effectiveFrom) + '</strong>. ' : '') +
@@ -4651,7 +4660,6 @@ function lioBuildMaintenanceBlockHtml(saasBaseForMaint) {
   '</div>';
 }
 
-// Wrap generateQuoteData with phase + maintenance + impl-date post-processing.
 function lioInstallQuoteDataPostProcessor() {
   if (typeof window.generateQuoteData !== 'function') return;
   if (window.generateQuoteData._phaseWrapped) return;
@@ -4660,34 +4668,29 @@ function lioInstallQuoteDataPostProcessor() {
     const result = orig.apply(this, arguments);
     if (!result || !result.html) return result;
     const phasesOn = lioPhasesEnabled();
-    let saasForMaint = 0;
-    // Phase replacement
+    const implDate = document.getElementById('quote-impl-start')?.value || '';
+    const maintEnabled = !!document.getElementById('quote-maint-on')?.checked;
+    // Robust regex: match the legacy pricing-breakdown wrapper that ends with </table></div>.
+    // Module Details section starts further down and is unaffected.
+    const re = /<div data-pricing-breakdown="1">[\s\S]*?<\/table>\s*<\/div>/;
     if (phasesOn) {
-      const phaseBuilt = lioBuildPhaseBreakdownHtml();
-      saasForMaint = phaseBuilt.grandSubtotal;
-      if (phaseBuilt.html) {
-        result.html = result.html.replace(/<div data-pricing-breakdown="1">[\s\S]*?<\/div>\s*<\/div>/, phaseBuilt.html);
+      const built = lioBuildPhaseBreakdownContent();
+      if (!built) return result;
+      let block = '<div data-pricing-breakdown="1">' + built.innerHtml;
+      if (implDate) block += lioBuildImplStartDateHtml();
+      if (maintEnabled) block += lioBuildMaintenanceBlockHtml(built.grandSubtotal);
+      block += '</div>';
+      result.html = result.html.replace(re, block);
+    } else if (implDate || maintEnabled) {
+      // Append extras AFTER the legacy pricing-breakdown div (keep legacy single block as-is).
+      let extras = '';
+      if (implDate) extras += lioBuildImplStartDateHtml();
+      if (maintEnabled) {
+        let saas = 0;
+        lioGetActiveSelections().forEach(m => { saas += m.price; });
+        extras += lioBuildMaintenanceBlockHtml(saas);
       }
-    } else {
-      // Compute saas for maintenance from current selections (sum of qf-{key} + custom positions)
-      const mods = lioGetActiveSelections();
-      mods.forEach(m => { saasForMaint += m.price; });
-    }
-    // Implementation start date — prepend just before the Pricing Breakdown heading
-    const implHtml = lioBuildImplStartDateHtml();
-    if (implHtml) {
-      result.html = result.html.replace(
-        /<div data-pricing-breakdown="1">/,
-        '<div data-pricing-breakdown="1">' + implHtml
-      );
-    }
-    // Maintenance block — append just after the pricing breakdown div
-    const maintHtml = lioBuildMaintenanceBlockHtml(saasForMaint);
-    if (maintHtml) {
-      result.html = result.html.replace(
-        /(<div data-pricing-breakdown="1">[\s\S]*?<\/div>)(?=\s*(?:<div[^>]*>(?!<\/div>)|<h2|<!--))/,
-        '$1' + maintHtml
-      );
+      result.html = result.html.replace(re, function (m) { return m + extras; });
     }
     return result;
   };
