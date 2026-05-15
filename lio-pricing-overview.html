@@ -1592,6 +1592,51 @@ input[type="checkbox"] { accent-color: #6366f1; }
           <div id="custom-positions-list" class="space-y-2"></div>
         </div>
 
+        <!-- Phase Splitting + Implementation Date + Maintenance Fee -->
+        <div class="mt-3 p-3 rounded-lg bg-slate-800/30 border border-slate-700/50 lio-pm-dark">
+          <div class="flex items-center justify-between mb-3 gap-2 flex-wrap">
+            <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+              <input type="checkbox" id="quote-phases-enabled" class="w-4 h-4 rounded" onchange="(window.lioRenderPhaseChips&&lioRenderPhaseChips())">
+              <span class="font-semibold">Split agents into phases</span>
+              <span class="text-slate-500 font-normal">— Phase 1 / 2 / 3, each with its own Impl + CS subtotal</span>
+            </label>
+            <div class="flex items-center gap-2 text-xs text-slate-400">
+              <label>Implementation start:</label>
+              <input type="date" id="quote-impl-start" class="bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 outline-none">
+            </div>
+          </div>
+          <div class="text-[10px] text-slate-500 mb-3">When phases are on, each module row gets P1 / P2 / P3 chips. The PDF shows a separate breakdown per phase plus a grand total at the end.</div>
+
+          <!-- Maintenance Fee -->
+          <div class="border-t border-slate-700/40 pt-3 mt-2">
+            <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer mb-2">
+              <input type="checkbox" id="quote-maint-on" class="w-4 h-4 rounded">
+              <span class="font-semibold">Include Maintenance Fee</span>
+              <span class="text-slate-500 font-normal">— 20% of SaaS subtotal · informational · NOT in Total</span>
+            </label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <label class="text-[11px] text-slate-400 whitespace-nowrap">Discount:</label>
+                <input type="number" id="quote-maint-disc" value="0" min="0" step="1" class="w-20 bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 outline-none">
+                <select id="quote-maint-disc-type" class="bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 outline-none">
+                  <option value="pct">%</option>
+                  <option value="fixed">$</option>
+                </select>
+              </div>
+              <div></div>
+              <div class="flex items-center gap-2">
+                <label class="text-[11px] text-slate-400 whitespace-nowrap">Effective from:</label>
+                <input type="date" id="quote-maint-effective" class="flex-1 bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 outline-none">
+              </div>
+              <div class="flex items-center gap-2">
+                <label class="text-[11px] text-slate-400 whitespace-nowrap">Waived if signed by:</label>
+                <input type="date" id="quote-maint-waived" class="flex-1 bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 outline-none">
+              </div>
+            </div>
+            <div class="text-[10px] text-slate-500">Disclaimer prints under the Total: "This maintenance fee takes effect from <em>effective</em>. If the contract is signed by <em>waived</em>, the maintenance fee will not be charged."</div>
+          </div>
+        </div>
+
         <!-- Per-Module PDF customization (description, features, tier ladder) -->
         <div class="mt-3 p-3 rounded-lg bg-slate-800/30 border border-slate-700/50">
           <div class="flex items-center justify-between mb-2 gap-2 flex-wrap">
@@ -5339,6 +5384,7 @@ function generateQuoteData() {
   </div>` : ''}
 
   ${selectedMods.length === 0 ? '' : `
+  <div data-pricing-breakdown="1">
   <!-- Pricing Table -->
   <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;color:#1e293b;">Pricing Breakdown</h2>
   <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
@@ -5394,6 +5440,7 @@ function generateQuoteData() {
     </tr>
     ${!hideDiscounts && totalSavingsAll > 0 ? '<tr style="border-top:1px solid #e5e7eb;"><td style="padding:8px 16px;font-size:11px;font-weight:600;" colspan="2">Total Savings</td><td style="padding:8px 16px;text-align:right;font-weight:700;font-size:12px;color:#16a34a;">-' + fmtRaw(totalSavingsAll) + '</td></tr>' : ''}
   </table>
+  </div>
   `}
 
   <!-- Module Details (conditional) -->
@@ -6009,6 +6056,238 @@ updateSliderTotal();
 window.addEventListener('load', animateCounters);
 
 // =========================================================
+// PHASE SPLITTING + MAINTENANCE FEE + IMPL START DATE
+// Shared across dark + white pricing tools.
+// =========================================================
+window._modulePhases = window._modulePhases || {};
+
+function lioGetPhase(k) { return window._modulePhases[k] || 1; }
+function lioSetPhase(k, p) {
+  p = parseInt(p) || 1;
+  if (p < 1 || p > 3) p = 1;
+  if (p === 1) delete window._modulePhases[k];
+  else window._modulePhases[k] = p;
+}
+function lioPhasesEnabled() { return !!document.getElementById('quote-phases-enabled')?.checked; }
+
+// Snapshot of selected modules + custom positions ready for phase grouping.
+function lioGetActiveSelections() {
+  const STD = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const out = [];
+  STD.forEach(k => {
+    if (!document.getElementById('check-' + k)?.checked) return;
+    if (typeof excludedModules !== 'undefined' && excludedModules[k]) return;
+    const m = (typeof modules !== 'undefined' && modules[k]) ? modules[k] : null;
+    if (!m) return;
+    // Dark uses calc-{k}-tier, white uses ct-{k}; try both.
+    const tierEl = document.getElementById('calc-' + k + '-tier') || document.getElementById('ct-' + k);
+    if (!tierEl) return;
+    const tierUsd = parseInt(tierEl.value);
+    const tierObj = (m.tiers || []).find(t => t.price === tierUsd) || m.tiers[0] || {};
+    const overrideLabel = (window._tierLabelOverrides && window._tierLabelOverrides[k]) || '';
+    const tier = overrideLabel || tierEl.selectedOptions[0]?.text?.split(' — ')[0] || tierObj.vol || '';
+    const qfEl = document.getElementById('qf-' + k);
+    const price = parseFloat(qfEl?.value) || 0;
+    const niceName = k === 'sm' ? 'Supplier Relationship Management (SRM)' : (m.name || k);
+    out.push({ key: k, name: niceName, tier, price });
+  });
+  // Append custom positions to phase 1 (always).
+  (window._customPositions || []).forEach(p => {
+    const price = parseFloat(p.price) || 0;
+    const name = (p.name || '').trim();
+    if (price <= 0 && !name) return;
+    out.push({ key: '_cp_' + p.id, name: name || 'Custom Position', tier: (p.tier || '').trim(), price, isCustom: true });
+  });
+  return out;
+}
+
+// Build the phase-by-phase HTML that REPLACES the legacy pricing-breakdown section.
+function lioBuildPhaseBreakdownHtml() {
+  const mods = lioGetActiveSelections();
+  if (mods.length === 0) return { html: '', grandTotal: 0, grandSubtotal: 0 };
+  const groups = {};
+  mods.forEach(m => {
+    const p = m.isCustom ? 1 : lioGetPhase(m.key);
+    (groups[p] = groups[p] || []).push(m);
+  });
+  const phases = Object.keys(groups).map(Number).sort();
+  let grandSubtotal = 0, grandTotal = 0;
+  const phasesHtml = phases.map(p => {
+    const items = groups[p];
+    let subtotal = 0;
+    items.forEach(m => { subtotal += m.price; });
+    const cs = Math.round(subtotal * 0.10);
+    const impl = Math.round(subtotal * 0.15);
+    const phaseTotal = subtotal + cs + impl;
+    grandSubtotal += subtotal;
+    grandTotal += phaseTotal;
+    const rowsHtml = items.map(m =>
+      '<tr style="border-bottom:1px solid #e5e7eb;">' +
+        '<td style="padding:9px 14px;font-weight:600;color:#1e293b;font-size:12px;">' + m.name + '</td>' +
+        '<td style="padding:9px 14px;color:#1e293b;font-size:11px;">' + (m.tier || '—') + '</td>' +
+        '<td style="padding:9px 14px;text-align:right;font-weight:600;color:#1e293b;font-size:12px;">' + fmtRaw(m.price) + '</td>' +
+      '</tr>'
+    ).join('');
+    return '' +
+      '<div style="margin-bottom:22px;page-break-inside:avoid;">' +
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">' +
+          '<div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#94a3b8;font-weight:600;">Phase ' + p + '</div>' +
+          '<div style="flex:1;border-top:1px solid #e2e8f0;"></div>' +
+        '</div>' +
+        '<table style="width:100%;border-collapse:collapse;margin-bottom:0;">' +
+          '<thead><tr style="background:#fafafa;border-bottom:1.5px solid #e2e8f0;">' +
+            '<th style="padding:8px 14px;text-align:left;font-size:10px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Module</th>' +
+            '<th style="padding:8px 14px;text-align:left;font-size:10px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Tier</th>' +
+            '<th style="padding:8px 14px;text-align:right;font-size:10px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Annual Fee</th>' +
+          '</tr></thead>' +
+          '<tbody>' + rowsHtml + '</tbody>' +
+        '</table>' +
+        '<table style="width:100%;border-collapse:collapse;margin-top:0;">' +
+          '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#1e293b;" colspan="2">SaaS Subtotal</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:600;">' + fmtRaw(subtotal) + '</td></tr>' +
+          '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#1e293b;" colspan="2">Customer Success (10%/yr)</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;">' + fmtRaw(cs) + '</td></tr>' +
+          '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#1e293b;" colspan="2">Implementation (15%) · one-time</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;">' + fmtRaw(impl) + '</td></tr>' +
+          '<tr style="border-top:2px solid #1e293b;"><td style="padding:10px 14px;font-size:12px;font-weight:800;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;" colspan="2">Phase ' + p + ' Total</td><td style="padding:10px 14px;text-align:right;font-size:14px;font-weight:800;color:#1e293b;">' + fmtRaw(phaseTotal) + '</td></tr>' +
+        '</table>' +
+      '</div>';
+  }).join('');
+  const grandHtml =
+    '<div style="margin-top:14px;padding:16px 18px;border:2px solid #1e293b;border-radius:10px;display:flex;justify-content:space-between;align-items:center;page-break-inside:avoid;">' +
+      '<div style="font-size:13px;font-weight:800;color:#1e293b;text-transform:uppercase;letter-spacing:1.5px;">Total · All Phases</div>' +
+      '<div style="font-size:22px;font-weight:800;color:#1e293b;">' + fmtRaw(grandTotal) + '</div>' +
+    '</div>';
+  const html =
+    '<div data-pricing-breakdown="1">' +
+      '<h2 style="font-size:18px;font-weight:700;margin-bottom:18px;color:#1e293b;">Pricing Breakdown</h2>' +
+      phasesHtml +
+      grandHtml +
+    '</div>';
+  return { html, grandTotal, grandSubtotal };
+}
+
+function lioBuildImplStartDateHtml() {
+  const v = document.getElementById('quote-impl-start')?.value || '';
+  if (!v) return '';
+  try {
+    const d = new Date(v + 'T00:00:00');
+    const formatted = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    return '<div style="margin-bottom:14px;font-size:12px;color:#475569;page-break-inside:avoid;">Implementation start: <strong style="color:#1e293b;">' + formatted + '</strong></div>';
+  } catch (e) { return ''; }
+}
+
+function lioBuildMaintenanceBlockHtml(saasBaseForMaint) {
+  const enabled = document.getElementById('quote-maint-on')?.checked;
+  if (!enabled) return '';
+  const discVal = parseFloat(document.getElementById('quote-maint-disc')?.value) || 0;
+  const discType = document.getElementById('quote-maint-disc-type')?.value || 'pct';
+  let baseAmount = saasBaseForMaint * 0.20;
+  let discAmount = 0;
+  if (discVal > 0) {
+    discAmount = discType === 'pct' ? baseAmount * (discVal / 100) : discVal;
+  }
+  const finalAmount = Math.max(0, baseAmount - discAmount);
+  const effectiveFrom = document.getElementById('quote-maint-effective')?.value || '';
+  const waivedBy = document.getElementById('quote-maint-waived')?.value || '';
+  const fd = (d) => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+  const discountNote = discVal > 0
+    ? (discType === 'pct' ? ' · incl. ' + discVal + '% discount' : ' · incl. ' + fmtRaw(discVal) + ' discount')
+    : '';
+  return '<div style="margin-top:20px;padding:16px 18px;border:1px solid #e2e8f0;border-radius:10px;background:#fafafa;page-break-inside:avoid;">' +
+    '<div style="font-size:10px;text-transform:uppercase;color:#64748b;letter-spacing:1.5px;margin-bottom:8px;font-weight:600;">Annual Maintenance Fee · not included in Total</div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:#1e293b;margin-bottom:8px;">' +
+      '<span>Maintenance · 20% of SaaS subtotal' + discountNote + '</span>' +
+      '<span style="font-weight:700;font-size:15px;">' + fmtRaw(Math.round(finalAmount)) + '</span>' +
+    '</div>' +
+    (effectiveFrom || waivedBy ? '<div style="font-size:10.5px;color:#475569;line-height:1.7;border-top:1px solid #e2e8f0;padding-top:8px;margin-top:4px;">' +
+      (effectiveFrom ? 'This maintenance fee takes effect from <strong style="color:#1e293b;">' + fd(effectiveFrom) + '</strong>. ' : '') +
+      (waivedBy ? 'If the contract is signed by <strong style="color:#1e293b;">' + fd(waivedBy) + '</strong>, the maintenance fee will not be charged.' : '') +
+    '</div>' : '') +
+  '</div>';
+}
+
+// Wrap generateQuoteData with phase + maintenance + impl-date post-processing.
+function lioInstallQuoteDataPostProcessor() {
+  if (typeof window.generateQuoteData !== 'function') return;
+  if (window.generateQuoteData._phaseWrapped) return;
+  const orig = window.generateQuoteData;
+  window.generateQuoteData = function () {
+    const result = orig.apply(this, arguments);
+    if (!result || !result.html) return result;
+    const phasesOn = lioPhasesEnabled();
+    let saasForMaint = 0;
+    // Phase replacement
+    if (phasesOn) {
+      const phaseBuilt = lioBuildPhaseBreakdownHtml();
+      saasForMaint = phaseBuilt.grandSubtotal;
+      if (phaseBuilt.html) {
+        result.html = result.html.replace(/<div data-pricing-breakdown="1">[\s\S]*?<\/div>\s*<\/div>/, phaseBuilt.html);
+      }
+    } else {
+      // Compute saas for maintenance from current selections (sum of qf-{key} + custom positions)
+      const mods = lioGetActiveSelections();
+      mods.forEach(m => { saasForMaint += m.price; });
+    }
+    // Implementation start date — prepend just before the Pricing Breakdown heading
+    const implHtml = lioBuildImplStartDateHtml();
+    if (implHtml) {
+      result.html = result.html.replace(
+        /<div data-pricing-breakdown="1">/,
+        '<div data-pricing-breakdown="1">' + implHtml
+      );
+    }
+    // Maintenance block — append just after the pricing breakdown div
+    const maintHtml = lioBuildMaintenanceBlockHtml(saasForMaint);
+    if (maintHtml) {
+      result.html = result.html.replace(
+        /(<div data-pricing-breakdown="1">[\s\S]*?<\/div>)(?=\s*(?:<div[^>]*>(?!<\/div>)|<h2|<!--))/,
+        '$1' + maintHtml
+      );
+    }
+    return result;
+  };
+  window.generateQuoteData._phaseWrapped = true;
+}
+// Install once DOM is ready (the legacy generateQuoteData is defined by then)
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', lioInstallQuoteDataPostProcessor);
+else setTimeout(lioInstallQuoteDataPostProcessor, 0);
+
+// Render phase chips into each row of #quote-pricing-lines.
+function lioRenderPhaseChips() {
+  const enabled = lioPhasesEnabled();
+  document.querySelectorAll('#quote-pricing-lines tr[data-mod]').forEach(tr => {
+    const modkey = tr.dataset.mod;
+    let host = tr.querySelector('.lio-phase-chips');
+    if (!enabled) { if (host) host.remove(); return; }
+    const current = lioGetPhase(modkey);
+    if (!host) {
+      // Inject into the first cell (Module name)
+      const firstCell = tr.querySelector('td');
+      if (!firstCell) return;
+      host = document.createElement('div');
+      host.className = 'lio-phase-chips';
+      host.style.cssText = 'display:flex;gap:4px;margin-top:4px;';
+      firstCell.appendChild(host);
+    }
+    host.innerHTML = '';
+    [1,2,3].forEach(p => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = 'P' + p;
+      btn.title = 'Assign to Phase ' + p;
+      const active = (current === p);
+      btn.style.cssText = 'padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid ' +
+        (active ? '#4f46e5' : '#475569') + ';background:' + (active ? '#4f46e5' : 'transparent') + ';color:' + (active ? '#fff' : '#94a3b8') + ';';
+      btn.addEventListener('click', () => {
+        lioSetPhase(modkey, p);
+        lioRenderPhaseChips();
+      });
+      host.appendChild(btn);
+    });
+  });
+}
+window.lioRenderPhaseChips = lioRenderPhaseChips;
+
+
+// =========================================================
 // PDF override layer (dark file parity with white wizard)
 //
 // Wraps generateQuoteData so per-quote per-module overrides
@@ -6398,6 +6677,109 @@ document.addEventListener('DOMContentLoaded', function() {
     observer.observe(el);
   });
 });
+
+// Extend populateQuotePricing to render phase chips after rows are built.
+function lioHookPopulateForPhases() {
+  if (typeof window.populateQuotePricing !== 'function') return;
+  if (window.populateQuotePricing._phasesHooked) return;
+  const orig = window.populateQuotePricing;
+  window.populateQuotePricing = function () {
+    const r = orig.apply(this, arguments);
+    setTimeout(() => { if (typeof lioRenderPhaseChips === 'function') lioRenderPhaseChips(); }, 0);
+    return r;
+  };
+  window.populateQuotePricing._phasesHooked = true;
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', lioHookPopulateForPhases);
+else setTimeout(lioHookPopulateForPhases, 50);
+
+// Patch saveQuoteToHistory hook (if exists) to push phase/maintenance/impl-date into formState
+function lioInstallSaveHookForPhases() {
+  if (typeof window.saveQuoteToHistory !== 'function') return;
+  if (window.saveQuoteToHistory._phaseHooked) return;
+  const orig = window.saveQuoteToHistory;
+  window.saveQuoteToHistory = function (data) {
+    const r = orig.apply(this, arguments);
+    setTimeout(() => {
+      try {
+        const hist = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
+        if (hist.length === 0) return;
+        const top = hist[0];
+        if (!top.formState) return;
+        top.formState.phasesEnabled = !!document.getElementById('quote-phases-enabled')?.checked;
+        top.formState.modulePhases = Object.assign({}, window._modulePhases || {});
+        top.formState.implStartDate = document.getElementById('quote-impl-start')?.value || '';
+        top.formState.maintenance = {
+          enabled: !!document.getElementById('quote-maint-on')?.checked,
+          discount: parseFloat(document.getElementById('quote-maint-disc')?.value) || 0,
+          discountType: document.getElementById('quote-maint-disc-type')?.value || 'pct',
+          effectiveFrom: document.getElementById('quote-maint-effective')?.value || '',
+          waivedBy: document.getElementById('quote-maint-waived')?.value || ''
+        };
+        localStorage.setItem('lio-quote-history', JSON.stringify(hist));
+        if (typeof sbUpdateQuote === 'function' && top.ref) sbUpdateQuote(top.ref, top);
+      } catch (e) { /* non-fatal */ }
+    }, 250);
+    return r;
+  };
+  window.saveQuoteToHistory._phaseHooked = true;
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', lioInstallSaveHookForPhases);
+else setTimeout(lioInstallSaveHookForPhases, 100);
+
+// Patch loadQuote to restore phase + maintenance + impl-date
+function lioInstallLoadHookForPhases() {
+  if (typeof window.loadQuote !== 'function') return;
+  if (window.loadQuote._phaseHooked) return;
+  const orig = window.loadQuote;
+  window.loadQuote = function (id) {
+    const r = orig.apply(this, arguments);
+    setTimeout(() => {
+      try {
+        const hist = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
+        const entry = hist.find(h => h.id === id);
+        const fs = entry?.formState || {};
+        window._modulePhases = (fs.modulePhases && typeof fs.modulePhases === 'object') ? Object.assign({}, fs.modulePhases) : {};
+        const cbPhases = document.getElementById('quote-phases-enabled');
+        if (cbPhases) cbPhases.checked = !!fs.phasesEnabled;
+        const ds = document.getElementById('quote-impl-start');
+        if (ds) ds.value = fs.implStartDate || '';
+        const m = fs.maintenance || {};
+        const set = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.value = v; };
+        const setC = (id, v) => { const el = document.getElementById(id); if (el) el.checked = !!v; };
+        setC('quote-maint-on', m.enabled);
+        set('quote-maint-disc', m.discount || 0);
+        set('quote-maint-disc-type', m.discountType || 'pct');
+        set('quote-maint-effective', m.effectiveFrom || '');
+        set('quote-maint-waived', m.waivedBy || '');
+        if (typeof lioRenderPhaseChips === 'function') lioRenderPhaseChips();
+      } catch (e) { /* non-fatal */ }
+    }, 500);
+    return r;
+  };
+  window.loadQuote._phaseHooked = true;
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', lioInstallLoadHookForPhases);
+else setTimeout(lioInstallLoadHookForPhases, 150);
+
+// Reset phase state on new quote (when openQuoteModal opens fresh, not loading)
+function lioInstallOpenHookForPhases() {
+  if (typeof window.openQuoteModal !== 'function') return;
+  if (window.openQuoteModal._phaseHooked) return;
+  const orig = window.openQuoteModal;
+  window.openQuoteModal = function () {
+    if (!window._editingQuoteId) {
+      window._modulePhases = {};
+    }
+    const r = orig.apply(this, arguments);
+    setTimeout(() => { if (typeof lioRenderPhaseChips === 'function') lioRenderPhaseChips(); }, 100);
+    return r;
+  };
+  window.openQuoteModal._phaseHooked = true;
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', lioInstallOpenHookForPhases);
+else setTimeout(lioInstallOpenHookForPhases, 200);
+
 </script>
 </body>
 </html>
