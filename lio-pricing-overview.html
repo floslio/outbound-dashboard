@@ -5011,6 +5011,7 @@ function toggleExcludeModule(key) {
 // Apply the global % to EVERY agent in one explicit pass. Fired by the Apply
 // button so the user controls when the recalc happens — no auto-trigger on
 // every keystroke, which caused mid-typing values like "1" to wipe prices.
+// Works identically whether phase splitting is enabled or not.
 function applyGlobalDiscount() {
   const inputEl = document.getElementById('quote-exc-value');
   if (!inputEl) return;
@@ -5021,6 +5022,7 @@ function applyGlobalDiscount() {
     return;
   }
   let touched = 0;
+  const touchedKeys = [];
   document.querySelectorAll('#quote-pricing-lines tr[data-mod]').forEach(row => {
     const key = row.dataset.mod;
     if (excludedModules[key]) return; // leave excluded rows untouched
@@ -5041,12 +5043,34 @@ function applyGlobalDiscount() {
     if (qdEl) qdEl.value = globalPct;
     discountMode[key] = 'pct';
     touched++;
+    touchedKeys.push(key);
   });
-  if (touched > 0) {
-    if (typeof calcUpdate === 'function') calcUpdate();
-    updateQuotePricing();
-  } else {
+  if (touched === 0) {
     alert('No active agents to apply the discount to. Select at least one module first.');
+    return;
+  }
+  if (typeof calcUpdate === 'function') calcUpdate();
+  updateQuotePricing();
+  // Keep phase chips in sync — even though row HTML wasn't rebuilt, the chip
+  // host might have been removed if anything else re-rendered between Apply
+  // clicks. Reattaching is a no-op when phases is off.
+  if (typeof window.lioRenderPhaseChips === 'function') window.lioRenderPhaseChips();
+  // Visual confirmation: briefly flash each updated price input in emerald so
+  // the user can SEE that Apply actually pushed values through, and update
+  // the button label to "✓ Applied to N agents" for ~1.5 s.
+  touchedKeys.forEach(k => {
+    const qfEl = document.getElementById('qf-' + k);
+    if (!qfEl) return;
+    const orig = qfEl.style.backgroundColor;
+    qfEl.style.transition = 'background-color 200ms';
+    qfEl.style.backgroundColor = 'rgba(16,185,129,0.25)';
+    setTimeout(() => { qfEl.style.backgroundColor = orig; }, 750);
+  });
+  const btn = document.querySelector('[onclick="applyGlobalDiscount()"]');
+  if (btn) {
+    const orig = btn.textContent;
+    btn.textContent = '✓ Applied ' + globalPct + '% to ' + touched + ' agent' + (touched > 1 ? 's' : '');
+    setTimeout(() => { btn.textContent = orig; }, 1800);
   }
 }
 
@@ -5466,7 +5490,7 @@ function generateQuoteData() {
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:'Inter',sans-serif; color:#1e293b; background:#fff; }
-  @page { margin: 40px 40px 60px 40px; @bottom-right { content: "Page " counter(page) " of " counter(pages); font-size: 10px; color: #9ca3af; font-family: 'Inter', sans-serif; } }
+  @page { margin: 40px 40px 60px 40px; @bottom-right { content: counter(page) " / " counter(pages); font-size: 9px; color: #94a3b8; font-family: 'Inter', sans-serif; letter-spacing: 1px; } }
 </style></head><body>
 <div style="max-width:800px;margin:0 auto;padding:40px;position:relative;">
 
@@ -5746,14 +5770,29 @@ async function downloadQuoteAsPDF() {
   const filename = data.quoteRef + '_' + company.replace(/[^a-zA-Z0-9]/g, '_') + '.pdf';
 
   try {
+    // Render to jsPDF first so we can stamp page numbers (X / Y) bottom-right
+    // BEFORE saving. The browser-print path picks up the @page counter via
+    // CSS; the html2pdf path needs the jsPDF API since html2canvas rasterizes
+    // the document and strips paged-media counters.
     await html2pdf().set({
-      margin: [8, 8, 8, 8],
+      margin: [8, 8, 14, 8],
       filename: filename,
       image: { type: 'jpeg', quality: 0.95 },
       html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-    }).from(iframe.contentDocument.body).save();
+    }).from(iframe.contentDocument.body).toPdf().get('pdf').then(pdf => {
+      const total = pdf.internal.getNumberOfPages();
+      const w = pdf.internal.pageSize.getWidth();
+      const h = pdf.internal.pageSize.getHeight();
+      for (let i = 1; i <= total; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(148, 163, 184); // slate-400
+        pdf.text(i + ' / ' + total, w - 10, h - 6, { align: 'right' });
+      }
+      pdf.save(filename);
+    });
   } finally {
     document.body.removeChild(iframe);
   }
