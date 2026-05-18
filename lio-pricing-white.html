@@ -240,6 +240,10 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
         <span class="hidden md:inline">Library</span>
       </button>
       <button onclick="openQuoteHistory()" class="lio-btn lio-btn-ghost">My Quotes</button>
+      <button onclick="lioOpenSegmentAdmin()" class="lio-btn lio-btn-ghost hidden md:inline-flex" title="Edit segment pricing factors">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        <span class="hidden md:inline">Pricing</span>
+      </button>
       <button onclick="lioStartNewQuote()" class="lio-btn lio-btn-primary">
         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
         New Quote
@@ -957,6 +961,40 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
   </div>
 </section>
 
+<!-- Segment Admin Modal (white theme) -->
+<div id="segment-admin-modal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/40 backdrop-blur-sm" onclick="if(event.target===this)lioCloseSegmentAdmin()">
+  <div class="bg-white border border-slate-200 rounded-2xl p-6 w-full max-w-lg mx-4 shadow-2xl">
+    <div class="flex justify-between items-center mb-2">
+      <div>
+        <h3 class="text-lg font-bold text-slate-900">Segment Pricing · Admin</h3>
+        <p class="text-xs text-slate-400 mt-0.5">Multiplier applied to every module tier when a segment is selected. Saved to Supabase DB + localStorage (shared across the team).</p>
+      </div>
+      <button onclick="lioCloseSegmentAdmin()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none ml-4 flex-shrink-0">&times;</button>
+    </div>
+
+    <div class="mt-4 rounded-xl border border-slate-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-200">
+            <th class="text-left text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-4 py-2.5">Segment</th>
+            <th class="text-center text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-4 py-2.5">Factor</th>
+            <th class="text-right text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-4 py-2.5">Default</th>
+          </tr>
+        </thead>
+        <tbody id="segment-admin-rows" class="divide-y divide-slate-100"></tbody>
+      </table>
+    </div>
+
+    <div class="flex items-center justify-between gap-3 mt-5">
+      <button onclick="lioResetSegmentFactors()" class="px-3 py-2 text-xs bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 transition">Reset to defaults</button>
+      <div class="flex items-center gap-2">
+        <span id="segment-admin-status" class="text-xs text-slate-400"></span>
+        <button onclick="lioSaveSegmentAdmin()" class="px-4 py-2 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition">Save factors</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Quote History Modal -->
 <div id="quote-history-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
   <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8 w-full max-w-6xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
@@ -973,10 +1011,20 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
 <!-- Quote Modal -->
 <div id="quote-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
   <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex justify-between items-center mb-4">
       <h3 class="text-xl font-bold text-slate-900">Create Quote</h3>
-      <button onclick="closeQuoteModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="lioOpenSegmentAdmin()" class="px-3 py-1.5 text-xs bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-500 hover:text-slate-700 transition font-medium" title="Edit segment pricing factors (admin)">⚙️ Segment Admin</button>
+        <button onclick="closeQuoteModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      </div>
     </div>
+
+    <!-- Customer Segment Picker — scales tier prices for this quote -->
+    <div class="mb-4 p-3 rounded-xl bg-slate-50 border border-slate-200">
+      <div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-2">Customer Segment <span class="normal-case text-slate-400 tracking-normal text-[10px]">— scales all tier prices (Fortune 500 = ×1.50 · DAX 40 = ×1.25 · Mid Market = ×0.85 · Mittelstand = ×0.70 · Custom = ×1.00)</span></div>
+      <div id="quote-segment-pills" class="flex flex-wrap gap-2"></div>
+    </div>
+
     <div class="space-y-4">
       <div>
         <label class="text-xs text-slate-500 block mb-1">Lio Contact Person</label>
@@ -1575,6 +1623,165 @@ document.addEventListener('DOMContentLoaded', () => {
 const SB_URL = 'https://mqwabacdohrtkxqyxrkp.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xd2FiYWNkb2hydGt4cXl4cmtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNDc1NDUsImV4cCI6MjA5MDYyMzU0NX0.i2pjZI7GNzNyMJK6-ME9SLk0HzNrzNwE_Q4Y7qNfL14';
 const SB_HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+
+// ===========================================================
+// SEGMENT FACTORS — Supabase persistence (white file)
+// Table: segment_factors (segment_key PK, factor numeric,
+//        label text, currency text, updated_at timestamptz)
+// ===========================================================
+async function sbLoadSegmentFactors() {
+  try {
+    const resp = await fetch(SB_URL + '/rest/v1/segment_factors?select=segment_key,factor,label,currency&order=segment_key.asc', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY },
+      signal: AbortSignal.timeout(6000)
+    });
+    if (resp.status === 404 || resp.status === 406) return null;
+    if (!resp.ok) return null;
+    const rows = await resp.json();
+    if (!Array.isArray(rows) || rows.length === 0) return null;
+    const out = {};
+    rows.forEach(r => { out[r.segment_key] = { factor: r.factor, label: r.label, currency: r.currency }; });
+    return out;
+  } catch (e) { return null; }
+}
+async function sbSaveSegmentFactorsToDb(updates) {
+  try {
+    const rows = Object.keys(updates).map(k => ({
+      segment_key: k,
+      factor: updates[k].factor,
+      label: updates[k].label || null,
+      currency: updates[k].currency || null,
+      updated_at: new Date().toISOString()
+    }));
+    const resp = await fetch(SB_URL + '/rest/v1/segment_factors', {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(rows)
+    });
+    return resp.ok;
+  } catch (e) { return false; }
+}
+
+// Admin modal functions (white theme) — called from HTML
+function lioOpenSegmentAdmin() {
+  const modal = document.getElementById('segment-admin-modal');
+  if (!modal) return;
+  // If the wizard IIFE hasn't run yet (rare edge case), wait a tick and retry.
+  if (!window._segFactors) {
+    setTimeout(lioOpenSegmentAdmin, 300);
+    return;
+  }
+  modal.classList.remove('hidden'); modal.classList.add('flex');
+  // Populate table rows — reads from window._segFactors (exposed by wizard IIFE)
+  const SF = window._segFactors || {};
+  const SFD = window._segFactorsDefaults || {};
+  const icons = { fortune500: '🏛️', dax40: '🇩🇪', midmarket: '🚀', mittelstand: '🛠️', custom: '✨' };
+  const tbody = document.getElementById('segment-admin-rows');
+  if (!tbody) return;
+  tbody.innerHTML = Object.keys(SF).map(k => {
+    const seg = SF[k];
+    const def = SFD[k] || seg;
+    return '<tr class="hover:bg-slate-50 transition">' +
+      '<td class="px-4 py-3"><div class="flex items-center gap-2"><span class="text-base">' + (icons[k] || '⚙️') + '</span><div><div class="text-sm font-semibold text-slate-800">' + seg.label + '</div><div class="text-[10px] text-slate-400">' + (seg.currency ? seg.currency.toUpperCase() : 'Custom') + '</div></div></div></td>' +
+      '<td class="px-4 py-3 text-center"><div class="flex items-center justify-center gap-1.5"><input type="number" data-segk="' + k + '" min="0.05" max="5" step="0.05" value="' + seg.factor.toFixed(2) + '" class="w-20 border border-slate-200 rounded-lg p-2 text-sm text-center outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400"><span class="text-xs text-slate-400">×</span></div></td>' +
+      '<td class="px-4 py-3 text-right text-xs text-slate-400">×' + def.factor.toFixed(2) + '</td>' +
+    '</tr>';
+  }).join('');
+  document.getElementById('segment-admin-status').textContent = '';
+}
+function lioCloseSegmentAdmin() {
+  const modal = document.getElementById('segment-admin-modal');
+  if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+}
+function lioSaveSegmentAdmin() {
+  const SF = window._segFactors;
+  if (!SF) return;
+  const updates = {};
+  document.querySelectorAll('#segment-admin-rows input[data-segk]').forEach(inp => {
+    const k = inp.dataset.segk;
+    const v = parseFloat(inp.value);
+    if (isFinite(v) && v > 0 && SF[k]) {
+      SF[k].factor = v;
+      updates[k] = { factor: v, label: SF[k].label, currency: SF[k].currency };
+    }
+  });
+  // Persist locally (instant)
+  localStorage.setItem('lio-segment-factors', JSON.stringify(updates));
+  // Push to Supabase (async, show status)
+  const statusEl = document.getElementById('segment-admin-status');
+  if (statusEl) statusEl.textContent = 'Saving…';
+  sbSaveSegmentFactorsToDb(updates).then(ok => {
+    if (statusEl) statusEl.textContent = ok ? '✓ Saved to database' : '✓ Saved locally';
+    setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 3000);
+  });
+  // Re-apply if a segment is active
+  if (window._currentSegmentKey && typeof window._applySegmentPricing === 'function') {
+    window._applySegmentPricing(window._currentSegmentKey);
+  }
+  lioRenderSegmentPills();
+  lioCloseSegmentAdmin();
+}
+function lioResetSegmentFactors() {
+  const SF = window._segFactors;
+  const SFD = window._segFactorsDefaults;
+  if (!SF || !SFD) return;
+  if (!confirm('Reset all segment factors to defaults?')) return;
+  Object.keys(SFD).forEach(k => { if (SF[k]) SF[k].factor = SFD[k].factor; });
+  localStorage.removeItem('lio-segment-factors');
+  if (window._currentSegmentKey && typeof window._applySegmentPricing === 'function') {
+    window._applySegmentPricing(window._currentSegmentKey);
+  }
+  lioRenderSegmentPills();
+  lioOpenSegmentAdmin(); // refresh displayed values
+}
+// Render segment picker pills in the quote modal
+function lioRenderSegmentPills() {
+  const host = document.getElementById('quote-segment-pills');
+  if (!host) return;
+  const SF = window._segFactors || {};
+  const icons = { fortune500: '🏛️', dax40: '🇩🇪', midmarket: '🚀', mittelstand: '🛠️', custom: '✨' };
+  const active = window._currentSegmentKey;
+  host.innerHTML = Object.keys(SF).map(k => {
+    const seg = SF[k];
+    const isActive = active === k;
+    return '<button type="button" data-segkey="' + k + '" class="px-3 py-2 rounded-lg border text-left flex items-center gap-2 transition text-sm ' +
+      (isActive ? 'bg-indigo-50 border-indigo-400 text-indigo-700 font-semibold' : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-300 hover:bg-slate-50') + '">' +
+      '<span class="text-base">' + (icons[k] || '⚙️') + '</span>' +
+      '<span class="font-medium">' + seg.label + '</span>' +
+      '<span class="text-[10px] text-slate-400 ml-1">×' + seg.factor.toFixed(2) + '</span>' +
+    '</button>';
+  }).join('');
+  host.querySelectorAll('button[data-segkey]').forEach(b => {
+    b.addEventListener('click', () => {
+      const k = b.dataset.segkey;
+      if (typeof window._applySegmentPricing === 'function') window._applySegmentPricing(k);
+      window._currentSegmentKey = k;
+      lioRenderSegmentPills();
+      if (typeof populateQuotePricing === 'function') populateQuotePricing();
+    });
+  });
+}
+// Hook openQuoteModal to render segment pills + module overrides editor
+(function() {
+  function hookOpenQuoteModal() {
+    if (typeof window.openQuoteModal !== 'function') return;
+    if (window.openQuoteModal._segPillsHooked) return;
+    const orig = window.openQuoteModal;
+    window.openQuoteModal = function() {
+      const r = orig.apply(this, arguments);
+      setTimeout(() => {
+        lioRenderSegmentPills();
+        if (typeof renderModuleOverridesEditor === 'function') renderModuleOverridesEditor();
+        const hideTiersCb = document.getElementById('quote-hide-all-tier-ladders');
+        if (hideTiersCb) hideTiersCb.checked = !!window._hideTierLadder;
+      }, 50);
+      return r;
+    };
+    window.openQuoteModal._segPillsHooked = true;
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(hookOpenQuoteModal, 200));
+  else setTimeout(hookOpenQuoteModal, 200);
+})();
 
 async function sbSaveQuote(entry) {
   try {
@@ -5403,6 +5610,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
     if (!window._modulesBaseline) return;
     const seg = SEGMENT_FACTORS[segKey] || SEGMENT_FACTORS.fortune500;
     const f = seg.factor || 1.0;
+    window._currentSegmentKey = segKey;
     const round500 = (v) => Math.max(500, Math.round(v / 500) * 500);
     Object.keys(modules).forEach(k => {
       const baseline = window._modulesBaseline[k];
@@ -5434,6 +5642,35 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
     if (!window._modulesBaseline) return;
     Object.keys(window._modulesBaseline).forEach(k => {
       modules[k].tiers = JSON.parse(JSON.stringify(window._modulesBaseline[k].tiers));
+    });
+  }
+
+  // Expose segment data + applySegmentPricing to window so the admin modal
+  // (defined outside this IIFE) and the load hook can reach them.
+  window._segFactors = SEGMENT_FACTORS;
+  window._segFactorsDefaults = SEGMENT_FACTORS_DEFAULTS;
+  window._applySegmentPricing = function(segKey) {
+    applySegmentPricing(segKey);
+    window._currentSegmentKey = segKey;
+  };
+  // Wire applySegment alias used by the load hook
+  window.applySegment = window._applySegmentPricing;
+
+  // Boot: try to load segment factors from Supabase and merge into SEGMENT_FACTORS.
+  // This runs once when the IIFE initialises; sbLoadSegmentFactors is defined in the
+  // outer script block above, so it's already available.
+  if (typeof sbLoadSegmentFactors === 'function') {
+    sbLoadSegmentFactors().then(remote => {
+      if (!remote) return;
+      Object.keys(remote).forEach(k => {
+        if (SEGMENT_FACTORS[k] && typeof remote[k].factor === 'number' && remote[k].factor > 0) {
+          SEGMENT_FACTORS[k].factor = remote[k].factor;
+        }
+      });
+      // Keep localStorage in sync as offline cache
+      const localUpdates = {};
+      Object.keys(SEGMENT_FACTORS).forEach(k => { localUpdates[k] = { factor: SEGMENT_FACTORS[k].factor }; });
+      localStorage.setItem('lio-segment-factors', JSON.stringify(localUpdates));
     });
   }
 

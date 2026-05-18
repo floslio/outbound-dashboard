@@ -1458,7 +1458,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
       <h3 class="text-lg font-bold text-white">Admin · Segment factors</h3>
       <button onclick="lioCloseSegmentAdmin()" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
     </div>
-    <div class="text-xs text-slate-400 mb-4">Multipliers applied to every module tier when this segment is selected (1.00 = library default). Saved to your browser; reload-safe.</div>
+    <div class="text-xs text-slate-400 mb-4">Multipliers applied to every module tier when this segment is selected (1.00 = library default). Saved to Supabase DB + localStorage backup — shared across the whole team.</div>
     <div id="segment-admin-rows" class="space-y-3 mb-4"></div>
     <div class="flex items-center justify-between gap-3">
       <button onclick="lioResetSegmentFactors()" class="px-3 py-2 text-xs bg-slate-700/30 hover:bg-slate-700/60 border border-slate-600 rounded text-slate-300">Reset to defaults</button>
@@ -2194,6 +2194,60 @@ document.addEventListener('DOMContentLoaded', () => {
 const SB_URL = 'https://mqwabacdohrtkxqyxrkp.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xd2FiYWNkb2hydGt4cXl4cmtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNDc1NDUsImV4cCI6MjA5MDYyMzU0NX0.i2pjZI7GNzNyMJK6-ME9SLk0HzNrzNwE_Q4Y7qNfL14';
 const SB_HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+
+// ===========================================================
+// SEGMENT FACTORS — Supabase persistence
+// Table: segment_factors (segment_key text PK, factor numeric,
+//        label text, currency text, updated_at timestamptz)
+// Falls back to localStorage when Supabase is unreachable.
+// ===========================================================
+async function sbLoadSegmentFactors() {
+  try {
+    const resp = await fetch(SB_URL + '/rest/v1/segment_factors?select=segment_key,factor,label,currency&order=segment_key.asc', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY },
+      signal: AbortSignal.timeout(6000)
+    });
+    if (resp.status === 404 || resp.status === 406) return null; // table doesn't exist yet
+    if (!resp.ok) return null;
+    const rows = await resp.json();
+    if (!Array.isArray(rows) || rows.length === 0) return null;
+    const out = {};
+    rows.forEach(r => { out[r.segment_key] = { factor: r.factor, label: r.label, currency: r.currency }; });
+    return out;
+  } catch (e) { return null; }
+}
+async function sbSaveSegmentFactorsToDb(updates) {
+  try {
+    const rows = Object.keys(updates).map(k => ({
+      segment_key: k,
+      factor: updates[k].factor,
+      label: updates[k].label || null,
+      currency: updates[k].currency || null,
+      updated_at: new Date().toISOString()
+    }));
+    const resp = await fetch(SB_URL + '/rest/v1/segment_factors', {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(rows)
+    });
+    return resp.ok;
+  } catch (e) { return false; }
+}
+// Boot: merge Supabase factors (if available) over localStorage factors.
+(async () => {
+  const remote = await sbLoadSegmentFactors();
+  if (remote) {
+    Object.keys(remote).forEach(k => {
+      if (SEGMENT_FACTORS[k] && typeof remote[k].factor === 'number' && remote[k].factor > 0) {
+        SEGMENT_FACTORS[k].factor = remote[k].factor;
+      }
+    });
+    // Keep localStorage in sync as offline cache
+    const localUpdates = {};
+    Object.keys(SEGMENT_FACTORS).forEach(k => { localUpdates[k] = { factor: SEGMENT_FACTORS[k].factor }; });
+    localStorage.setItem('lio-segment-factors', JSON.stringify(localUpdates));
+  }
+})();
 
 async function sbSaveQuote(entry) {
   try {
@@ -6810,10 +6864,20 @@ function lioSaveSegmentFactors() {
     const v = parseFloat(inp.value);
     if (isFinite(v) && v > 0) {
       SEGMENT_FACTORS[k].factor = v;
-      updates[k] = { factor: v };
+      updates[k] = { factor: v, label: SEGMENT_FACTORS[k].label, currency: SEGMENT_FACTORS[k].currency };
     }
   });
+  // Persist locally first (instant), then push to Supabase in background
   localStorage.setItem('lio-segment-factors', JSON.stringify(updates));
+  sbSaveSegmentFactorsToDb(updates).then(ok => {
+    const saveBtn = document.querySelector('#segment-admin-modal [onclick="lioSaveSegmentFactors()"]');
+    if (saveBtn) {
+      const orig = saveBtn.textContent;
+      saveBtn.textContent = ok ? '✓ Saved to DB' : '✓ Saved locally';
+      saveBtn.disabled = true;
+      setTimeout(() => { saveBtn.textContent = orig; saveBtn.disabled = false; }, 2000);
+    }
+  });
   // If a segment is currently active, re-apply it with the new factor.
   if (window._currentSegmentKey) applySegmentPricing(window._currentSegmentKey);
   lioCloseSegmentAdmin();
