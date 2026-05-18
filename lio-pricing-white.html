@@ -962,35 +962,46 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
 </section>
 
 <!-- Segment Admin Modal (white theme) -->
-<div id="segment-admin-modal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/40 backdrop-blur-sm" onclick="if(event.target===this)lioCloseSegmentAdmin()">
-  <div class="bg-white border border-slate-200 rounded-2xl p-6 w-full max-w-lg mx-4 shadow-2xl">
-    <div class="flex justify-between items-center mb-2">
+<div id="segment-admin-modal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/40 backdrop-blur-sm p-4" onclick="if(event.target===this)lioCloseSegmentAdmin()">
+  <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-5xl mx-auto shadow-2xl flex flex-col" style="max-height:90vh;">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 flex-shrink-0">
       <div>
-        <h3 class="text-lg font-bold text-slate-900">Segment Pricing · Admin</h3>
-        <p class="text-xs text-slate-400 mt-0.5">Multiplier applied to every module tier when a segment is selected. Saved to Supabase DB + localStorage (shared across the team).</p>
+        <h3 class="text-lg font-bold text-slate-900">Segment Pricing Admin</h3>
+        <p class="text-xs text-slate-400 mt-0.5">Edit global factor or individual module prices per segment. Saved to Supabase — shared across the team.</p>
       </div>
-      <button onclick="lioCloseSegmentAdmin()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none ml-4 flex-shrink-0">&times;</button>
+      <button onclick="lioCloseSegmentAdmin()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none ml-6">&times;</button>
     </div>
-
-    <div class="mt-4 rounded-xl border border-slate-200 overflow-hidden">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="bg-slate-50 border-b border-slate-200">
-            <th class="text-left text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-4 py-2.5">Segment</th>
-            <th class="text-center text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-4 py-2.5">Factor</th>
-            <th class="text-right text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-4 py-2.5">Default</th>
+    <!-- Segment tabs -->
+    <div class="flex items-center gap-1.5 px-6 pt-4 pb-0 flex-shrink-0 flex-wrap" id="seg-admin-tabs-white"></div>
+    <!-- Factor row -->
+    <div class="px-6 py-3 border-b border-slate-100 flex items-center gap-4 flex-shrink-0 flex-wrap">
+      <span class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Global Factor</span>
+      <div class="flex items-center gap-2">
+        <span class="text-slate-400 text-xs">×</span>
+        <input type="number" id="seg-admin-factor-input-white" min="0.05" max="5" step="0.05" class="w-20 border border-slate-200 rounded-lg px-2 py-1.5 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400">
+        <span class="text-xs text-slate-400">(applied to all module baseline prices unless overridden below)</span>
+      </div>
+      <div class="ml-auto flex items-center gap-3">
+        <button onclick="lioResetAllModulePricesWhite()" class="px-3 py-1.5 text-xs bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 transition">Reset all to factor</button>
+        <span id="seg-admin-status-white" class="text-xs text-indigo-600 font-medium"></span>
+        <button onclick="lioSaveSegmentPricingWhite()" class="px-4 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition">Save segment</button>
+      </div>
+    </div>
+    <!-- Module price table -->
+    <div class="overflow-y-auto flex-1 px-2">
+      <table class="w-full text-sm border-collapse">
+        <thead class="sticky top-0 z-10 bg-white border-b border-slate-100">
+          <tr>
+            <th class="text-left text-[10px] uppercase tracking-wider font-semibold text-slate-400 px-4 py-2.5 w-[38%]">Module / Volume</th>
+            <th class="text-right text-[10px] uppercase tracking-wider font-semibold text-slate-400 px-3 py-2.5 w-[19%]">USD ($)</th>
+            <th class="text-right text-[10px] uppercase tracking-wider font-semibold text-slate-400 px-3 py-2.5 w-[19%]">EUR (€)</th>
+            <th class="text-right text-[10px] uppercase tracking-wider font-semibold text-slate-400 px-3 py-2.5 w-[19%]">GBP (£)</th>
+            <th class="w-[5%]"></th>
           </tr>
         </thead>
-        <tbody id="segment-admin-rows" class="divide-y divide-slate-100"></tbody>
+        <tbody id="seg-admin-module-tbody-white"></tbody>
       </table>
-    </div>
-
-    <div class="flex items-center justify-between gap-3 mt-5">
-      <button onclick="lioResetSegmentFactors()" class="px-3 py-2 text-xs bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 transition">Reset to defaults</button>
-      <div class="flex items-center gap-2">
-        <span id="segment-admin-status" class="text-xs text-slate-400"></span>
-        <button onclick="lioSaveSegmentAdmin()" class="px-4 py-2 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition">Save factors</button>
-      </div>
     </div>
   </div>
 </div>
@@ -1662,68 +1673,293 @@ async function sbSaveSegmentFactorsToDb(updates) {
   } catch (e) { return false; }
 }
 
-// Admin modal functions (white theme) — called from HTML
+// ===========================================================
+// PER-MODULE SEGMENT PRICES — Supabase (white file)
+// ===========================================================
+window._segmentModulePrices = JSON.parse(localStorage.getItem('lio-smp-cache') || '{}');
+
+async function sbLoadSegmentModulePrices() {
+  try {
+    const resp = await fetch(SB_URL + '/rest/v1/segment_module_prices?select=segment_key,module_key,tiers&order=segment_key.asc,module_key.asc', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY },
+      signal: AbortSignal.timeout(8000)
+    });
+    if (resp.status === 404 || resp.status === 406) return false;
+    if (!resp.ok) return false;
+    const rows = await resp.json();
+    if (!Array.isArray(rows)) return false;
+    const out = {};
+    rows.forEach(r => {
+      if (!out[r.segment_key]) out[r.segment_key] = {};
+      out[r.segment_key][r.module_key] = r.tiers;
+    });
+    window._segmentModulePrices = out;
+    localStorage.setItem('lio-smp-cache', JSON.stringify(out));
+    return true;
+  } catch (e) { return false; }
+}
+async function sbSaveSegmentModulePrice(segKey, modKey, tiers) {
+  try {
+    const resp = await fetch(SB_URL + '/rest/v1/segment_module_prices', {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ segment_key: segKey, module_key: modKey, tiers, updated_at: new Date().toISOString() })
+    });
+    return resp.ok;
+  } catch (e) { return false; }
+}
+async function sbDeleteSegmentModulePrice(segKey, modKey) {
+  try {
+    const resp = await fetch(SB_URL + '/rest/v1/segment_module_prices?segment_key=eq.' + encodeURIComponent(segKey) + '&module_key=eq.' + encodeURIComponent(modKey), {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    return resp.ok;
+  } catch (e) { return false; }
+}
+
+// ── Segment Admin — full per-module price editor (white theme) ─────────────
+let _adminSegKeyW = null; // active segment tab in white admin modal
+
 function lioOpenSegmentAdmin() {
   const modal = document.getElementById('segment-admin-modal');
   if (!modal) return;
-  // If the wizard IIFE hasn't run yet (rare edge case), wait a tick and retry.
-  if (!window._segFactors) {
-    setTimeout(lioOpenSegmentAdmin, 300);
-    return;
-  }
+  // Retry if wizard IIFE hasn't run yet
+  if (!window._segFactors) { setTimeout(lioOpenSegmentAdmin, 300); return; }
   modal.classList.remove('hidden'); modal.classList.add('flex');
-  // Populate table rows — reads from window._segFactors (exposed by wizard IIFE)
-  const SF = window._segFactors || {};
-  const SFD = window._segFactorsDefaults || {};
-  const icons = { fortune500: '🏛️', dax40: '🇩🇪', midmarket: '🚀', mittelstand: '🛠️', custom: '✨' };
-  const tbody = document.getElementById('segment-admin-rows');
-  if (!tbody) return;
-  tbody.innerHTML = Object.keys(SF).map(k => {
-    const seg = SF[k];
-    const def = SFD[k] || seg;
-    return '<tr class="hover:bg-slate-50 transition">' +
-      '<td class="px-4 py-3"><div class="flex items-center gap-2"><span class="text-base">' + (icons[k] || '⚙️') + '</span><div><div class="text-sm font-semibold text-slate-800">' + seg.label + '</div><div class="text-[10px] text-slate-400">' + (seg.currency ? seg.currency.toUpperCase() : 'Custom') + '</div></div></div></td>' +
-      '<td class="px-4 py-3 text-center"><div class="flex items-center justify-center gap-1.5"><input type="number" data-segk="' + k + '" min="0.05" max="5" step="0.05" value="' + seg.factor.toFixed(2) + '" class="w-20 border border-slate-200 rounded-lg p-2 text-sm text-center outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400"><span class="text-xs text-slate-400">×</span></div></td>' +
-      '<td class="px-4 py-3 text-right text-xs text-slate-400">×' + def.factor.toFixed(2) + '</td>' +
-    '</tr>';
-  }).join('');
-  document.getElementById('segment-admin-status').textContent = '';
+  _adminSegKeyW = window._currentSegmentKey || Object.keys(window._segFactors)[0];
+  lioRenderSegmentTabsWhite(_adminSegKeyW);
+  const fi = document.getElementById('seg-admin-factor-input-white');
+  if (fi) fi.value = ((window._segFactors[_adminSegKeyW] || {}).factor || 1).toFixed(2);
+  lioRenderModuleTableWhite(_adminSegKeyW);
+  const st = document.getElementById('seg-admin-status-white');
+  if (st) st.textContent = '';
 }
+
 function lioCloseSegmentAdmin() {
   const modal = document.getElementById('segment-admin-modal');
   if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
 }
-function lioSaveSegmentAdmin() {
+
+function lioRenderSegmentTabsWhite(activeKey) {
+  const container = document.getElementById('seg-admin-tabs-white');
+  if (!container) return;
+  const SF = window._segFactors || {};
+  const SFD = window._segFactorsDefaults || {};
+  container.innerHTML = Object.keys(SF).map(k => {
+    const seg = SF[k];
+    const defFactor = (SFD[k] || seg).factor || 1;
+    const modified = Math.abs(seg.factor - defFactor) > 0.001;
+    const hasCustMods = Object.keys((window._segmentModulePrices || {})[k] || {}).length > 0;
+    const dot = (modified || hasCustMods) ? '<span class="ml-1 w-1.5 h-1.5 rounded-full bg-amber-400 inline-block align-middle"></span>' : '';
+    const isActive = k === activeKey;
+    return `<button onclick="lioAdminSwitchSegWhite('${k}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition border ${isActive ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800 hover:border-slate-300'}">${seg.label}${dot}</button>`;
+  }).join('');
+}
+
+function lioAdminSwitchSegWhite(segKey) {
+  _adminSegKeyW = segKey;
+  lioRenderSegmentTabsWhite(segKey);
+  const fi = document.getElementById('seg-admin-factor-input-white');
+  if (fi) fi.value = ((window._segFactors[segKey] || {}).factor || 1).toFixed(2);
+  const st = document.getElementById('seg-admin-status-white');
+  if (st) st.textContent = '';
+  lioRenderModuleTableWhite(segKey);
+}
+
+function lioRenderModuleTableWhite(segKey) {
+  const tbody = document.getElementById('seg-admin-module-tbody-white');
+  if (!tbody) return;
+  const SF = window._segFactors || {};
+  const factor = (SF[segKey] || {}).factor || 1;
+  const customMods = (window._segmentModulePrices || {})[segKey] || {};
+  // Use _modulesBaseline if set (after first segment apply), otherwise use live modules
+  const getBaseline = (k) => (window._modulesBaseline || modules)[k];
+
+  let html = '';
+  Object.keys(modules).forEach(modKey => {
+    const mod = modules[modKey];
+    const bl = getBaseline(modKey);
+    if (!bl || !bl.tiers) return;
+    const isCustom = Array.isArray(customMods[modKey]) && customMods[modKey].length > 0;
+    const effectiveTiers = isCustom ? customMods[modKey] : bl.tiers.map(t => {
+      const out = { vol: t.vol, price: Math.max(0, Math.round(t.price * factor)) };
+      if (t.eur != null) out.eur = Math.max(0, Math.round(t.eur * factor / 500) * 500);
+      if (t.gbp != null) out.gbp = Math.max(0, Math.round(t.gbp * factor / 500) * 500);
+      return out;
+    });
+
+    // Module header row
+    html += `<tr class="border-t border-slate-100">
+      <td colspan="5" class="px-4 pt-3 pb-0.5">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-semibold text-slate-700">${mod.name}</span>
+          ${isCustom
+            ? `<span class="text-[9px] font-bold uppercase tracking-wider bg-indigo-50 border border-indigo-200 text-indigo-600 px-1.5 py-0.5 rounded">Custom</span>`
+            : `<span class="text-[9px] text-slate-400">× factor</span>`}
+          ${isCustom
+            ? `<button onclick="lioResetModulePriceWhite('${segKey}','${modKey}')" class="ml-auto text-[10px] text-rose-500 hover:text-rose-600 transition px-2 py-0.5 rounded border border-rose-100 hover:border-rose-200">↺ Reset to factor</button>`
+            : ''}
+        </div>
+      </td>
+    </tr>`;
+
+    // Tier rows
+    effectiveTiers.forEach((tier, i) => {
+      const blTier = bl.tiers[i] || {};
+      const hasEur = tier.eur !== undefined || blTier.eur !== undefined;
+      const hasGbp = tier.gbp !== undefined || blTier.gbp !== undefined;
+      const inp = `border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-700 outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-400 transition`;
+      html += `<tr class="hover:bg-slate-50 transition">
+        <td class="px-4 py-1 text-xs text-slate-400 pl-6">${tier.vol}</td>
+        <td class="px-3 py-1">
+          <input type="number" class="seg-admin-input-white w-full ${inp}" data-modkey="${modKey}" data-tieridx="${i}" data-currency="usd" value="${tier.price ?? 0}" min="0" step="100">
+        </td>
+        <td class="px-3 py-1">
+          ${hasEur
+            ? `<input type="number" class="seg-admin-input-white w-full ${inp}" data-modkey="${modKey}" data-tieridx="${i}" data-currency="eur" value="${tier.eur ?? (blTier.eur != null ? Math.max(0, Math.round(blTier.eur * factor / 500) * 500) : 0)}" min="0" step="500">`
+            : `<span class="text-slate-300 text-xs px-2">—</span>`}
+        </td>
+        <td class="px-3 py-1">
+          ${hasGbp
+            ? `<input type="number" class="seg-admin-input-white w-full ${inp}" data-modkey="${modKey}" data-tieridx="${i}" data-currency="gbp" value="${tier.gbp ?? (blTier.gbp != null ? Math.max(0, Math.round(blTier.gbp * factor / 500) * 500) : 0)}" min="0" step="500">`
+            : `<span class="text-slate-300 text-xs px-2">—</span>`}
+        </td>
+        <td></td>
+      </tr>`;
+    });
+  });
+
+  tbody.innerHTML = html;
+}
+
+async function lioSaveSegmentPricingWhite() {
+  if (!_adminSegKeyW) return;
+  const segKey = _adminSegKeyW;
   const SF = window._segFactors;
   if (!SF) return;
-  const updates = {};
-  document.querySelectorAll('#segment-admin-rows input[data-segk]').forEach(inp => {
-    const k = inp.dataset.segk;
-    const v = parseFloat(inp.value);
-    if (isFinite(v) && v > 0 && SF[k]) {
-      SF[k].factor = v;
-      updates[k] = { factor: v, label: SF[k].label, currency: SF[k].currency };
+  const statusEl = document.getElementById('seg-admin-status-white');
+  const saveBtn = document.querySelector('#segment-admin-modal button[onclick="lioSaveSegmentPricingWhite()"]');
+
+  // 1. Update global factor for this segment
+  const fi = document.getElementById('seg-admin-factor-input-white');
+  const newFactor = parseFloat(fi?.value);
+  if (isFinite(newFactor) && newFactor > 0) {
+    SF[segKey].factor = newFactor;
+    const stored = {};
+    Object.keys(SF).forEach(k => { stored[k] = { factor: SF[k].factor, label: SF[k].label, currency: SF[k].currency }; });
+    localStorage.setItem('lio-segment-factors', JSON.stringify(stored));
+    sbSaveSegmentFactorsToDb(stored); // non-blocking
+  }
+  const factor = (SF[segKey] || {}).factor || 1;
+
+  // 2. Collect tier inputs
+  const collected = {};
+  const getBaseline = (k) => (window._modulesBaseline || modules)[k];
+  document.querySelectorAll('#seg-admin-module-tbody-white .seg-admin-input-white').forEach(inp => {
+    const modKey = inp.dataset.modkey;
+    const tierIdx = parseInt(inp.dataset.tieridx);
+    const currency = inp.dataset.currency;
+    const val = parseInt(inp.value);
+    if (!collected[modKey]) {
+      const blTiers = (getBaseline(modKey) || {}).tiers || modules[modKey]?.tiers || [];
+      collected[modKey] = blTiers.map(t => ({ vol: t.vol, price: 0 }));
+    }
+    if (!isNaN(val) && val >= 0 && collected[modKey][tierIdx] !== undefined) {
+      if (currency === 'usd') collected[modKey][tierIdx].price = val;
+      else if (currency === 'eur') collected[modKey][tierIdx].eur = val;
+      else if (currency === 'gbp') collected[modKey][tierIdx].gbp = val;
     }
   });
-  // Persist locally (instant)
-  localStorage.setItem('lio-segment-factors', JSON.stringify(updates));
-  // Push to Supabase (async, show status)
-  const statusEl = document.getElementById('segment-admin-status');
-  if (statusEl) statusEl.textContent = 'Saving…';
-  sbSaveSegmentFactorsToDb(updates).then(ok => {
-    if (statusEl) statusEl.textContent = ok ? '✓ Saved to database' : '✓ Saved locally';
-    setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 3000);
+
+  if (statusEl) { statusEl.textContent = 'Saving…'; statusEl.style.color = '#6366f1'; }
+  if (saveBtn) saveBtn.disabled = true;
+
+  const smpCache = window._segmentModulePrices || {};
+  if (!smpCache[segKey]) smpCache[segKey] = {};
+  const promises = [];
+
+  Object.keys(collected).forEach(modKey => {
+    const tiers = collected[modKey];
+    const bl = (getBaseline(modKey) || {}).tiers || [];
+    const differsFromFactor = tiers.some((t, i) => {
+      const blT = bl[i] || {};
+      if (t.price !== Math.max(0, Math.round((blT.price || 0) * factor))) return true;
+      if (t.eur !== undefined && blT.eur !== undefined && t.eur !== Math.max(0, Math.round(blT.eur * factor / 500) * 500)) return true;
+      if (t.gbp !== undefined && blT.gbp !== undefined && t.gbp !== Math.max(0, Math.round(blT.gbp * factor / 500) * 500)) return true;
+      return false;
+    });
+    if (differsFromFactor) {
+      smpCache[segKey][modKey] = JSON.parse(JSON.stringify(tiers));
+      promises.push(sbSaveSegmentModulePrice(segKey, modKey, tiers));
+    } else {
+      delete smpCache[segKey][modKey];
+      promises.push(sbDeleteSegmentModulePrice(segKey, modKey));
+    }
   });
-  // Re-apply if a segment is active
+
+  if (smpCache[segKey] && Object.keys(smpCache[segKey]).length === 0) delete smpCache[segKey];
+  window._segmentModulePrices = smpCache;
+  localStorage.setItem('lio-smp-cache', JSON.stringify(smpCache));
+
+  try {
+    await Promise.allSettled(promises);
+    if (statusEl) { statusEl.style.color = '#16a34a'; statusEl.textContent = '✓ Saved'; setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 3000); }
+  } catch (e) {
+    if (statusEl) { statusEl.style.color = '#94a3b8'; statusEl.textContent = 'Saved locally'; setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 3000); }
+  } finally {
+    if (saveBtn) saveBtn.disabled = false;
+  }
+
   if (window._currentSegmentKey && typeof window._applySegmentPricing === 'function') {
     window._applySegmentPricing(window._currentSegmentKey);
   }
+  lioRenderSegmentTabsWhite(segKey);
+  lioRenderModuleTableWhite(segKey);
   lioRenderSegmentPills();
-  lioCloseSegmentAdmin();
+  if (typeof populateQuotePricing === 'function' && !document.getElementById('quote-modal')?.classList.contains('hidden')) populateQuotePricing();
 }
+
+async function lioResetAllModulePricesWhite() {
+  if (!_adminSegKeyW) return;
+  const segKey = _adminSegKeyW;
+  const label = (window._segFactors?.[segKey] || {}).label || segKey;
+  if (!confirm(`Reset all custom module prices for "${label}" to the global factor? All per-module overrides will be removed.`)) return;
+  const statusEl = document.getElementById('seg-admin-status-white');
+  if (statusEl) { statusEl.style.color = '#94a3b8'; statusEl.textContent = 'Resetting…'; }
+  const modKeys = Object.keys((window._segmentModulePrices || {})[segKey] || {});
+  if (modKeys.length > 0) {
+    await Promise.allSettled(modKeys.map(mk => sbDeleteSegmentModulePrice(segKey, mk)));
+  }
+  if (window._segmentModulePrices) delete window._segmentModulePrices[segKey];
+  localStorage.setItem('lio-smp-cache', JSON.stringify(window._segmentModulePrices || {}));
+  if (statusEl) { statusEl.style.color = '#16a34a'; statusEl.textContent = '✓ Reset'; setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 2000); }
+  if (window._currentSegmentKey && typeof window._applySegmentPricing === 'function') {
+    window._applySegmentPricing(window._currentSegmentKey);
+  }
+  lioRenderSegmentTabsWhite(segKey);
+  lioRenderModuleTableWhite(segKey);
+}
+
+async function lioResetModulePriceWhite(segKey, modKey) {
+  const smpCache = window._segmentModulePrices || {};
+  if (smpCache[segKey]) {
+    delete smpCache[segKey][modKey];
+    if (Object.keys(smpCache[segKey]).length === 0) delete smpCache[segKey];
+  }
+  window._segmentModulePrices = smpCache;
+  localStorage.setItem('lio-smp-cache', JSON.stringify(smpCache));
+  sbDeleteSegmentModulePrice(segKey, modKey);
+  if (window._currentSegmentKey && typeof window._applySegmentPricing === 'function') {
+    window._applySegmentPricing(window._currentSegmentKey);
+  }
+  lioRenderModuleTableWhite(segKey);
+}
+
+// Legacy aliases — kept so any old references still work
+function lioSaveSegmentAdmin() { lioSaveSegmentPricingWhite(); }
 function lioResetSegmentFactors() {
-  const SF = window._segFactors;
-  const SFD = window._segFactorsDefaults;
+  const SF = window._segFactors, SFD = window._segFactorsDefaults;
   if (!SF || !SFD) return;
   if (!confirm('Reset all segment factors to defaults?')) return;
   Object.keys(SFD).forEach(k => { if (SF[k]) SF[k].factor = SFD[k].factor; });
@@ -1732,7 +1968,7 @@ function lioResetSegmentFactors() {
     window._applySegmentPricing(window._currentSegmentKey);
   }
   lioRenderSegmentPills();
-  lioOpenSegmentAdmin(); // refresh displayed values
+  lioOpenSegmentAdmin();
 }
 // Render segment picker pills in the quote modal
 function lioRenderSegmentPills() {
@@ -5612,6 +5848,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
     const f = seg.factor || 1.0;
     window._currentSegmentKey = segKey;
     const round500 = (v) => Math.max(500, Math.round(v / 500) * 500);
+    // Step 1: apply global factor to every module from baseline
     Object.keys(modules).forEach(k => {
       const baseline = window._modulesBaseline[k];
       if (!baseline) return;
@@ -5621,6 +5858,13 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
         if (typeof t.gbp === 'number') out.gbp = round500(t.gbp * f);
         return out;
       });
+    });
+    // Step 2: overlay per-module custom prices (these win over the factor)
+    const customMods = (window._segmentModulePrices || {})[segKey] || {};
+    Object.keys(customMods).forEach(k => {
+      if (modules[k] && Array.isArray(customMods[k]) && customMods[k].length > 0) {
+        modules[k].tiers = JSON.parse(JSON.stringify(customMods[k]));
+      }
     });
     // Currency switch (segment determines display currency)
     if (seg.currency && typeof setCurrency === 'function') setCurrency(seg.currency);
@@ -5672,6 +5916,10 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
       Object.keys(SEGMENT_FACTORS).forEach(k => { localUpdates[k] = { factor: SEGMENT_FACTORS[k].factor }; });
       localStorage.setItem('lio-segment-factors', JSON.stringify(localUpdates));
     });
+  }
+  // Boot: load per-module segment prices
+  if (typeof sbLoadSegmentModulePrices === 'function') {
+    sbLoadSegmentModulePrices();
   }
 
   const W = window.lioWizard = window.lioWizard || {
