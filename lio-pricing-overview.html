@@ -1659,34 +1659,54 @@ input[type="checkbox"] { accent-color: #6366f1; }
             <input type="checkbox" id="quote-hide-additional-agents" class="w-4 h-4 rounded">
             <span class="font-semibold">Hide "Additional Agents to Showcase" section on PDF</span>
           </label>
-                    <div id="quote-phase-rates" class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3 mb-2 hidden">
-            <div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold col-span-full">Per-Phase Customer Success & Implementation Rates <span class="normal-case tracking-normal text-slate-600">(empty = use defaults 10% / 15%)</span></div>
-            <div class="flex items-center gap-1.5 text-[11px]">
-              <span class="text-slate-300 font-semibold w-14">Phase 1:</span>
-              <span class="text-slate-500">CS</span>
-              <input type="number" id="quote-phase-cs-1" min="0" step="0.5" placeholder="10" class="w-12 bg-slate-900/50 border border-slate-700 rounded px-1.5 py-0.5 text-[11px] text-slate-200 outline-none" oninput="(window.updateQuotePricing&&updateQuotePricing())">
-              <span class="text-slate-500">%</span>
-              <span class="text-slate-500 ml-2">Impl</span>
-              <input type="number" id="quote-phase-impl-1" min="0" step="0.5" placeholder="15" class="w-12 bg-slate-900/50 border border-slate-700 rounded px-1.5 py-0.5 text-[11px] text-slate-200 outline-none" oninput="(window.updateQuotePricing&&updateQuotePricing())">
-              <span class="text-slate-500">%</span>
-            </div>
-            <div class="flex items-center gap-1.5 text-[11px]">
-              <span class="text-slate-300 font-semibold w-14">Phase 2:</span>
-              <span class="text-slate-500">CS</span>
-              <input type="number" id="quote-phase-cs-2" min="0" step="0.5" placeholder="10" class="w-12 bg-slate-900/50 border border-slate-700 rounded px-1.5 py-0.5 text-[11px] text-slate-200 outline-none" oninput="(window.updateQuotePricing&&updateQuotePricing())">
-              <span class="text-slate-500">%</span>
-              <span class="text-slate-500 ml-2">Impl</span>
-              <input type="number" id="quote-phase-impl-2" min="0" step="0.5" placeholder="15" class="w-12 bg-slate-900/50 border border-slate-700 rounded px-1.5 py-0.5 text-[11px] text-slate-200 outline-none" oninput="(window.updateQuotePricing&&updateQuotePricing())">
-              <span class="text-slate-500">%</span>
-            </div>
-            <div class="flex items-center gap-1.5 text-[11px]">
-              <span class="text-slate-300 font-semibold w-14">Phase 3:</span>
-              <span class="text-slate-500">CS</span>
-              <input type="number" id="quote-phase-cs-3" min="0" step="0.5" placeholder="10" class="w-12 bg-slate-900/50 border border-slate-700 rounded px-1.5 py-0.5 text-[11px] text-slate-200 outline-none" oninput="(window.updateQuotePricing&&updateQuotePricing())">
-              <span class="text-slate-500">%</span>
-              <span class="text-slate-500 ml-2">Impl</span>
-              <input type="number" id="quote-phase-impl-3" min="0" step="0.5" placeholder="15" class="w-12 bg-slate-900/50 border border-slate-700 rounded px-1.5 py-0.5 text-[11px] text-slate-200 outline-none" oninput="(window.updateQuotePricing&&updateQuotePricing())">
-              <span class="text-slate-500">%</span>
+          <div id="quote-phase-rates" class="mt-3 mb-2 hidden">
+            <div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-2">Per-Phase Customer Success & Implementation Rates <span class="normal-case tracking-normal text-slate-600">(empty = use defaults 10% / 15%)</span></div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div class="flex items-center justify-between gap-2 text-[11px] bg-slate-900/40 border border-slate-700/50 rounded-lg px-2.5 py-1.5">
+                <span class="text-slate-300 font-semibold">Phase 1</span>
+                <div class="flex items-center gap-2">
+                  <label class="flex items-center gap-1">
+                    <span class="text-slate-500">CS</span>
+                    <input type="number" id="quote-phase-cs-1" min="0" step="0.5" placeholder="10" class="w-14 bg-slate-900/60 border border-slate-700 rounded px-1.5 py-0.5 text-[11px] text-slate-200 outline-none text-right" oninput="window.updateQuotePricing&&updateQuotePricing()">
+                    <span class="text-slate-500">%</span>
+                  </label>
+                  <label class="flex items-center gap-1">
+                    <span class="text-slate-500">Impl</span>
+                    <input type="number" id="quote-phase-impl-1" min="0" step="0.5" placeholder="15" class="w-14 bg-slate-900/60 border border-slate-700 rounded px-1.5 py-0.5 text-[11px] text-slate-200 outline-none text-right" oninput="window.updateQuotePricing&&updateQuotePricing()">
+                    <span class="text-slate-500">%</span>
+                  </label>
+                </div>
+              </div>
+              <div class="flex items-center justify-between gap-2 text-[11px] bg-slate-900/40 border border-slate-700/50 rounded-lg px-2.5 py-1.5">
+                <span class="text-slate-300 font-semibold">Phase 2</span>
+                <div class="flex items-center gap-2">
+                  <label class="flex items-center gap-1">
+                    <span class="text-slate-500">CS</span>
+                    <input type="number" id="quote-phase-cs-2" min="0" step="0.5" placeholder="10" class="w-14 bg-slate-900/60 border border-slate-700 rounded px-1.5 py-0.5 text-[11px] text-slate-200 outline-none text-right" oninput="window.updateQuotePricing&&updateQuotePricing()">
+                    <span class="text-slate-500">%</span>
+                  </label>
+                  <label class="flex items-center gap-1">
+                    <span class="text-slate-500">Impl</span>
+                    <input type="number" id="quote-phase-impl-2" min="0" step="0.5" placeholder="15" class="w-14 bg-slate-900/60 border border-slate-700 rounded px-1.5 py-0.5 text-[11px] text-slate-200 outline-none text-right" oninput="window.updateQuotePricing&&updateQuotePricing()">
+                    <span class="text-slate-500">%</span>
+                  </label>
+                </div>
+              </div>
+              <div class="flex items-center justify-between gap-2 text-[11px] bg-slate-900/40 border border-slate-700/50 rounded-lg px-2.5 py-1.5">
+                <span class="text-slate-300 font-semibold">Phase 3</span>
+                <div class="flex items-center gap-2">
+                  <label class="flex items-center gap-1">
+                    <span class="text-slate-500">CS</span>
+                    <input type="number" id="quote-phase-cs-3" min="0" step="0.5" placeholder="10" class="w-14 bg-slate-900/60 border border-slate-700 rounded px-1.5 py-0.5 text-[11px] text-slate-200 outline-none text-right" oninput="window.updateQuotePricing&&updateQuotePricing()">
+                    <span class="text-slate-500">%</span>
+                  </label>
+                  <label class="flex items-center gap-1">
+                    <span class="text-slate-500">Impl</span>
+                    <input type="number" id="quote-phase-impl-3" min="0" step="0.5" placeholder="15" class="w-14 bg-slate-900/60 border border-slate-700 rounded px-1.5 py-0.5 text-[11px] text-slate-200 outline-none text-right" oninput="window.updateQuotePricing&&updateQuotePricing()">
+                    <span class="text-slate-500">%</span>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
           <!-- Maintenance Fee -->
@@ -2866,8 +2886,11 @@ const modules = {
     { vol: 'Up to 200,000', price: 200000, eur: 200000, gbp: 200000 }
   ]},
   pia: { name: 'Procurement Intelligence', color: 'sky', tiers: [
-    { vol: 'Up to 5 users', price: 6000 }, { vol: 'Up to 10 users', price: 12000 },
-    { vol: 'Up to 25 users', price: 25000 }, { vol: 'Up to 50 users', price: 40000 },
+    { vol: 'Flat Rate', price: 25000, eur: 23000, gbp: 21000 },
+    { vol: 'Up to 5 users', price: 6000 },
+    { vol: 'Up to 10 users', price: 12000 },
+    { vol: 'Up to 25 users', price: 25000 },
+    { vol: 'Up to 50 users', price: 40000 },
     { vol: 'Up to 100 users', price: 68750 }
   ]},
   npa: { name: 'Negotiation Preparation', color: 'fuchsia', tiers: [
@@ -5256,20 +5279,52 @@ function updateQuotePricing() {
   const bundleSavings = bundlePct > 0 ? Math.round(saasSubtotal * bundlePct / 100) : 0;
   const netSaas = saasSubtotal - bundleSavings;
 
-  // Implementation discount
+  // Implementation discount (used when phases NOT enabled)
   const implDiscVal = parseFloat(document.getElementById('quote-impl-disc')?.value) || 0;
   const implDiscType = document.getElementById('quote-impl-disc-type')?.value || 'pct';
-  let impl = Math.round(netSaas * 0.15);
-  if (implDiscVal > 0) {
-    impl = implDiscType === 'pct' ? Math.round(impl * (1 - implDiscVal / 100)) : Math.max(0, impl - implDiscVal);
-  }
-
-  // CS discount
+  // CS discount (used when phases NOT enabled)
   const csDiscVal = parseFloat(document.getElementById('quote-cs-disc')?.value) || 0;
   const csDiscType = document.getElementById('quote-cs-disc-type')?.value || 'pct';
-  let cs = Math.round(netSaas * 0.10);
-  if (csDiscVal > 0) {
-    cs = csDiscType === 'pct' ? Math.round(cs * (1 - csDiscVal / 100)) : Math.max(0, cs - csDiscVal);
+
+  let impl, cs;
+  const phasesOn = typeof lioPhasesEnabled === 'function' && lioPhasesEnabled();
+  if (phasesOn) {
+    // Per-phase CS/Impl: sum each phase using its own rate (default 10%/15%)
+    // Phase rates live in window._phaseRates[1..3].{cs,impl}; refresh from inputs first.
+    if (typeof lioReadPhaseRates === 'function') lioReadPhaseRates();
+    const selections = (typeof lioGetActiveSelections === 'function') ? lioGetActiveSelections() : [];
+    const grouped = { 1: [], 2: [], 3: [] };
+    selections.forEach(it => {
+      const p = (typeof lioGetPhase === 'function' ? lioGetPhase(it.key) : 1) || 1;
+      (grouped[p] || grouped[1]).push(it);
+    });
+    const totalSaasAll = selections.reduce((s, m) => s + (m.price || 0), 0);
+    cs = 0; impl = 0;
+    [1, 2, 3].forEach(p => {
+      const items = grouped[p] || [];
+      if (items.length === 0) return;
+      const subtotal = items.reduce((s, m) => s + (m.price || 0), 0);
+      // Phase-share of global bundle savings, proportional to phase SaaS.
+      let phaseBundleSavings = 0;
+      if (bundleSavings > 0 && totalSaasAll > 0) {
+        phaseBundleSavings = Math.round(bundleSavings * (subtotal / totalSaasAll));
+      }
+      const phaseNet = subtotal - phaseBundleSavings;
+      const ov = (window._phaseRates && window._phaseRates[p]) || {};
+      const csPct = (ov.cs != null && isFinite(ov.cs)) ? parseFloat(ov.cs) : 10;
+      const implPct = (ov.impl != null && isFinite(ov.impl)) ? parseFloat(ov.impl) : 15;
+      cs += Math.round(phaseNet * csPct / 100);
+      impl += Math.round(phaseNet * implPct / 100);
+    });
+  } else {
+    impl = Math.round(netSaas * 0.15);
+    if (implDiscVal > 0) {
+      impl = implDiscType === 'pct' ? Math.round(impl * (1 - implDiscVal / 100)) : Math.max(0, impl - implDiscVal);
+    }
+    cs = Math.round(netSaas * 0.10);
+    if (csDiscVal > 0) {
+      cs = csDiscType === 'pct' ? Math.round(cs * (1 - csDiscVal / 100)) : Math.max(0, cs - csDiscVal);
+    }
   }
 
   const recurringAnnual = netSaas + cs;
@@ -6970,6 +7025,22 @@ function lioAdminSwitchSegDark(segKey) {
   lioRenderModuleTableDark(segKey);
 }
 
+// Compute the factor-scaled tier price for a given currency from the baseline.
+// Falls back to USD-derived value when baseline has no native EUR/GBP price.
+function _lioFactorTierPrice(blTier, currency, factor) {
+  const usd = Math.max(0, (blTier && blTier.price) || 0);
+  if (currency === 'usd') return Math.round(usd * factor);
+  if (currency === 'eur') {
+    if (blTier && blTier.eur != null) return Math.max(0, Math.round(blTier.eur * factor / 500) * 500);
+    return Math.max(0, Math.round(usd * factor * (currencyRates.eur || (1 / 1.08)) / 500) * 500);
+  }
+  if (currency === 'gbp') {
+    if (blTier && blTier.gbp != null) return Math.max(0, Math.round(blTier.gbp * factor / 500) * 500);
+    return Math.max(0, Math.round(usd * factor * (currencyRates.gbp || (1 / 1.18)) / 500) * 500);
+  }
+  return 0;
+}
+
 function lioRenderModuleTableDark(segKey) {
   const tbody = document.getElementById('seg-admin-module-tbody');
   if (!tbody) return;
@@ -6985,12 +7056,12 @@ function lioRenderModuleTableDark(segKey) {
     if (!bl) return;
     const isCustom = Array.isArray(customMods[modKey]) && customMods[modKey].length > 0;
     // effective tiers: custom override wins; otherwise compute from baseline × factor
-    const effectiveTiers = isCustom ? customMods[modKey] : bl.tiers.map(t => {
-      const out = { vol: t.vol, price: Math.max(0, Math.round(t.price * factor)) };
-      if (t.eur != null) out.eur = Math.max(0, Math.round(t.eur * factor / 500) * 500);
-      if (t.gbp != null) out.gbp = Math.max(0, Math.round(t.gbp * factor / 500) * 500);
-      return out;
-    });
+    const effectiveTiers = isCustom ? customMods[modKey] : bl.tiers.map(t => ({
+      vol: t.vol,
+      price: _lioFactorTierPrice(t, 'usd', factor),
+      eur: _lioFactorTierPrice(t, 'eur', factor),
+      gbp: _lioFactorTierPrice(t, 'gbp', factor)
+    }));
 
     // Module header row
     html += `<tr class="border-t border-slate-700/40">
@@ -7007,26 +7078,23 @@ function lioRenderModuleTableDark(segKey) {
       </td>
     </tr>`;
 
-    // Tier rows
+    // Tier rows — always show USD, EUR, GBP inputs for every module
     effectiveTiers.forEach((tier, i) => {
       const blTier = bl.tiers[i] || {};
-      const hasEur = tier.eur !== undefined || blTier.eur !== undefined;
-      const hasGbp = tier.gbp !== undefined || blTier.gbp !== undefined;
+      const usdVal = tier.price ?? _lioFactorTierPrice(blTier, 'usd', factor);
+      const eurVal = tier.eur ?? _lioFactorTierPrice(blTier, 'eur', factor);
+      const gbpVal = tier.gbp ?? _lioFactorTierPrice(blTier, 'gbp', factor);
       const inp = `bg-slate-800/80 border border-slate-700 rounded px-2 py-1 text-xs text-white outline-none focus:ring-1 focus:ring-lio-500 focus:border-lio-500 transition`;
       html += `<tr class="hover:bg-slate-800/20 transition">
         <td class="px-4 py-1 text-xs text-slate-400 pl-6">${tier.vol}</td>
         <td class="px-3 py-1">
-          <input type="number" class="seg-admin-input w-full ${inp}" data-modkey="${modKey}" data-tieridx="${i}" data-currency="usd" value="${tier.price ?? 0}" min="0" step="100">
+          <input type="number" class="seg-admin-input w-full ${inp}" data-modkey="${modKey}" data-tieridx="${i}" data-currency="usd" value="${usdVal}" min="0" step="100">
         </td>
         <td class="px-3 py-1">
-          ${hasEur
-            ? `<input type="number" class="seg-admin-input w-full ${inp}" data-modkey="${modKey}" data-tieridx="${i}" data-currency="eur" value="${tier.eur ?? (blTier.eur != null ? Math.max(0, Math.round(blTier.eur * factor / 500) * 500) : 0)}" min="0" step="500">`
-            : `<span class="text-slate-700 text-xs px-2">—</span>`}
+          <input type="number" class="seg-admin-input w-full ${inp}" data-modkey="${modKey}" data-tieridx="${i}" data-currency="eur" value="${eurVal}" min="0" step="500">
         </td>
         <td class="px-3 py-1">
-          ${hasGbp
-            ? `<input type="number" class="seg-admin-input w-full ${inp}" data-modkey="${modKey}" data-tieridx="${i}" data-currency="gbp" value="${tier.gbp ?? (blTier.gbp != null ? Math.max(0, Math.round(blTier.gbp * factor / 500) * 500) : 0)}" min="0" step="500">`
-            : `<span class="text-slate-700 text-xs px-2">—</span>`}
+          <input type="number" class="seg-admin-input w-full ${inp}" data-modkey="${modKey}" data-tieridx="${i}" data-currency="gbp" value="${gbpVal}" min="0" step="500">
         </td>
         <td></td>
       </tr>`;
@@ -7086,12 +7154,14 @@ async function lioSaveSegmentPricingDark() {
   Object.keys(collected).forEach(modKey => {
     const tiers = collected[modKey];
     const bl = baseline[modKey]?.tiers || [];
-    // Compare each tier to the factor-computed value
+    // Compare each tier to the factor-computed value (USD/EUR/GBP).
+    // EUR/GBP are now always present in the inputs — derived from baseline or
+    // computed from USD × currencyRate. Use _lioFactorTierPrice for comparison.
     const differsFromFactor = tiers.some((t, i) => {
       const blT = bl[i] || {};
-      if (t.price !== Math.max(0, Math.round((blT.price || 0) * factor))) return true;
-      if (t.eur !== undefined && blT.eur !== undefined && t.eur !== Math.max(0, Math.round(blT.eur * factor / 500) * 500)) return true;
-      if (t.gbp !== undefined && blT.gbp !== undefined && t.gbp !== Math.max(0, Math.round(blT.gbp * factor / 500) * 500)) return true;
+      if (t.price !== _lioFactorTierPrice(blT, 'usd', factor)) return true;
+      if (t.eur !== undefined && t.eur !== _lioFactorTierPrice(blT, 'eur', factor)) return true;
+      if (t.gbp !== undefined && t.gbp !== _lioFactorTierPrice(blT, 'gbp', factor)) return true;
       return false;
     });
 
