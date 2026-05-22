@@ -4954,6 +4954,18 @@ function buildPricingReferenceHtml() {
   '</div>';
 }
 
+// Compute a tier's price in any currency (uses native eur/gbp if defined,
+// otherwise converts from USD using currencyRates, rounded to 500).
+function _tierPriceInCurrency(tier, cur) {
+  if (!tier) return 0;
+  if (cur === 'eur' && tier.eur !== undefined) return tier.eur;
+  if (cur === 'gbp' && tier.gbp !== undefined) return tier.gbp;
+  const rate = currencyRates[cur] || 1;
+  let c = (tier.price || 0) * rate;
+  if (cur !== 'usd') c = Math.round(c / 500) * 500; else c = Math.round(c);
+  return Math.max(0, c);
+}
+
 function populateQuotePricing() {
   const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
   const tbody = document.getElementById('quote-pricing-lines');
@@ -4969,7 +4981,10 @@ function populateQuotePricing() {
     const tierEl = document.getElementById('calc-' + mod + '-tier');
     const price = parseInt(tierEl.value);
     const tierObj = modules[mod].tiers.find(t => t.price === price) || { price: price };
-    const rawPrice = getTierPriceRaw(tierObj);
+    const listUsd = _tierPriceInCurrency(tierObj, 'usd');
+    const listEur = _tierPriceInCurrency(tierObj, 'eur');
+    const listGbp = _tierPriceInCurrency(tierObj, 'gbp');
+    const rawPrice = currentCurrency === 'usd' ? listUsd : (currentCurrency === 'eur' ? listEur : listGbp);
     discountMode[mod] = discountMode[mod] || 'manual';
     // Build tier options for this module
     const tierOpts = modules[mod].tiers.map(t => {
@@ -4981,19 +4996,36 @@ function populateQuotePricing() {
     const otherMods = mods.filter(k => !selectedKeys.includes(k));
     const modOptions = '<option value="' + mod + '" selected>' + prettyName(mod) + '</option>' +
       otherMods.map(k => '<option value="' + k + '">' + prettyName(k) + '</option>').join('');
-    tbody.innerHTML += '<tr class="border-t border-slate-700/30" data-mod="' + mod + '" id="qrow-' + mod + '">'
+    // 3-currency input cell — active currency input gets accent border.
+    const accent = 'border-lio-500/70 ring-1 ring-lio-500/30';
+    const dim = 'border-slate-600';
+    const curRow = (cur, sym, val) => {
+      const isActive = currentCurrency === cur;
+      const cls = isActive ? accent : dim;
+      const labelCls = isActive ? 'text-lio-300 font-semibold' : 'text-slate-500';
+      return '<div class="flex items-center justify-end gap-1">'
+        + '<span class="text-[10px] ' + labelCls + ' w-3 text-center">' + sym + '</span>'
+        + '<input type="number" id="qf' + cur[0] + '-' + mod + '" value="' + val + '" min="0" step="' + (cur === 'usd' ? '100' : '500') + '" oninput="onQfCur(\'' + mod + '\',\'' + cur + '\')" class="w-24 bg-slate-800/50 border ' + cls + ' rounded px-1.5 py-0.5 text-xs text-white text-right outline-none ' + (isActive ? 'font-semibold' : '') + '">'
+        + '</div>';
+    };
+    tbody.innerHTML += '<tr class="border-t border-slate-700/30" data-mod="' + mod + '" id="qrow-' + mod + '" data-list-usd="' + listUsd + '" data-list-eur="' + listEur + '" data-list-gbp="' + listGbp + '">'
       + '<td class="p-2 pl-3"><select onchange="swapModuleInRow(\'' + mod + '\', this.value)" class="w-full bg-slate-800/50 border border-slate-600 rounded p-1 text-xs text-slate-200 outline-none cursor-pointer hover:bg-slate-800" title="Click to swap with a different agent">' + modOptions + '</select></td>'
       + '<td class="p-2"><select id="qt-' + mod + '" onchange="changeQuoteTier(\'' + mod + '\'); syncTierLabelPlaceholder(\'' + mod + '\')" class="w-full bg-slate-800/50 border border-slate-600 rounded p-1 text-xs text-white outline-none">' + tierOpts + '</select>'
       + '<input type="text" id="qt-label-' + mod + '" placeholder="Custom label (optional)" class="w-full mt-1 bg-slate-800/50 border border-slate-600 rounded p-1 text-[11px] text-slate-300 outline-none placeholder-slate-500" oninput="updateTierLabelOverride(\'' + mod + '\', this.value)" title="Override the tier label that prints on the quote (leave empty to use the volume from the dropdown).">'
       + '</td>'
-      + '<td class="p-2 text-right text-slate-400" data-list-price="' + rawPrice + '">' + fmtRaw(rawPrice) + '</td>'
-      + '<td class="p-2 text-center">'
+      + '<td class="p-2 text-right text-slate-400 align-top" data-list-price="' + rawPrice + '">' + fmtRaw(rawPrice) + '</td>'
+      + '<td class="p-2 text-center align-top">'
       + '<input type="number" id="qd-' + mod + '" value="" min="0" max="100" step="1" placeholder="%" onchange="applyDiscountPct(\'' + mod + '\')" oninput="applyDiscountPct(\'' + mod + '\')" class="w-16 bg-slate-800/50 border border-slate-600 rounded p-1 text-sm text-white text-center outline-none">'
       + '</td>'
       + '<td class="p-2 pr-3 text-right">'
-      + '<input type="number" id="qf-' + mod + '" value="' + rawPrice + '" min="0" step="100" onchange="applyManualPrice(\'' + mod + '\')" oninput="applyManualPrice(\'' + mod + '\')" class="w-28 bg-slate-800/50 border border-slate-600 rounded p-1 text-sm text-white text-right outline-none font-semibold">'
+      + '<div class="inline-flex flex-col gap-0.5 items-end">'
+      + curRow('usd', '$', listUsd)
+      + curRow('eur', '€', listEur)
+      + curRow('gbp', '£', listGbp)
+      + '<input type="hidden" id="qf-' + mod + '" value="' + rawPrice + '">'
+      + '</div>'
       + '</td>'
-      + '<td class="p-2 text-center"><button onclick="toggleExcludeModule(\'' + mod + '\')" id="qx-' + mod + '" class="text-slate-500 hover:text-red-400 text-lg transition" title="Exclude from quote">&times;</button></td>'
+      + '<td class="p-2 text-center align-top"><button onclick="toggleExcludeModule(\'' + mod + '\')" id="qx-' + mod + '" class="text-slate-500 hover:text-red-400 text-lg transition" title="Exclude from quote">&times;</button></td>'
       + '</tr>';
   });
 
@@ -5025,22 +5057,29 @@ function applyDiscountPct(key) {
   const pctInput = document.getElementById('qd-' + key);
   const priceInput = document.getElementById('qf-' + key);
   if (!pctInput || !priceInput) return;
-  const listPriceEl = document.querySelector('tr[data-mod="' + key + '"] td[data-list-price]');
-  const listPrice = parseFloat(listPriceEl?.getAttribute('data-list-price')) || 0;
+  const row = document.querySelector('tr[data-mod="' + key + '"]');
+  const listUsd = parseFloat(row?.getAttribute('data-list-usd')) || 0;
+  const listEur = parseFloat(row?.getAttribute('data-list-eur')) || 0;
+  const listGbp = parseFloat(row?.getAttribute('data-list-gbp')) || 0;
+  // The legacy active-currency list price (for the small grey "List Price" cell)
+  const listPriceEl = row?.querySelector('td[data-list-price]');
+  const listPrice = parseFloat(listPriceEl?.getAttribute('data-list-price')) || (currentCurrency === 'usd' ? listUsd : currentCurrency === 'eur' ? listEur : listGbp);
   const rawVal = pctInput.value?.toString().trim();
   const pct = parseFloat(rawVal);
-  // Defensive: only override the price when we actually have a positive list price AND
-  // a positive discount. Otherwise the calculation produces 0 and would wipe the user's
-  // manual edits (root cause of the "Global Discount turns everything to 0€" bug).
-  if (isFinite(pct) && pct > 0 && listPrice > 0) {
-    let discounted = listPrice * (1 - Math.min(100, pct) / 100);
-    if (discounted < 0) discounted = 0;
-    if (currentCurrency !== 'usd') discounted = Math.round(discounted / 500) * 500;
-    else discounted = Math.round(discounted);
-    priceInput.value = discounted;
+  if (isFinite(pct) && pct > 0 && (listUsd > 0 || listEur > 0 || listGbp > 0)) {
+    const mul = 1 - Math.min(100, pct) / 100;
+    // Apply discount to ALL three currencies — keeps cross-currency edits aligned.
+    const rndUsd = Math.max(0, Math.round(listUsd * mul));
+    const rndEur = Math.max(0, Math.round(listEur * mul / 500) * 500);
+    const rndGbp = Math.max(0, Math.round(listGbp * mul / 500) * 500);
+    const u = document.getElementById('qfu-' + key); if (u) u.value = rndUsd;
+    const e = document.getElementById('qfe-' + key); if (e) e.value = rndEur;
+    const g = document.getElementById('qfg-' + key); if (g) g.value = rndGbp;
+    // Update the active-currency hidden mirror that downstream code reads.
+    priceInput.value = currentCurrency === 'usd' ? rndUsd : (currentCurrency === 'eur' ? rndEur : rndGbp);
     discountMode[key] = 'pct';
   } else {
-    // pct empty or 0 OR list price missing — leave the user's price as-is.
+    // pct empty or 0 OR no list prices — leave the user's price as-is.
     discountMode[key] = 'manual';
   }
   if (typeof calcUpdate === 'function') calcUpdate();
@@ -5055,6 +5094,26 @@ function applyManualPrice(key) {
   // the manual override immediately. Run it before updateQuotePricing so the
   // bundle/CS/Impl numbers downstream are consistent with the manual price.
   if (typeof calcUpdate === 'function') calcUpdate();
+  updateQuotePricing();
+}
+
+// Per-currency price input handler. User typed in qfu-/qfe-/qfg-{mod}.
+// We mirror the active currency value into the hidden qf-{mod} input
+// (used by all downstream calculations) and clear any discount %.
+function onQfCur(mod, cur) {
+  const src = document.getElementById('qf' + cur[0] + '-' + mod);
+  if (!src) return;
+  // Clear discount field — user is overriding manually
+  const qd = document.getElementById('qd-' + mod);
+  if (qd) qd.value = '';
+  discountMode[mod] = 'manual';
+  // Mirror only the ACTIVE currency into the hidden qf-{mod}
+  if (cur === currentCurrency) {
+    const qf = document.getElementById('qf-' + mod);
+    if (qf) qf.value = src.value;
+    // Update visible "List Price" cell? No — list price stays the tier baseline.
+    if (typeof calcUpdate === 'function') calcUpdate();
+  }
   updateQuotePricing();
 }
 
@@ -5090,11 +5149,23 @@ function changeQuoteTier(key) {
   if (!tierSel) return;
   const newUsdPrice = parseInt(tierSel.value);
   const tierObj = modules[key].tiers.find(t => t.price === newUsdPrice) || { price: newUsdPrice };
-  const newPrice = getTierPriceRaw(tierObj);
+  const newUsd = _tierPriceInCurrency(tierObj, 'usd');
+  const newEur = _tierPriceInCurrency(tierObj, 'eur');
+  const newGbp = _tierPriceInCurrency(tierObj, 'gbp');
+  const newPrice = currentCurrency === 'usd' ? newUsd : (currentCurrency === 'eur' ? newEur : newGbp);
+  const row = document.querySelector('tr[data-mod="' + key + '"]');
+  if (row) {
+    row.setAttribute('data-list-usd', newUsd);
+    row.setAttribute('data-list-eur', newEur);
+    row.setAttribute('data-list-gbp', newGbp);
+  }
   // Update list price cell
-  const listCell = document.querySelector('tr[data-mod="' + key + '"] td[data-list-price]');
+  const listCell = row?.querySelector('td[data-list-price]');
   if (listCell) { listCell.setAttribute('data-list-price', newPrice); listCell.textContent = fmtRaw(newPrice); }
-  // Update Your Price input
+  // Update all 3 currency inputs + hidden active-currency mirror
+  const u = document.getElementById('qfu-' + key); if (u) u.value = newUsd;
+  const e = document.getElementById('qfe-' + key); if (e) e.value = newEur;
+  const g = document.getElementById('qfg-' + key); if (g) g.value = newGbp;
   const qf = document.getElementById('qf-' + key);
   if (qf) qf.value = newPrice;
   // Clear discount
@@ -5184,20 +5255,21 @@ function applyGlobalDiscount() {
   document.querySelectorAll('#quote-pricing-lines tr[data-mod]').forEach(row => {
     const key = row.dataset.mod;
     if (excludedModules[key]) return; // leave excluded rows untouched
-    const listCell = row.querySelector('td[data-list-price]');
-    if (!listCell) return;
-    const listPrice = parseFloat(listCell.getAttribute('data-list-price')) || 0;
-    if (listPrice <= 0) return;
+    const listUsd = parseFloat(row.getAttribute('data-list-usd')) || 0;
+    const listEur = parseFloat(row.getAttribute('data-list-eur')) || 0;
+    const listGbp = parseFloat(row.getAttribute('data-list-gbp')) || 0;
+    if (listUsd <= 0 && listEur <= 0 && listGbp <= 0) return;
     const qfEl = document.getElementById('qf-' + key);
     const qdEl = document.getElementById('qd-' + key);
     if (!qfEl) return;
-    let discounted = listPrice * (1 - globalPct / 100);
-    if (discounted < 0) discounted = 0;
-    // Round to nearest 100 (non-USD) / 1 (USD). 500-step rounding was too
-    // coarse for low-priced flat-rate tiers (Lio X 4.500 €).
-    if (currentCurrency !== 'usd') discounted = Math.round(discounted / 100) * 100;
-    else discounted = Math.round(discounted);
-    qfEl.value = discounted;
+    const mul = 1 - globalPct / 100;
+    const dUsd = Math.max(0, Math.round(listUsd * mul));
+    const dEur = Math.max(0, Math.round(listEur * mul / 100) * 100);
+    const dGbp = Math.max(0, Math.round(listGbp * mul / 100) * 100);
+    const u = document.getElementById('qfu-' + key); if (u) u.value = dUsd;
+    const e = document.getElementById('qfe-' + key); if (e) e.value = dEur;
+    const g = document.getElementById('qfg-' + key); if (g) g.value = dGbp;
+    qfEl.value = currentCurrency === 'usd' ? dUsd : (currentCurrency === 'eur' ? dEur : dGbp);
     if (qdEl) qdEl.value = globalPct;
     discountMode[key] = 'pct';
     touched++;
@@ -5217,12 +5289,13 @@ function applyGlobalDiscount() {
   // the user can SEE that Apply actually pushed values through, and update
   // the button label to "✓ Applied to N agents" for ~1.5 s.
   touchedKeys.forEach(k => {
-    const qfEl = document.getElementById('qf-' + k);
-    if (!qfEl) return;
-    const orig = qfEl.style.backgroundColor;
-    qfEl.style.transition = 'background-color 200ms';
-    qfEl.style.backgroundColor = 'rgba(16,185,129,0.25)';
-    setTimeout(() => { qfEl.style.backgroundColor = orig; }, 750);
+    // Flash the ACTIVE-currency input for visual confirmation
+    const inp = document.getElementById('qf' + currentCurrency[0] + '-' + k);
+    if (!inp) return;
+    const orig = inp.style.backgroundColor;
+    inp.style.transition = 'background-color 200ms';
+    inp.style.backgroundColor = 'rgba(16,185,129,0.25)';
+    setTimeout(() => { inp.style.backgroundColor = orig; }, 750);
   });
   const btn = document.querySelector('[onclick="applyGlobalDiscount()"]');
   if (btn) {
@@ -5237,12 +5310,15 @@ function applyGlobalDiscount() {
 function resetGlobalDiscount() {
   document.querySelectorAll('#quote-pricing-lines tr[data-mod]').forEach(row => {
     const key = row.dataset.mod;
-    const listCell = row.querySelector('td[data-list-price]');
-    if (!listCell) return;
-    const listPrice = parseFloat(listCell.getAttribute('data-list-price')) || 0;
+    const listUsd = parseFloat(row.getAttribute('data-list-usd')) || 0;
+    const listEur = parseFloat(row.getAttribute('data-list-eur')) || 0;
+    const listGbp = parseFloat(row.getAttribute('data-list-gbp')) || 0;
+    const u = document.getElementById('qfu-' + key); if (u && listUsd > 0) u.value = listUsd;
+    const e = document.getElementById('qfe-' + key); if (e && listEur > 0) e.value = listEur;
+    const g = document.getElementById('qfg-' + key); if (g && listGbp > 0) g.value = listGbp;
     const qfEl = document.getElementById('qf-' + key);
+    if (qfEl) qfEl.value = currentCurrency === 'usd' ? listUsd : (currentCurrency === 'eur' ? listEur : listGbp);
     const qdEl = document.getElementById('qd-' + key);
-    if (qfEl && listPrice > 0) qfEl.value = listPrice;
     if (qdEl) qdEl.value = '';
     discountMode[key] = 'manual';
   });
