@@ -229,6 +229,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
         <button onclick="setCurrency('usd'); lioSyncSummary();" class="lio-cur-btn px-2 py-1 rounded text-xs font-medium" data-cur="usd">$ USD</button>
         <button onclick="setCurrency('eur'); lioSyncSummary();" class="lio-cur-btn px-2 py-1 rounded text-xs font-medium" data-cur="eur">€ EUR</button>
         <button onclick="setCurrency('gbp'); lioSyncSummary();" class="lio-cur-btn px-2 py-1 rounded text-xs font-medium" data-cur="gbp">£ GBP</button>
+        <button onclick="setCurrency('chf'); lioSyncSummary();" class="lio-cur-btn px-2 py-1 rounded text-xs font-medium" data-cur="chf">🇨🇭 CHF</button>
       </div>
       <button onclick="lioOpenCmdK()" class="lio-btn lio-btn-ghost" title="Quick command palette (⌘K)">
         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/></svg>
@@ -426,6 +427,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
         <button onclick="setCurrency('usd')" class="currency-btn active px-2 py-1 rounded text-xs font-medium" data-cur="usd">🇺🇸 $</button>
         <button onclick="setCurrency('eur')" class="currency-btn px-2 py-1 rounded text-xs font-medium" data-cur="eur">🇩🇪 €</button>
         <button onclick="setCurrency('gbp')" class="currency-btn px-2 py-1 rounded text-xs font-medium" data-cur="gbp">🇬🇧 £</button>
+        <button onclick="setCurrency('chf')" class="currency-btn px-2 py-1 rounded text-xs font-medium" data-cur="chf">🇨🇭 CHF</button>
       </div>
       <div class="hidden md:flex items-center gap-6">
         <a href="#overview" class="text-slate-500 hover:text-slate-800 transition font-medium">Overview</a>
@@ -993,11 +995,12 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
       <table class="w-full text-sm border-collapse">
         <thead class="sticky top-0 z-10 bg-white border-b border-slate-100">
           <tr>
-            <th class="text-left text-[10px] uppercase tracking-wider font-semibold text-slate-400 px-4 py-2.5 w-[38%]">Module / Volume</th>
-            <th class="text-right text-[10px] uppercase tracking-wider font-semibold text-slate-400 px-3 py-2.5 w-[19%]">USD ($)</th>
-            <th class="text-right text-[10px] uppercase tracking-wider font-semibold text-slate-400 px-3 py-2.5 w-[19%]">EUR (€)</th>
-            <th class="text-right text-[10px] uppercase tracking-wider font-semibold text-slate-400 px-3 py-2.5 w-[19%]">GBP (£)</th>
-            <th class="w-[5%]"></th>
+            <th class="text-left text-[10px] uppercase tracking-wider font-semibold text-slate-400 px-4 py-2.5 w-[32%]">Module / Volume</th>
+            <th class="text-right text-[10px] uppercase tracking-wider font-semibold text-slate-400 px-3 py-2.5 w-[16%]">USD ($)</th>
+            <th class="text-right text-[10px] uppercase tracking-wider font-semibold text-slate-400 px-3 py-2.5 w-[16%]">EUR (€)</th>
+            <th class="text-right text-[10px] uppercase tracking-wider font-semibold text-slate-400 px-3 py-2.5 w-[16%]">GBP (£)</th>
+            <th class="text-right text-[10px] uppercase tracking-wider font-semibold text-slate-400 px-3 py-2.5 w-[16%]">CHF</th>
+            <th class="w-[4%]"></th>
           </tr>
         </thead>
         <tbody id="seg-admin-module-tbody-white"></tbody>
@@ -1788,7 +1791,7 @@ function lioAdminSwitchSegWhite(segKey) {
 }
 
 // Compute the factor-scaled tier price for a given currency from the baseline.
-// Falls back to USD-derived value when baseline has no native EUR/GBP price.
+// Falls back to USD-derived value when baseline has no native EUR/GBP/CHF price.
 function _lioFactorTierPriceW(blTier, currency, factor) {
   const usd = Math.max(0, (blTier && blTier.price) || 0);
   if (currency === 'usd') return Math.round(usd * factor);
@@ -1799,6 +1802,10 @@ function _lioFactorTierPriceW(blTier, currency, factor) {
   if (currency === 'gbp') {
     if (blTier && blTier.gbp != null) return Math.max(0, Math.round(blTier.gbp * factor / 500) * 500);
     return Math.max(0, Math.round(usd * factor * (currencyRates.gbp || (1 / 1.18)) / 500) * 500);
+  }
+  if (currency === 'chf') {
+    if (blTier && blTier.chf != null) return Math.max(0, Math.round(blTier.chf * factor / 500) * 500);
+    return Math.max(0, Math.round(usd * factor * (currencyRates.chf || (1 / 1.10)) / 500) * 500);
   }
   return 0;
 }
@@ -1822,12 +1829,13 @@ function lioRenderModuleTableWhite(segKey) {
       vol: t.vol,
       price: _lioFactorTierPriceW(t, 'usd', factor),
       eur: _lioFactorTierPriceW(t, 'eur', factor),
-      gbp: _lioFactorTierPriceW(t, 'gbp', factor)
+      gbp: _lioFactorTierPriceW(t, 'gbp', factor),
+      chf: _lioFactorTierPriceW(t, 'chf', factor)
     }));
 
     // Module header row
     html += `<tr class="border-t border-slate-100">
-      <td colspan="5" class="px-4 pt-3 pb-0.5">
+      <td colspan="6" class="px-4 pt-3 pb-0.5">
         <div class="flex items-center gap-2">
           <span class="text-xs font-semibold text-slate-700">${mod.name}</span>
           ${isCustom
@@ -1840,12 +1848,13 @@ function lioRenderModuleTableWhite(segKey) {
       </td>
     </tr>`;
 
-    // Tier rows — always show USD, EUR, GBP inputs for every module
+    // Tier rows — always show USD, EUR, GBP, CHF inputs for every module
     effectiveTiers.forEach((tier, i) => {
       const blTier = bl.tiers[i] || {};
       const usdVal = tier.price ?? _lioFactorTierPriceW(blTier, 'usd', factor);
       const eurVal = tier.eur ?? _lioFactorTierPriceW(blTier, 'eur', factor);
       const gbpVal = tier.gbp ?? _lioFactorTierPriceW(blTier, 'gbp', factor);
+      const chfVal = tier.chf ?? _lioFactorTierPriceW(blTier, 'chf', factor);
       const inp = `border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-700 outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-400 transition`;
       html += `<tr class="hover:bg-slate-50 transition">
         <td class="px-4 py-1 text-xs text-slate-400 pl-6">${tier.vol}</td>
@@ -1857,6 +1866,9 @@ function lioRenderModuleTableWhite(segKey) {
         </td>
         <td class="px-3 py-1">
           <input type="number" class="seg-admin-input-white w-full ${inp}" data-modkey="${modKey}" data-tieridx="${i}" data-currency="gbp" value="${gbpVal}" min="0" step="500">
+        </td>
+        <td class="px-3 py-1">
+          <input type="number" class="seg-admin-input-white w-full ${inp}" data-modkey="${modKey}" data-tieridx="${i}" data-currency="chf" value="${chfVal}" min="0" step="500">
         </td>
         <td></td>
       </tr>`;
@@ -1902,6 +1914,7 @@ async function lioSaveSegmentPricingWhite() {
       if (currency === 'usd') collected[modKey][tierIdx].price = val;
       else if (currency === 'eur') collected[modKey][tierIdx].eur = val;
       else if (currency === 'gbp') collected[modKey][tierIdx].gbp = val;
+      else if (currency === 'chf') collected[modKey][tierIdx].chf = val;
     }
   });
 
@@ -1915,13 +1928,14 @@ async function lioSaveSegmentPricingWhite() {
   Object.keys(collected).forEach(modKey => {
     const tiers = collected[modKey];
     const bl = (getBaseline(modKey) || {}).tiers || [];
-    // EUR/GBP inputs are always present now — compare against factor-derived
+    // EUR/GBP/CHF inputs are always present — compare against factor-derived
     // value (which may come from baseline or USD × currencyRate fallback).
     const differsFromFactor = tiers.some((t, i) => {
       const blT = bl[i] || {};
       if (t.price !== _lioFactorTierPriceW(blT, 'usd', factor)) return true;
       if (t.eur !== undefined && t.eur !== _lioFactorTierPriceW(blT, 'eur', factor)) return true;
       if (t.gbp !== undefined && t.gbp !== _lioFactorTierPriceW(blT, 'gbp', factor)) return true;
+      if (t.chf !== undefined && t.chf !== _lioFactorTierPriceW(blT, 'chf', factor)) return true;
       return false;
     });
     if (differsFromFactor) {
@@ -2549,14 +2563,15 @@ let currentCurrency = 'usd';
 // mode) so custom modules participate in calc/PDF flows. All places that
 // previously hardcoded the 16 standard keys now pull from this slice.
 let LIO_ALL_MODKEYS = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
-const currencyRates = { usd: 1, eur: 1/1.08, gbp: 1/1.18 };
-const currencySymbols = { usd: '$', eur: '€', gbp: '£' };
+const currencyRates = { usd: 1, eur: 1/1.08, gbp: 1/1.18, chf: 1/1.10 };
+const currencySymbols = { usd: '$', eur: '€', gbp: '£', chf: 'CHF ' };
 
 function fmt(n) {
   let converted = n * currencyRates[currentCurrency];
   if (currentCurrency !== 'usd') converted = Math.round(converted / 500) * 500;
   else converted = Math.round(converted);
   if (currentCurrency === 'eur') return converted.toLocaleString('de-DE') + '\u00a0\u20ac';
+  if (currentCurrency === 'chf') return 'CHF\u00a0' + converted.toLocaleString('de-CH');
   return currencySymbols[currentCurrency] + converted.toLocaleString('en-US');
 }
 
@@ -2567,17 +2582,20 @@ function fmtZero() {
 function fmtTierPrice(tier) {
   if (currentCurrency === 'eur' && tier.eur !== undefined) return tier.eur.toLocaleString('de-DE') + '\u00a0\u20ac';
   if (currentCurrency === 'gbp' && tier.gbp !== undefined) return '\u00a3' + tier.gbp.toLocaleString('en-US');
+  if (currentCurrency === 'chf' && tier.chf !== undefined) return 'CHF\u00a0' + tier.chf.toLocaleString('de-CH');
   return fmt(tier.price);
 }
 function getTierPriceRaw(tier) {
   if (currentCurrency === 'eur' && tier.eur !== undefined) return tier.eur;
   if (currentCurrency === 'gbp' && tier.gbp !== undefined) return tier.gbp;
+  if (currentCurrency === 'chf' && tier.chf !== undefined) return tier.chf;
   let c = tier.price * currencyRates[currentCurrency];
   if (currentCurrency !== 'usd') c = Math.round(c / 500) * 500; else c = Math.round(c);
   return c;
 }
 function fmtRaw(n) {
   if (currentCurrency === 'eur') return n.toLocaleString('de-DE') + '\u00a0\u20ac';
+  if (currentCurrency === 'chf') return 'CHF\u00a0' + n.toLocaleString('de-CH');
   return currencySymbols[currentCurrency] + n.toLocaleString('en-US');
 }
 
@@ -3980,12 +3998,13 @@ function buildPricingReferenceHtml() {
   '</div>';
 }
 
-// Compute a tier's price in any currency (uses native eur/gbp if defined,
+// Compute a tier's price in any currency (uses native eur/gbp/chf if defined,
 // otherwise converts from USD using currencyRates, rounded to 500).
 function _tierPriceInCurrency(tier, cur) {
   if (!tier) return 0;
   if (cur === 'eur' && tier.eur !== undefined) return tier.eur;
   if (cur === 'gbp' && tier.gbp !== undefined) return tier.gbp;
+  if (cur === 'chf' && tier.chf !== undefined) return tier.chf;
   const rate = currencyRates[cur] || 1;
   let c = (tier.price || 0) * rate;
   if (cur !== 'usd') c = Math.round(c / 500) * 500; else c = Math.round(c);
@@ -4006,7 +4025,8 @@ function populateQuotePricing() {
     const listUsd = _tierPriceInCurrency(tierObj, 'usd');
     const listEur = _tierPriceInCurrency(tierObj, 'eur');
     const listGbp = _tierPriceInCurrency(tierObj, 'gbp');
-    const rawPrice = currentCurrency === 'usd' ? listUsd : (currentCurrency === 'eur' ? listEur : listGbp);
+    const listChf = _tierPriceInCurrency(tierObj, 'chf');
+    const rawPrice = currentCurrency === 'usd' ? listUsd : (currentCurrency === 'eur' ? listEur : (currentCurrency === 'gbp' ? listGbp : listChf));
     const modName = prettyModuleName(mod);
     discountMode[mod] = discountMode[mod] || 'manual';
     const tierOpts = modules[mod].tiers.map(t => {
@@ -4023,11 +4043,11 @@ function populateQuotePricing() {
       const cls = isActive ? 'border-indigo-400 ring-1 ring-indigo-200' : 'border-slate-200';
       const labelCls = isActive ? 'text-indigo-600 font-semibold' : 'text-slate-400';
       return '<div class="flex items-center justify-end gap-1">'
-        + '<span class="text-[10px] ' + labelCls + ' w-3 text-center">' + sym + '</span>'
+        + '<span class="text-[9px] ' + labelCls + ' w-6 text-right tracking-tight">' + sym + '</span>'
         + '<input type="number" id="qf' + cur[0] + '-' + mod + '" value="' + val + '" min="0" step="' + (cur === 'usd' ? '100' : '500') + '" oninput="onQfCur(\'' + mod + '\',\'' + cur + '\')" class="w-24 border ' + cls + ' rounded px-1.5 py-0.5 text-xs text-right outline-none text-slate-700 ' + (isActive ? 'font-semibold' : '') + '">'
         + '</div>';
     };
-    tbody.innerHTML += `<tr class="border-t border-slate-100" data-mod="${mod}" id="qrow-${mod}" data-list-usd="${listUsd}" data-list-eur="${listEur}" data-list-gbp="${listGbp}">
+    tbody.innerHTML += `<tr class="border-t border-slate-100" data-mod="${mod}" id="qrow-${mod}" data-list-usd="${listUsd}" data-list-eur="${listEur}" data-list-gbp="${listGbp}" data-list-chf="${listChf}">
       <td class="p-2 pl-3 align-top"><select onchange="swapModuleInRow('${mod}', this.value)" class="w-full border border-slate-200 rounded p-1 text-xs outline-none cursor-pointer hover:bg-slate-50 text-slate-700" title="Click to swap with a different agent">${modOptions}</select></td>
       <td class="p-2 align-top"><select id="qt-${mod}" onchange="changeQuoteTier('${mod}'); syncTierLabelPlaceholder('${mod}')" class="w-full border border-slate-200 rounded p-1 text-xs outline-none">${tierOpts}</select><input type="text" id="qt-label-${mod}" placeholder="Custom label (optional)" class="w-full mt-1 border border-slate-200 rounded p-1 text-[11px] text-slate-700 outline-none placeholder-slate-400" oninput="updateTierLabelOverride('${mod}', this.value)" title="Override the tier label that prints on the quote (leave empty to use the volume from the dropdown)."></td>
       <td class="p-2 text-right text-slate-500 align-top" data-list-price="${rawPrice}">${fmtRaw(rawPrice)}</td>
@@ -4039,6 +4059,7 @@ function populateQuotePricing() {
           ${curRow('usd', '$', listUsd)}
           ${curRow('eur', '€', listEur)}
           ${curRow('gbp', '£', listGbp)}
+          ${curRow('chf', 'CHF', listChf)}
           <input type="hidden" id="qf-${mod}" value="${rawPrice}">
         </div>
       </td>
@@ -4075,17 +4096,20 @@ function applyDiscountPct(key) {
   const listUsd = parseFloat(row?.getAttribute('data-list-usd')) || 0;
   const listEur = parseFloat(row?.getAttribute('data-list-eur')) || 0;
   const listGbp = parseFloat(row?.getAttribute('data-list-gbp')) || 0;
+  const listChf = parseFloat(row?.getAttribute('data-list-chf')) || 0;
   const rawVal = pctInput.value?.toString().trim();
   const pct = parseFloat(rawVal);
-  if (isFinite(pct) && pct > 0 && (listUsd > 0 || listEur > 0 || listGbp > 0)) {
+  if (isFinite(pct) && pct > 0 && (listUsd > 0 || listEur > 0 || listGbp > 0 || listChf > 0)) {
     const mul = 1 - Math.min(100, pct) / 100;
     const dUsd = Math.max(0, Math.round(listUsd * mul));
     const dEur = Math.max(0, Math.round(listEur * mul / 500) * 500);
     const dGbp = Math.max(0, Math.round(listGbp * mul / 500) * 500);
+    const dChf = Math.max(0, Math.round(listChf * mul / 500) * 500);
     const u = document.getElementById('qfu-' + key); if (u) u.value = dUsd;
     const e = document.getElementById('qfe-' + key); if (e) e.value = dEur;
     const g = document.getElementById('qfg-' + key); if (g) g.value = dGbp;
-    priceInput.value = currentCurrency === 'usd' ? dUsd : (currentCurrency === 'eur' ? dEur : dGbp);
+    const c = document.getElementById('qfc-' + key); if (c) c.value = dChf;
+    priceInput.value = currentCurrency === 'usd' ? dUsd : (currentCurrency === 'eur' ? dEur : (currentCurrency === 'gbp' ? dGbp : dChf));
     discountMode[key] = 'pct';
   } else {
     discountMode[key] = 'manual';
@@ -4154,18 +4178,21 @@ function changeQuoteTier(key) {
   const newUsd = _tierPriceInCurrency(tierObj, 'usd');
   const newEur = _tierPriceInCurrency(tierObj, 'eur');
   const newGbp = _tierPriceInCurrency(tierObj, 'gbp');
-  const newPrice = currentCurrency === 'usd' ? newUsd : (currentCurrency === 'eur' ? newEur : newGbp);
+  const newChf = _tierPriceInCurrency(tierObj, 'chf');
+  const newPrice = currentCurrency === 'usd' ? newUsd : (currentCurrency === 'eur' ? newEur : (currentCurrency === 'gbp' ? newGbp : newChf));
   const row = document.querySelector('tr[data-mod="' + key + '"]');
   if (row) {
     row.setAttribute('data-list-usd', newUsd);
     row.setAttribute('data-list-eur', newEur);
     row.setAttribute('data-list-gbp', newGbp);
+    row.setAttribute('data-list-chf', newChf);
   }
   const listCell = row?.querySelector('td[data-list-price]');
   if (listCell) { listCell.setAttribute('data-list-price', newPrice); listCell.textContent = fmtRaw(newPrice); }
   const u = document.getElementById('qfu-' + key); if (u) u.value = newUsd;
   const e = document.getElementById('qfe-' + key); if (e) e.value = newEur;
   const g = document.getElementById('qfg-' + key); if (g) g.value = newGbp;
+  const c = document.getElementById('qfc-' + key); if (c) c.value = newChf;
   const qf = document.getElementById('qf-' + key);
   if (qf) qf.value = newPrice;
   const qd = document.getElementById('qd-' + key);
@@ -4248,7 +4275,8 @@ function applyGlobalDiscount() {
     const listUsd = parseFloat(row.getAttribute('data-list-usd')) || 0;
     const listEur = parseFloat(row.getAttribute('data-list-eur')) || 0;
     const listGbp = parseFloat(row.getAttribute('data-list-gbp')) || 0;
-    if (listUsd <= 0 && listEur <= 0 && listGbp <= 0) return;
+    const listChf = parseFloat(row.getAttribute('data-list-chf')) || 0;
+    if (listUsd <= 0 && listEur <= 0 && listGbp <= 0 && listChf <= 0) return;
     const qfEl = document.getElementById('qf-' + key);
     const qdEl = document.getElementById('qd-' + key);
     if (!qfEl) return;
@@ -4256,10 +4284,12 @@ function applyGlobalDiscount() {
     const dUsd = Math.max(0, Math.round(listUsd * mul));
     const dEur = Math.max(0, Math.round(listEur * mul / 100) * 100);
     const dGbp = Math.max(0, Math.round(listGbp * mul / 100) * 100);
+    const dChf = Math.max(0, Math.round(listChf * mul / 100) * 100);
     const u = document.getElementById('qfu-' + key); if (u) u.value = dUsd;
     const e = document.getElementById('qfe-' + key); if (e) e.value = dEur;
     const g = document.getElementById('qfg-' + key); if (g) g.value = dGbp;
-    qfEl.value = currentCurrency === 'usd' ? dUsd : (currentCurrency === 'eur' ? dEur : dGbp);
+    const c = document.getElementById('qfc-' + key); if (c) c.value = dChf;
+    qfEl.value = currentCurrency === 'usd' ? dUsd : (currentCurrency === 'eur' ? dEur : (currentCurrency === 'gbp' ? dGbp : dChf));
     if (qdEl) qdEl.value = globalPct;
     discountMode[key] = 'pct';
     touched++;
@@ -4298,11 +4328,13 @@ function resetGlobalDiscount() {
     const listUsd = parseFloat(row.getAttribute('data-list-usd')) || 0;
     const listEur = parseFloat(row.getAttribute('data-list-eur')) || 0;
     const listGbp = parseFloat(row.getAttribute('data-list-gbp')) || 0;
+    const listChf = parseFloat(row.getAttribute('data-list-chf')) || 0;
     const u = document.getElementById('qfu-' + key); if (u && listUsd > 0) u.value = listUsd;
     const e = document.getElementById('qfe-' + key); if (e && listEur > 0) e.value = listEur;
     const g = document.getElementById('qfg-' + key); if (g && listGbp > 0) g.value = listGbp;
+    const c = document.getElementById('qfc-' + key); if (c && listChf > 0) c.value = listChf;
     const qfEl = document.getElementById('qf-' + key);
-    if (qfEl) qfEl.value = currentCurrency === 'usd' ? listUsd : (currentCurrency === 'eur' ? listEur : listGbp);
+    if (qfEl) qfEl.value = currentCurrency === 'usd' ? listUsd : (currentCurrency === 'eur' ? listEur : (currentCurrency === 'gbp' ? listGbp : listChf));
     const qdEl = document.getElementById('qd-' + key);
     if (qdEl) qdEl.value = '';
     discountMode[key] = 'manual';
@@ -5981,6 +6013,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
         const out = { vol: t.vol, price: round500(t.price * f) };
         if (typeof t.eur === 'number') out.eur = round500(t.eur * f);
         if (typeof t.gbp === 'number') out.gbp = round500(t.gbp * f);
+        if (typeof t.chf === 'number') out.chf = round500(t.chf * f);
         return out;
       });
     });
