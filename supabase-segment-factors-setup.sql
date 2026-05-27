@@ -8,12 +8,17 @@ create table if not exists public.segment_factors (
   segment_key text primary key,       -- 'fortune500', 'dax40', 'midmarket', 'mittelstand', 'custom'
   factor      numeric   not null default 1.0,
   label       text,
-  currency    text,                    -- 'usd', 'eur', 'gbp', or null
+  currency    text,                    -- 'usd', 'eur', 'gbp', 'chf', or null
   updated_at  timestamptz not null default now()
 );
 
 -- Enable Row Level Security (anon key can read + write — same pattern as quotes table)
 alter table public.segment_factors enable row level security;
+
+-- Explicit table privileges — REQUIRED for new Supabase projects after
+-- May 30, 2026 and enforced on existing projects after Oct 30, 2026.
+-- Without these, PostgREST returns 401/403 even when RLS policies allow access.
+grant select, insert, update, delete on public.segment_factors to anon, authenticated;
 
 create policy "anon_select" on public.segment_factors for select using (true);
 create policy "anon_insert" on public.segment_factors for insert with check (true);

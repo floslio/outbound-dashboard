@@ -7,14 +7,19 @@
 -- ============================================================
 
 create table if not exists public.segment_module_prices (
-  segment_key  text        not null,
-  module_key   text        not null,
-  tiers        jsonb       not null default '[]',
+  segment_key  text        not null,       -- 'fortune500', 'dax40', 'midmarket', 'mittelstand', 'custom'
+  module_key   text        not null,       -- e.g. 'pia', 'na', 'gb2po'
+  tiers        jsonb       not null default '[]',  -- [{vol, price, eur?, gbp?, chf?}, ...]
   updated_at   timestamptz not null default now(),
   primary key (segment_key, module_key)
 );
 
 alter table public.segment_module_prices enable row level security;
+
+-- Explicit table privileges — REQUIRED for new Supabase projects after
+-- May 30, 2026 and enforced on existing projects after Oct 30, 2026.
+-- Without these, PostgREST returns 401/403 even when RLS policies allow access.
+grant select, insert, update, delete on public.segment_module_prices to anon, authenticated;
 
 do $$ begin
   if not exists (select 1 from pg_policies where tablename='segment_module_prices' and policyname='smp_select') then

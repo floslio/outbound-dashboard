@@ -27,6 +27,12 @@ create table if not exists public.custom_modules (
 -- control). If you want stricter isolation later, swap to a service role.
 alter table public.custom_modules enable row level security;
 
+-- Explicit table privileges — REQUIRED for new Supabase projects after
+-- May 30, 2026 and enforced on existing projects after Oct 30, 2026.
+-- Without these, PostgREST returns 401/403 even when RLS policies allow access.
+grant select, insert, update, delete on public.custom_modules to anon, authenticated;
+grant usage, select on sequence public.custom_modules_id_seq to anon, authenticated;
+
 drop policy if exists "Anyone can read custom_modules" on public.custom_modules;
 create policy "Anyone can read custom_modules"
   on public.custom_modules for select
