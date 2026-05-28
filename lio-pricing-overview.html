@@ -62,6 +62,14 @@ input[type="checkbox"] { accent-color: #6366f1; }
 .currency-btn { color: #94a3b8; transition: all 0.2s; }
 .currency-btn:hover { color: #e2e8f0; }
 .currency-btn.active { background: rgba(99, 102, 241, 0.3); color: #a5b4fc; }
+/* Quote Modal view toggle (Standard vs Package) + Package style toggle */
+.qv-tab { color: #94a3b8; }
+.qv-tab.active { background: rgba(99, 102, 241, 0.3); color: #c7d2fe; }
+.pkg-style-tab.active { background: rgba(99, 102, 241, 0.3); color: #c7d2fe; }
+/* Best-Value gradient utility for package cards */
+.pkg-best-gradient { background: linear-gradient(135deg, #6366f1, #22d3ee); }
+.pkg-gradient-text { background: linear-gradient(135deg, #818cf8, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.pkg-dashed-divider { background-image: linear-gradient(to right, #475569 50%, transparent 50%); background-size: 8px 1px; background-repeat: repeat-x; height: 1px; }
 /* 21st.dev inspired animations */
 @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 @keyframes float { 0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); } 50% { transform: translateY(-20px) rotate(var(--r, 0deg)); } }
@@ -1501,10 +1509,15 @@ input[type="checkbox"] { accent-color: #6366f1; }
 
 <!-- Quote Modal -->
 <div id="quote-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
-  <div class="bg-[#12132a] border border-slate-700/50 rounded-2xl p-4 sm:p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
+  <div id="quote-modal-shell" class="bg-[#12132a] border border-slate-700/50 rounded-2xl p-4 sm:p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl transition-[max-width]">
     <div class="flex justify-between items-center mb-4">
       <h3 class="text-xl font-bold text-white">Create Quote</h3>
       <div class="flex items-center gap-2">
+        <!-- View Mode Toggle: Standard line-item view vs. Package Tiers view -->
+        <div class="inline-flex bg-slate-800/50 border border-slate-600 rounded-lg p-0.5" id="quote-view-toggle">
+          <button type="button" onclick="lioSetQuoteView('standard')" data-view="standard" class="qv-tab active px-2.5 py-1 text-xs font-semibold rounded transition">📋 Standard</button>
+          <button type="button" onclick="lioSetQuoteView('package')" data-view="package" class="qv-tab px-2.5 py-1 text-xs font-semibold rounded transition text-slate-400 hover:text-slate-200">📦 Package</button>
+        </div>
         <button type="button" onclick="lioOpenSegmentAdmin()" class="px-3 py-1.5 text-xs bg-slate-700/50 hover:bg-slate-700 border border-slate-600 rounded text-slate-300 transition" title="Edit segment factors (admin)">⚙️ Admin</button>
         <button onclick="closeQuoteModal()" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
       </div>
@@ -1575,6 +1588,14 @@ input[type="checkbox"] { accent-color: #6366f1; }
         <label class="text-xs text-slate-400 block mb-1">Custom Notes</label>
         <textarea id="quote-notes" rows="3" placeholder="Add personalized notes to the quote..." class="w-full bg-slate-800/50 border border-slate-600 rounded-lg p-2.5 text-sm text-white placeholder-slate-500 focus:ring-2 focus:ring-lio-500 focus:border-lio-500 outline-none resize-none"></textarea>
       </div>
+
+      <!-- ============================================================ -->
+      <!-- VIEW SWITCH BOUNDARY                                           -->
+      <!-- Everything from here down to the matching </div> at the end   -->
+      <!-- of pricing totals is the STANDARD VIEW. The PACKAGE VIEW      -->
+      <!-- sibling is rendered just below.                                -->
+      <!-- ============================================================ -->
+      <div id="quote-standard-view">
 
       <!-- Pricing Adjustments -->
       <div class="mt-2 pt-4 border-t border-slate-700/50">
@@ -1815,6 +1836,101 @@ input[type="checkbox"] { accent-color: #6366f1; }
           </div>
           <div class="flex justify-between text-sm mt-2 pt-2 border-t border-slate-700/50 font-bold"><span>Total First Year</span><span id="quote-final-total" class="text-lg">$0</span></div>
         </div>
+      </div>
+
+      </div><!-- /#quote-standard-view -->
+
+      <!-- ============================================================ -->
+      <!-- PACKAGE VIEW — Tiered offer table (Basic / Premium / Diamond) -->
+      <!-- Independent packages, per-cell tier+price editing, optional   -->
+      <!-- Year 1/2/3 differentiation, two card styles (Modern / Detail).-->
+      <!-- ============================================================ -->
+      <div id="quote-package-view" class="hidden">
+        <!-- Top controls: style toggle + year-mode -->
+        <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-slate-700/50">
+          <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Card Style</div>
+          <div class="inline-flex bg-slate-800/50 border border-slate-600 rounded-lg p-0.5" id="pkg-style-toggle">
+            <button type="button" onclick="lioSetPkgStyle('B')" data-style="B" class="pkg-style-tab px-2.5 py-1 text-xs font-semibold rounded transition">🎨 Modern</button>
+            <button type="button" onclick="lioSetPkgStyle('C')" data-style="C" class="pkg-style-tab px-2.5 py-1 text-xs font-semibold rounded transition text-slate-400">📊 Detailed</button>
+          </div>
+          <label class="inline-flex items-center gap-2 ml-auto text-xs text-slate-300 cursor-pointer">
+            <input type="checkbox" id="pkg-year-mode" class="w-4 h-4 rounded" onchange="lioRenderPackageView()">
+            <span>Per-year pricing (Year 1 / 2 / 3)</span>
+          </label>
+        </div>
+
+        <!-- Cards: Basic / Premium / Diamond -->
+        <div class="mt-4">
+          <div class="flex items-center justify-between mb-3">
+            <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Packages</div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="lioRemovePackage()" id="pkg-remove-btn" class="px-2 py-1 text-xs bg-slate-700/40 hover:bg-slate-700 border border-slate-600 rounded text-slate-300 transition disabled:opacity-40 disabled:cursor-not-allowed">− Remove</button>
+              <button type="button" onclick="lioAddPackage()" id="pkg-add-btn" class="px-2 py-1 text-xs bg-lio-500/30 hover:bg-lio-500/40 border border-lio-500/40 rounded text-lio-200 font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed">+ Add</button>
+            </div>
+          </div>
+          <div id="pkg-cards-host" class="grid gap-4"></div>
+        </div>
+
+        <!-- Agent assignment table -->
+        <div class="mt-6">
+          <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-2">Agent Assignment</div>
+          <div class="rounded-lg border border-slate-700/50 overflow-hidden overflow-x-auto">
+            <table class="w-full text-sm min-w-[600px]" id="pkg-agent-table">
+              <thead><tr id="pkg-agent-head" class="bg-slate-800/50 text-slate-400 text-xs uppercase"></tr></thead>
+              <tbody id="pkg-agent-tbody"></tbody>
+            </table>
+          </div>
+          <div class="mt-2 flex items-center gap-2">
+            <button type="button" onclick="lioPkgSeedFromStandard()" class="px-3 py-1.5 text-xs bg-slate-700/40 hover:bg-slate-700 border border-slate-600 rounded text-slate-300 transition" title="Pre-fill all packages from the currently selected modules + prices in the Standard view">↻ Seed from Standard View</button>
+            <button type="button" onclick="lioPkgClearAll()" class="px-3 py-1.5 text-xs bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 rounded text-rose-300 transition">× Clear all</button>
+            <span class="text-[10px] text-slate-500 ml-auto">Click any ✓/× to toggle. Click tier or price to edit.</span>
+          </div>
+        </div>
+
+        <!-- Footer: Implementation + CS + Staggered note -->
+        <div class="mt-6 pt-4 border-t border-slate-700/50 space-y-3">
+          <div class="flex items-center gap-3 flex-wrap">
+            <label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+              <input type="checkbox" id="pkg-show-impl" checked class="w-4 h-4 rounded" onchange="lioRenderPackageView()">
+              <span>Show <strong>Implementation Fee</strong></span>
+            </label>
+            <span class="text-slate-500 text-xs">at</span>
+            <input type="number" id="pkg-impl-pct" value="15" min="0" max="100" step="1" class="w-14 bg-slate-800/50 border border-slate-600 rounded px-2 py-1 text-xs text-white text-right outline-none" onchange="lioRenderPackageView()" oninput="lioRenderPackageView()">
+            <span class="text-slate-400 text-xs">% one-time</span>
+          </div>
+          <div class="flex items-center gap-3 flex-wrap">
+            <label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+              <input type="checkbox" id="pkg-show-cs" checked class="w-4 h-4 rounded" onchange="lioRenderPackageView()">
+              <span>Show <strong>Customer Success Fee</strong></span>
+            </label>
+            <span class="text-slate-500 text-xs">at</span>
+            <input type="number" id="pkg-cs-pct" value="10" min="0" max="100" step="1" class="w-14 bg-slate-800/50 border border-slate-600 rounded px-2 py-1 text-xs text-white text-right outline-none" onchange="lioRenderPackageView()" oninput="lioRenderPackageView()">
+            <span class="text-slate-400 text-xs">% / year</span>
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 block mb-1">Footer Note <span class="text-slate-500">(e.g. "Staggered approach possible...")</span></label>
+            <textarea id="pkg-footer-note" rows="2" class="w-full bg-slate-800/50 border border-slate-600 rounded-lg p-2 text-xs text-white placeholder-slate-500 focus:ring-2 focus:ring-lio-500 outline-none resize-none" placeholder="Optional footer text printed below the packages on the PDF">Staggered Approach possible: Start with Basic in year 1, then expand by milestones up to Diamond.</textarea>
+          </div>
+        </div>
+      </div><!-- /#quote-package-view -->
+
+    </div>
+    <!-- PDF Mode Selector — controls which document the Download button generates -->
+    <div id="pdf-mode-selector" class="mt-4 p-3 rounded-lg bg-slate-800/40 border border-slate-700/50">
+      <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-2">PDF Format</div>
+      <div class="flex flex-wrap gap-2" id="pdf-mode-pills">
+        <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/60 border border-lio-500/50 ring-1 ring-lio-500/30 text-xs text-white cursor-pointer transition" data-mode="standard">
+          <input type="radio" name="pdf-mode" value="standard" checked class="accent-lio-500">
+          📋 Standard <span class="text-slate-400 font-normal">— Pricing Breakdown + Module Details</span>
+        </label>
+        <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-600 text-xs text-slate-300 cursor-pointer transition" data-mode="package">
+          <input type="radio" name="pdf-mode" value="package" class="accent-lio-500">
+          📦 Package Overview only <span class="text-slate-400 font-normal">— 1-page tiered offer</span>
+        </label>
+        <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-600 text-xs text-slate-300 cursor-pointer transition" data-mode="combined">
+          <input type="radio" name="pdf-mode" value="combined" class="accent-lio-500">
+          📦+📋 Combined <span class="text-slate-400 font-normal">— Package cover + Standard details</span>
+        </label>
       </div>
     </div>
     <div class="flex gap-3 mt-6">
@@ -7393,6 +7509,643 @@ function lioResetSegmentFactors() {
   if (typeof renderSegmentPicker === 'function') renderSegmentPicker();
 }
 
+// ===========================================================================
+// PACKAGE VIEW — tiered offer table (Basic / Premium / Diamond)
+// Independent packages. Per-cell tier + 4-currency price + custom label.
+// Optional Year 1 / 2 / 3 differentiation. Two visual styles (Modern / Detail).
+// State persisted to formState so Save Quote roundtrips both views.
+// ===========================================================================
+
+// ── Default smart template ────────────────────────────────────────────────
+function _lioPkgDefaultConfig() {
+  // Sensible defaults inspired by the Lio Bosch example. Per-package items
+  // map to the standard module keys; tiers + prices are pulled from the
+  // current module catalog at render time so currency + segment apply.
+  return {
+    style: 'C',            // 'B' (Modern/Vercel) or 'C' (Detailed/Enterprise)
+    yearMode: false,       // single annual price (false) or Y1/Y2/Y3 (true)
+    showImpl: true, implPct: 15,
+    showCs: true,   csPct: 10,
+    footerNote: 'Staggered Approach possible: Start with Basic in year 1, then expand by milestones up to Diamond.',
+    packages: [
+      { id: 'p1', name: 'Basic',   tagline: 'Perfect for the start',
+        isBest: false, items: { gb2po: { included: true, tierIdx: null, customLabel: '' },
+                                gr:    { included: true, tierIdx: null, customLabel: '' } } },
+      { id: 'p2', name: 'Premium', tagline: 'AI that understands, decides & acts in seconds',
+        isBest: true,  items: { gb2po: { included: true, tierIdx: null, customLabel: '' },
+                                gr:    { included: true, tierIdx: null, customLabel: '' },
+                                ntpo:  { included: true, tierIdx: null, customLabel: '' },
+                                oc:    { included: true, tierIdx: null, customLabel: '' },
+                                liox:  { included: true, tierIdx: null, customLabel: '' } } },
+      { id: 'p3', name: 'Diamond', tagline: '100% faster than any human',
+        isBest: false, items: { gb2po: { included: true, tierIdx: null, customLabel: '' },
+                                gr:    { included: true, tierIdx: null, customLabel: '' },
+                                ntpo:  { included: true, tierIdx: null, customLabel: '' },
+                                oc:    { included: true, tierIdx: null, customLabel: '' },
+                                liox:  { included: true, tierIdx: null, customLabel: '' },
+                                na:    { included: true, tierIdx: null, customLabel: '' },
+                                sa:    { included: true, tierIdx: null, customLabel: '' } } }
+    ]
+  };
+}
+
+// ── State + initialization ─────────────────────────────────────────────────
+window._packageConfig = window._packageConfig || _lioPkgDefaultConfig();
+window._quoteView = window._quoteView || 'standard';
+
+// Per-cell price + tier overrides. Structure:
+//   _pkgCellOverrides[packageId][modKey] = { tierIdx, label, prices: { usd, eur, gbp, chf }, yr1, yr2, yr3 }
+window._pkgCellOverrides = window._pkgCellOverrides || {};
+
+function _pkgGetCellOverride(pkgId, modKey) {
+  return (window._pkgCellOverrides[pkgId] && window._pkgCellOverrides[pkgId][modKey]) || {};
+}
+function _pkgSetCellOverride(pkgId, modKey, patch) {
+  if (!window._pkgCellOverrides[pkgId]) window._pkgCellOverrides[pkgId] = {};
+  if (!window._pkgCellOverrides[pkgId][modKey]) window._pkgCellOverrides[pkgId][modKey] = {};
+  Object.assign(window._pkgCellOverrides[pkgId][modKey], patch);
+}
+
+// ── View switcher ──────────────────────────────────────────────────────────
+function lioSetQuoteView(view) {
+  window._quoteView = view;
+  const stdEl = document.getElementById('quote-standard-view');
+  const pkgEl = document.getElementById('quote-package-view');
+  const shell = document.getElementById('quote-modal-shell');
+  if (stdEl) stdEl.classList.toggle('hidden', view !== 'standard');
+  if (pkgEl) pkgEl.classList.toggle('hidden', view !== 'package');
+  document.querySelectorAll('#quote-view-toggle .qv-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === view);
+    b.classList.toggle('text-slate-400', b.dataset.view !== view);
+  });
+  // Widen modal in package view to make room for the cards + table
+  if (shell) {
+    shell.classList.toggle('max-w-2xl', view === 'standard');
+    shell.classList.toggle('max-w-6xl', view === 'package');
+  }
+  if (view === 'package') lioRenderPackageView();
+}
+
+// ── Card-style switcher ────────────────────────────────────────────────────
+function lioSetPkgStyle(style) {
+  window._packageConfig.style = style;
+  document.querySelectorAll('#pkg-style-toggle .pkg-style-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.style === style);
+    b.classList.toggle('text-slate-400', b.dataset.style !== style);
+  });
+  lioRenderPackageCards();
+}
+
+// ── Add / remove packages ──────────────────────────────────────────────────
+function lioAddPackage() {
+  if (window._packageConfig.packages.length >= 4) return;
+  const names = ['Custom', 'Add-on', 'Enterprise+'];
+  const taken = window._packageConfig.packages.map(p => p.name);
+  const nextName = names.find(n => !taken.includes(n)) || 'New Package';
+  window._packageConfig.packages.push({
+    id: 'p' + (Date.now() % 100000), name: nextName, tagline: 'Edit this tagline',
+    isBest: false, items: {}
+  });
+  lioRenderPackageView();
+}
+function lioRemovePackage() {
+  if (window._packageConfig.packages.length <= 2) return;
+  const removed = window._packageConfig.packages.pop();
+  if (removed && window._pkgCellOverrides[removed.id]) delete window._pkgCellOverrides[removed.id];
+  lioRenderPackageView();
+}
+
+// ── Tier + Price resolution per cell ───────────────────────────────────────
+// Given a (package, module), return the effective tier + price in each
+// currency. Falls back to Standard View pricing when no per-cell override.
+function _pkgGetEffectiveCell(pkgId, modKey) {
+  const mod = modules[modKey];
+  if (!mod || !Array.isArray(mod.tiers) || mod.tiers.length === 0) return null;
+  const pkg = window._packageConfig.packages.find(p => p.id === pkgId);
+  const itemMeta = (pkg && pkg.items && pkg.items[modKey]) || { included: false, tierIdx: null, customLabel: '' };
+  const override = _pkgGetCellOverride(pkgId, modKey);
+  const tierIdx = (override.tierIdx != null) ? override.tierIdx :
+                  (itemMeta.tierIdx != null) ? itemMeta.tierIdx : 0;
+  const tier = mod.tiers[tierIdx] || mod.tiers[0];
+  // Default prices from the tier (segment-scaled), all four currencies.
+  const defaults = {
+    usd: _tierPriceInCurrency(tier, 'usd'),
+    eur: _tierPriceInCurrency(tier, 'eur'),
+    gbp: _tierPriceInCurrency(tier, 'gbp'),
+    chf: _tierPriceInCurrency(tier, 'chf')
+  };
+  const prices = Object.assign({}, defaults, override.prices || {});
+  const label = override.label || itemMeta.customLabel || tier.vol || '';
+  const yr1 = (override.yr1 != null) ? override.yr1 : null;
+  const yr2 = (override.yr2 != null) ? override.yr2 : null;
+  const yr3 = (override.yr3 != null) ? override.yr3 : null;
+  return { tier, tierIdx, label, prices, yr1, yr2, yr3, included: !!itemMeta.included };
+}
+
+// Sum of all included module prices in a package, in the active currency.
+function _pkgPackageTotal(pkg, yearKey /* null | 'yr1' | 'yr2' | 'yr3' */) {
+  if (!pkg || !pkg.items) return 0;
+  let total = 0;
+  Object.keys(pkg.items).forEach(modKey => {
+    const meta = pkg.items[modKey];
+    if (!meta || !meta.included) return;
+    const eff = _pkgGetEffectiveCell(pkg.id, modKey);
+    if (!eff) return;
+    const annualBase = eff.prices[currentCurrency] || 0;
+    let val = annualBase;
+    if (yearKey === 'yr1' && eff.yr1 != null) val = eff.yr1;
+    else if (yearKey === 'yr2' && eff.yr2 != null) val = eff.yr2;
+    else if (yearKey === 'yr3' && eff.yr3 != null) val = eff.yr3;
+    total += val;
+  });
+  return total;
+}
+
+// ── Seed / clear helpers ───────────────────────────────────────────────────
+function lioPkgSeedFromStandard() {
+  // Replace each package's items with whatever is currently checked in the
+  // standard view, using the qf-{mod} price in the active currency as the
+  // per-cell price.
+  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const includedKeys = std.filter(k => document.getElementById('check-' + k)?.checked && !excludedModules[k]);
+  window._packageConfig.packages.forEach((pkg, idx) => {
+    pkg.items = {};
+    // Distribute included modules across packages — Basic gets first 2, Premium adds next 3, Diamond gets all.
+    const slice = idx === 0 ? Math.min(2, includedKeys.length)
+                : idx === 1 ? Math.min(5, includedKeys.length)
+                : includedKeys.length;
+    includedKeys.slice(0, slice).forEach(k => {
+      const tierEl = document.getElementById('calc-' + k + '-tier');
+      const tierUsd = parseInt(tierEl?.value);
+      const tierIdx = Math.max(0, modules[k].tiers.findIndex(t => t.price === tierUsd));
+      pkg.items[k] = { included: true, tierIdx, customLabel: '' };
+      const qf = parseFloat(document.getElementById('qf-' + k)?.value) || 0;
+      if (qf > 0) _pkgSetCellOverride(pkg.id, k, { prices: { [currentCurrency]: qf } });
+    });
+  });
+  lioRenderPackageView();
+}
+function lioPkgClearAll() {
+  if (!confirm('Clear ALL agent assignments across all packages?')) return;
+  window._packageConfig.packages.forEach(pkg => { pkg.items = {}; });
+  window._pkgCellOverrides = {};
+  lioRenderPackageView();
+}
+
+// ── Main render ────────────────────────────────────────────────────────────
+function lioRenderPackageView() {
+  // Reflect style toggle in UI
+  document.querySelectorAll('#pkg-style-toggle .pkg-style-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.style === window._packageConfig.style);
+    b.classList.toggle('text-slate-400', b.dataset.style !== window._packageConfig.style);
+  });
+  // Reflect year mode + footer settings in UI
+  const ymEl = document.getElementById('pkg-year-mode');
+  if (ymEl) ymEl.checked = !!window._packageConfig.yearMode;
+  const implEl = document.getElementById('pkg-show-impl');  if (implEl) implEl.checked = !!window._packageConfig.showImpl;
+  const csEl   = document.getElementById('pkg-show-cs');    if (csEl) csEl.checked = !!window._packageConfig.showCs;
+  const implPctEl = document.getElementById('pkg-impl-pct');if (implPctEl) implPctEl.value = window._packageConfig.implPct;
+  const csPctEl   = document.getElementById('pkg-cs-pct');  if (csPctEl) csPctEl.value = window._packageConfig.csPct;
+  const noteEl    = document.getElementById('pkg-footer-note'); if (noteEl) noteEl.value = window._packageConfig.footerNote || '';
+  // Add/Remove buttons availability
+  const addBtn = document.getElementById('pkg-add-btn');    if (addBtn) addBtn.disabled = window._packageConfig.packages.length >= 4;
+  const remBtn = document.getElementById('pkg-remove-btn'); if (remBtn) remBtn.disabled = window._packageConfig.packages.length <= 2;
+  // Read settings live from inputs so renders use latest values
+  if (implPctEl) window._packageConfig.implPct = parseFloat(implPctEl.value) || 15;
+  if (csPctEl)   window._packageConfig.csPct   = parseFloat(csPctEl.value)   || 10;
+  if (noteEl)    window._packageConfig.footerNote = noteEl.value || '';
+  if (ymEl)      window._packageConfig.yearMode = !!ymEl.checked;
+  if (implEl)    window._packageConfig.showImpl = !!implEl.checked;
+  if (csEl)      window._packageConfig.showCs   = !!csEl.checked;
+  lioRenderPackageCards();
+  lioRenderPackageAgentTable();
+}
+
+// ── Render the cards (style B or C) ────────────────────────────────────────
+function lioRenderPackageCards() {
+  const host = document.getElementById('pkg-cards-host');
+  if (!host) return;
+  const cfg = window._packageConfig;
+  const cols = cfg.packages.length;
+  host.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+  host.innerHTML = cfg.packages.map(pkg => cfg.style === 'B' ? _pkgCardHtmlB(pkg) : _pkgCardHtmlC(pkg)).join('');
+}
+
+// Style B: Vercel/Modern — big number, "billed annually"
+function _pkgCardHtmlB(pkg) {
+  const cfg = window._packageConfig;
+  const annual = _pkgPackageTotal(pkg, null);
+  const y1 = _pkgPackageTotal(pkg, 'yr1');
+  const y2 = _pkgPackageTotal(pkg, 'yr2');
+  const y3 = _pkgPackageTotal(pkg, 'yr3');
+  const header = pkg.isBest
+    ? `<div class="bg-white text-slate-900 text-[11px] font-semibold uppercase tracking-widest text-center py-1.5">★ Best Value</div>`
+    : `<div class="bg-slate-800 text-slate-500 text-[11px] uppercase tracking-widest text-center py-1.5">Standard</div>`;
+  const yearBlock = cfg.yearMode
+    ? `<div class="flex gap-1 mb-3 p-1 bg-slate-800/50 rounded-lg">
+         <div class="flex-1 px-2 py-1 text-[10px] text-center text-slate-300 bg-slate-700/50 rounded font-semibold">Y1 ${fmtRaw(y1)}</div>
+         <div class="flex-1 px-2 py-1 text-[10px] text-center text-slate-400 rounded">Y2 ${fmtRaw(y2)}</div>
+         <div class="flex-1 px-2 py-1 text-[10px] text-center text-slate-400 rounded">Y3 ${fmtRaw(y3)}</div>
+       </div>`
+    : '';
+  return `<div class="rounded-2xl border ${pkg.isBest ? 'border-white/60' : 'border-slate-700/50'} bg-slate-900/50 overflow-hidden">
+    ${header}
+    <div class="p-5">
+      <input type="text" value="${pkg.name}" data-pkg-name="${pkg.id}" oninput="window._packageConfig.packages.find(p=>p.id==='${pkg.id}').name=this.value;lioRenderPackageAgentTable();" class="w-full bg-transparent text-xl font-bold text-white outline-none mb-1 hover:bg-slate-800/40 px-1 rounded">
+      <input type="text" value="${pkg.tagline || ''}" data-pkg-tagline="${pkg.id}" oninput="window._packageConfig.packages.find(p=>p.id==='${pkg.id}').tagline=this.value" placeholder="Add tagline..." class="w-full bg-transparent text-xs text-slate-400 outline-none mb-4 hover:bg-slate-800/40 px-1 rounded">
+      ${yearBlock}
+      <div class="text-3xl font-bold text-white leading-none mb-1">${fmtRaw(cfg.yearMode ? y1 : annual)}</div>
+      <div class="text-[11px] text-slate-500 mb-4">billed annually${cfg.yearMode ? ' · Year 1' : ''}</div>
+      <div class="flex items-center gap-2">
+        <button onclick="lioPkgToggleBest('${pkg.id}')" class="text-[10px] px-2 py-1 rounded border ${pkg.isBest ? 'bg-lio-500/30 border-lio-500/40 text-lio-200' : 'bg-slate-700/30 border-slate-600 text-slate-400 hover:text-slate-200'}">${pkg.isBest ? '★ Best Value' : 'Set Best Value'}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// Style C: Detailed/Enterprise — Annual + Impl + CS + Total Year 1 breakdown
+function _pkgCardHtmlC(pkg) {
+  const cfg = window._packageConfig;
+  const annual = _pkgPackageTotal(pkg, null);
+  const y1 = _pkgPackageTotal(pkg, 'yr1');
+  const y2 = _pkgPackageTotal(pkg, 'yr2');
+  const y3 = _pkgPackageTotal(pkg, 'yr3');
+  const annualForBreakdown = cfg.yearMode ? y1 : annual;
+  const impl = cfg.showImpl ? Math.round(annualForBreakdown * (cfg.implPct/100)) : 0;
+  const cs   = cfg.showCs   ? Math.round(annualForBreakdown * (cfg.csPct/100))   : 0;
+  const yr1Total = annualForBreakdown + impl;
+  const badgeColor = pkg.isBest ? 'pkg-best-gradient text-white' : 'bg-slate-700/40 text-slate-400';
+  return `<div class="rounded-2xl ${pkg.isBest ? 'border-2 border-lio-500/70' : 'border border-slate-700/50'} bg-slate-900/60 relative overflow-hidden">
+    <div class="absolute top-3 right-3">
+      <button onclick="lioPkgToggleBest('${pkg.id}')" class="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded ${badgeColor}">${pkg.isBest ? '★ Best Value' : '○ Standard'}</button>
+    </div>
+    <div class="p-5">
+      <input type="text" value="${pkg.name}" oninput="window._packageConfig.packages.find(p=>p.id==='${pkg.id}').name=this.value;lioRenderPackageAgentTable();" class="w-full bg-transparent text-lg font-bold text-white outline-none mb-1 hover:bg-slate-800/40 px-1 rounded">
+      <input type="text" value="${pkg.tagline || ''}" oninput="window._packageConfig.packages.find(p=>p.id==='${pkg.id}').tagline=this.value" placeholder="Add tagline..." class="w-full bg-transparent text-xs italic text-slate-400 outline-none mb-4 hover:bg-slate-800/40 px-1 rounded">
+      ${cfg.yearMode ? `<div class="grid grid-cols-3 gap-1.5 mb-4">
+        <div class="rounded-lg bg-slate-800/60 border border-slate-700 p-1.5 text-center"><div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">Yr 1</div><div class="text-xs font-bold text-white">${fmtRaw(y1)}</div></div>
+        <div class="rounded-lg bg-slate-800/60 border border-slate-700 p-1.5 text-center"><div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">Yr 2</div><div class="text-xs font-bold text-white">${fmtRaw(y2)}</div></div>
+        <div class="rounded-lg bg-slate-800/60 border border-slate-700 p-1.5 text-center"><div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">Yr 3</div><div class="text-xs font-bold text-white">${fmtRaw(y3)}</div></div>
+      </div>` : ''}
+      <div class="space-y-1.5 text-sm">
+        <div class="flex justify-between"><span class="text-slate-400 text-xs">SaaS subscription / yr</span><span class="font-semibold text-white text-xs">${fmtRaw(annualForBreakdown)}</span></div>
+        ${cfg.showImpl ? `<div class="flex justify-between"><span class="text-slate-500 text-[11px]">Implementation (${cfg.implPct}% one-time)</span><span class="text-slate-300 text-[11px]">${fmtRaw(impl)}</span></div>` : ''}
+        ${cfg.showCs   ? `<div class="flex justify-between"><span class="text-slate-500 text-[11px]">Customer Success (${cfg.csPct}% / yr)</span><span class="text-slate-300 text-[11px]">${fmtRaw(cs)}</span></div>` : ''}
+        <div class="pkg-dashed-divider my-1.5"></div>
+        <div class="flex items-baseline justify-between"><span class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Total Year 1</span><span class="text-xl font-bold ${pkg.isBest ? 'pkg-gradient-text' : 'text-white'}">${fmtRaw(yr1Total)}</span></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function lioPkgToggleBest(pkgId) {
+  // Single Best-Value at a time
+  window._packageConfig.packages.forEach(p => { p.isBest = (p.id === pkgId) ? !p.isBest : false; });
+  lioRenderPackageCards();
+}
+
+// ── Render the Agent Assignment table ──────────────────────────────────────
+function lioRenderPackageAgentTable() {
+  const head = document.getElementById('pkg-agent-head');
+  const tbody = document.getElementById('pkg-agent-tbody');
+  if (!head || !tbody) return;
+  const cfg = window._packageConfig;
+  // Header: Agent col + one col per package
+  head.innerHTML = '<th class="text-left p-2 pl-3 font-semibold text-slate-300">Agent</th>' +
+    cfg.packages.map(p => `<th class="text-center p-2 font-semibold ${p.isBest ? 'text-lio-300' : 'text-slate-300'}">${p.name}${p.isBest ? ' ★' : ''}</th>`).join('');
+  // Rows: all 16 standard modules — include only when at least one package would want it visible (always show all so user can toggle)
+  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  tbody.innerHTML = std.map(modKey => {
+    const mod = modules[modKey];
+    if (!mod) return '';
+    const cells = cfg.packages.map(pkg => {
+      const itemMeta = (pkg.items && pkg.items[modKey]) || { included: false };
+      if (!itemMeta.included) {
+        return `<td class="p-2 text-center">
+          <button onclick="lioPkgToggleItem('${pkg.id}','${modKey}')" class="text-rose-400/60 hover:text-rose-300 text-lg" title="Click to include">×</button>
+        </td>`;
+      }
+      const eff = _pkgGetEffectiveCell(pkg.id, modKey);
+      const tierOpts = mod.tiers.map((t, i) => `<option value="${i}" ${i === eff.tierIdx ? 'selected' : ''}>${t.vol}</option>`).join('');
+      const priceStr = fmtRaw(eff.prices[currentCurrency] || 0);
+      return `<td class="p-2 text-center">
+        <div class="inline-flex flex-col gap-1 items-stretch min-w-[140px]">
+          <div class="flex items-center justify-between gap-1">
+            <button onclick="lioPkgToggleItem('${pkg.id}','${modKey}')" class="text-emerald-400 hover:text-emerald-300" title="Click to exclude">✓</button>
+            <select onchange="lioPkgSetTier('${pkg.id}','${modKey}', this.value)" class="flex-1 bg-slate-900/60 border border-slate-700 rounded px-1 py-0.5 text-[10px] text-white outline-none">${tierOpts}</select>
+          </div>
+          <input type="text" value="${eff.label}" oninput="lioPkgSetCellLabel('${pkg.id}','${modKey}',this.value)" placeholder="Custom label..." class="w-full bg-slate-900/60 border border-slate-700 rounded px-1 py-0.5 text-[10px] text-slate-300 outline-none placeholder-slate-500">
+          <input type="number" value="${eff.prices[currentCurrency] || 0}" oninput="lioPkgSetCellPrice('${pkg.id}','${modKey}','${currentCurrency}',this.value)" class="w-full bg-slate-900/60 border border-slate-700 rounded px-1 py-0.5 text-[10px] text-white text-right outline-none" title="Price in active currency (${currentCurrency.toUpperCase()})">
+          ${cfg.yearMode ? `<div class="grid grid-cols-3 gap-0.5 mt-0.5">
+            <input type="number" value="${eff.yr1 ?? eff.prices[currentCurrency] ?? 0}" oninput="lioPkgSetYear('${pkg.id}','${modKey}','yr1',this.value)" placeholder="Y1" class="bg-slate-900/60 border border-slate-700 rounded px-0.5 py-0.5 text-[9px] text-white text-right outline-none" title="Year 1 price">
+            <input type="number" value="${eff.yr2 ?? eff.prices[currentCurrency] ?? 0}" oninput="lioPkgSetYear('${pkg.id}','${modKey}','yr2',this.value)" placeholder="Y2" class="bg-slate-900/60 border border-slate-700 rounded px-0.5 py-0.5 text-[9px] text-white text-right outline-none" title="Year 2 price">
+            <input type="number" value="${eff.yr3 ?? eff.prices[currentCurrency] ?? 0}" oninput="lioPkgSetYear('${pkg.id}','${modKey}','yr3',this.value)" placeholder="Y3" class="bg-slate-900/60 border border-slate-700 rounded px-0.5 py-0.5 text-[9px] text-white text-right outline-none" title="Year 3 price">
+          </div>` : ''}
+        </div>
+      </td>`;
+    }).join('');
+    return `<tr class="border-t border-slate-700/30"><td class="p-2 pl-3 text-xs font-semibold text-slate-200">${mod.name}</td>${cells}</tr>`;
+  }).join('');
+}
+
+function lioPkgToggleItem(pkgId, modKey) {
+  const pkg = window._packageConfig.packages.find(p => p.id === pkgId);
+  if (!pkg) return;
+  if (!pkg.items[modKey]) {
+    pkg.items[modKey] = { included: true, tierIdx: 0, customLabel: '' };
+  } else {
+    pkg.items[modKey].included = !pkg.items[modKey].included;
+  }
+  lioRenderPackageView();
+}
+function lioPkgSetTier(pkgId, modKey, tierIdx) {
+  const pkg = window._packageConfig.packages.find(p => p.id === pkgId);
+  if (!pkg || !pkg.items[modKey]) return;
+  pkg.items[modKey].tierIdx = parseInt(tierIdx) || 0;
+  // Clear per-cell price overrides so the new tier's defaults flow through
+  if (window._pkgCellOverrides[pkgId] && window._pkgCellOverrides[pkgId][modKey]) {
+    delete window._pkgCellOverrides[pkgId][modKey].prices;
+  }
+  lioRenderPackageView();
+}
+function lioPkgSetCellLabel(pkgId, modKey, value) {
+  _pkgSetCellOverride(pkgId, modKey, { label: value });
+}
+function lioPkgSetCellPrice(pkgId, modKey, cur, value) {
+  const num = parseFloat(value) || 0;
+  const existing = _pkgGetCellOverride(pkgId, modKey).prices || {};
+  _pkgSetCellOverride(pkgId, modKey, { prices: Object.assign({}, existing, { [cur]: num }) });
+  // Update only the affected card total, but easier to re-render all cards
+  lioRenderPackageCards();
+}
+function lioPkgSetYear(pkgId, modKey, yrKey, value) {
+  const num = parseFloat(value) || 0;
+  _pkgSetCellOverride(pkgId, modKey, { [yrKey]: num });
+  lioRenderPackageCards();
+}
+
+// ── PDF mode helpers ───────────────────────────────────────────────────────
+function lioGetPdfMode() {
+  const r = document.querySelector('input[name="pdf-mode"]:checked');
+  return r ? r.value : 'standard';
+}
+// Visually reflect selection on the pill labels
+document.addEventListener('change', (ev) => {
+  if (ev.target && ev.target.name === 'pdf-mode') {
+    document.querySelectorAll('#pdf-mode-pills label').forEach(lab => {
+      const isOn = lab.dataset.mode === ev.target.value;
+      lab.classList.toggle('border-lio-500/50', isOn);
+      lab.classList.toggle('ring-1', isOn);
+      lab.classList.toggle('ring-lio-500/30', isOn);
+      lab.classList.toggle('border-slate-600', !isOn);
+      lab.classList.toggle('text-white', isOn);
+      lab.classList.toggle('text-slate-300', !isOn);
+    });
+  }
+});
+
+// ── PDF render: Package Overview ───────────────────────────────────────────
+// White-themed, A4 landscape-ish (works in portrait too). Reuses Lio branding.
+function lioBuildPackageOverviewHtml(quoteData) {
+  const cfg = window._packageConfig || _lioPkgDefaultConfig();
+  const ref = quoteData?.quoteRef || ('Q-' + Date.now().toString(36).toUpperCase());
+  const today = quoteData?.today || new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  const company = quoteData?.recipientCompany || '';
+  const contact = quoteData?.recipientContact || '';
+  // Build cards (always render WHITE for PDF — invert from dark UI)
+  const cards = cfg.packages.map(pkg => cfg.style === 'B' ? _pkgPdfCardB(pkg) : _pkgPdfCardC(pkg)).join('');
+  // Agent assignment table — concise, only rows that are in at least one package
+  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const activeModKeys = std.filter(k =>
+    cfg.packages.some(pkg => pkg.items && pkg.items[k] && pkg.items[k].included));
+  const tableHead = '<tr style="background:#f8fafc;border-bottom:2px solid #cbd5e1;">'
+    + '<th style="padding:10px 14px;text-align:left;font-size:11px;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;">Agent</th>'
+    + cfg.packages.map(p => `<th style="padding:10px 14px;text-align:center;font-size:11px;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;${p.isBest ? 'background:linear-gradient(135deg,#6366f1,#22d3ee);color:white;' : ''}">${p.name}${p.isBest ? ' ★' : ''}</th>`).join('')
+    + '</tr>';
+  const tableRows = activeModKeys.map(modKey => {
+    const mod = modules[modKey];
+    if (!mod) return '';
+    const cells = cfg.packages.map(pkg => {
+      const itemMeta = (pkg.items && pkg.items[modKey]) || { included: false };
+      if (!itemMeta.included) {
+        return '<td style="padding:9px 14px;text-align:center;color:#cbd5e1;font-size:14px;">×</td>';
+      }
+      const eff = _pkgGetEffectiveCell(pkg.id, modKey);
+      const price = eff.prices[currentCurrency] || 0;
+      const label = eff.label || '';
+      return `<td style="padding:9px 14px;text-align:center;">
+        <div style="font-size:11px;font-weight:600;color:#1e293b;">${fmtRaw(price)}/yr</div>
+        <div style="font-size:9px;color:#64748b;">${label}</div>
+      </td>`;
+    }).join('');
+    return `<tr style="border-bottom:1px solid #f1f5f9;">
+      <td style="padding:9px 14px;font-size:11px;font-weight:600;color:#1e293b;">${mod.name}</td>${cells}
+    </tr>`;
+  }).join('');
+  const footerNote = (cfg.footerNote || '').trim();
+  const footerHtml = `<div style="margin-top:24px;padding:16px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0;">
+    ${cfg.showImpl ? `<div style="font-size:11px;color:#1e293b;margin-bottom:4px;"><strong>Implementation Fee</strong> — ${cfg.implPct}% one-time, calculated on the annual SaaS price.</div>` : ''}
+    ${cfg.showCs   ? `<div style="font-size:11px;color:#1e293b;margin-bottom:4px;"><strong>Customer Success Fee</strong> — ${cfg.csPct}% per year, included in ongoing service.</div>` : ''}
+    ${footerNote   ? `<div style="font-size:11px;color:#1e293b;margin-top:8px;font-style:italic;">${footerNote.replace(/\n/g,'<br>')}</div>` : ''}
+  </div>`;
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Package Overview · ${ref}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+      @page { size: A4 landscape; margin: 12mm; }
+      * { box-sizing: border-box; }
+      body { font-family:'Inter',sans-serif; background:white; color:#1e293b; margin:0; padding:24px; }
+      .pkg-best-gradient { background: linear-gradient(135deg, #6366f1, #22d3ee); }
+      .pkg-gradient-text { background: linear-gradient(135deg, #6366f1, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+      .pkg-dashed-divider { background-image: linear-gradient(to right, #cbd5e1 50%, transparent 50%); background-size: 8px 1px; background-repeat: repeat-x; height: 1px; }
+    </style>
+  </head><body>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1e293b;padding-bottom:14px;margin-bottom:24px;">
+      <div>
+        <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;margin-bottom:2px;">Lio · Package Overview</div>
+        <div style="font-size:22px;font-weight:800;color:#1e293b;">Overview Package Prices</div>
+      </div>
+      <div style="text-align:right;font-size:11px;color:#64748b;">
+        <div>Ref: <strong style="color:#1e293b;">${ref}</strong></div>
+        <div>${today}</div>
+        ${company ? `<div style="margin-top:6px;color:#1e293b;font-weight:600;">${company}${contact ? ' · ' + contact : ''}</div>` : ''}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(${cfg.packages.length},1fr);gap:14px;margin-bottom:24px;">${cards}</div>
+    <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+      <thead>${tableHead}</thead>
+      <tbody>${tableRows || '<tr><td colspan="' + (cfg.packages.length+1) + '" style="padding:24px;text-align:center;color:#94a3b8;font-size:12px;">No agents assigned yet — use the Agent Assignment table in the Quote Modal to fill in.</td></tr>'}</tbody>
+    </table>
+    ${footerHtml}
+    <div style="position:absolute;top:14px;right:24px;font-size:9px;color:#cbd5e1;text-transform:uppercase;letter-spacing:2px;font-weight:600;">Confidential</div>
+  </body></html>`;
+}
+
+// White-theme card renderers for the PDF.
+function _pkgPdfCardB(pkg) {
+  const cfg = window._packageConfig;
+  const annual = _pkgPackageTotal(pkg, null);
+  const y1 = _pkgPackageTotal(pkg, 'yr1');
+  const y2 = _pkgPackageTotal(pkg, 'yr2');
+  const y3 = _pkgPackageTotal(pkg, 'yr3');
+  const header = pkg.isBest
+    ? `<div style="background:#0f172a;color:white;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:2px;text-align:center;padding:8px;">★ Best Value</div>`
+    : `<div style="background:#f8fafc;color:#94a3b8;font-size:10px;text-transform:uppercase;letter-spacing:2px;text-align:center;padding:8px;">Standard</div>`;
+  const yearBlock = cfg.yearMode
+    ? `<div style="display:flex;gap:4px;margin-bottom:12px;padding:4px;background:#f1f5f9;border-radius:8px;">
+         <div style="flex:1;padding:5px;font-size:10px;text-align:center;background:#0f172a;color:white;border-radius:4px;font-weight:600;">Y1 ${fmtRaw(y1)}</div>
+         <div style="flex:1;padding:5px;font-size:10px;text-align:center;color:#64748b;">Y2 ${fmtRaw(y2)}</div>
+         <div style="flex:1;padding:5px;font-size:10px;text-align:center;color:#64748b;">Y3 ${fmtRaw(y3)}</div>
+       </div>`
+    : '';
+  return `<div style="border-radius:12px;border:${pkg.isBest ? '2px solid #0f172a' : '1px solid #e2e8f0'};overflow:hidden;background:white;">
+    ${header}
+    <div style="padding:18px;">
+      <div style="font-size:18px;font-weight:700;color:#1e293b;margin-bottom:4px;">${pkg.name}</div>
+      <div style="font-size:11px;color:#64748b;margin-bottom:16px;min-height:30px;">${pkg.tagline || ''}</div>
+      ${yearBlock}
+      <div style="font-size:32px;font-weight:800;color:#1e293b;line-height:1;margin-bottom:4px;">${fmtRaw(cfg.yearMode ? y1 : annual)}</div>
+      <div style="font-size:10px;color:#94a3b8;">billed annually${cfg.yearMode ? ' · Year 1' : ''}</div>
+    </div>
+  </div>`;
+}
+function _pkgPdfCardC(pkg) {
+  const cfg = window._packageConfig;
+  const annual = _pkgPackageTotal(pkg, null);
+  const y1 = _pkgPackageTotal(pkg, 'yr1');
+  const y2 = _pkgPackageTotal(pkg, 'yr2');
+  const y3 = _pkgPackageTotal(pkg, 'yr3');
+  const ab = cfg.yearMode ? y1 : annual;
+  const impl = cfg.showImpl ? Math.round(ab * (cfg.implPct/100)) : 0;
+  const cs   = cfg.showCs   ? Math.round(ab * (cfg.csPct/100))   : 0;
+  const yr1Total = ab + impl;
+  return `<div style="border-radius:12px;border:${pkg.isBest ? '2px solid #6366f1' : '1px solid #e2e8f0'};background:white;position:relative;overflow:hidden;padding:18px;">
+    ${pkg.isBest ? '<div style="position:absolute;top:12px;right:12px;background:linear-gradient(135deg,#6366f1,#22d3ee);color:white;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;padding:4px 10px;border-radius:4px;">★ Best Value</div>' : ''}
+    <div style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:4px;">${pkg.name}</div>
+    <div style="font-size:11px;color:#64748b;font-style:italic;margin-bottom:14px;min-height:30px;">${pkg.tagline || ''}</div>
+    ${cfg.yearMode ? `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:14px;">
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px;text-align:center;"><div style="font-size:8px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Yr 1</div><div style="font-size:11px;font-weight:700;color:#1e293b;">${fmtRaw(y1)}</div></div>
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px;text-align:center;"><div style="font-size:8px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Yr 2</div><div style="font-size:11px;font-weight:700;color:#1e293b;">${fmtRaw(y2)}</div></div>
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px;text-align:center;"><div style="font-size:8px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Yr 3</div><div style="font-size:11px;font-weight:700;color:#1e293b;">${fmtRaw(y3)}</div></div>
+    </div>` : ''}
+    <div style="font-size:11px;color:#1e293b;">
+      <div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#64748b;">SaaS subscription / yr</span><span style="font-weight:700;">${fmtRaw(ab)}</span></div>
+      ${cfg.showImpl ? `<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#94a3b8;font-size:10px;">Implementation (${cfg.implPct}% one-time)</span><span style="color:#475569;font-size:10px;">${fmtRaw(impl)}</span></div>` : ''}
+      ${cfg.showCs   ? `<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#94a3b8;font-size:10px;">Customer Success (${cfg.csPct}% / yr)</span><span style="color:#475569;font-size:10px;">${fmtRaw(cs)}</span></div>` : ''}
+      <div class="pkg-dashed-divider" style="margin:8px 0;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;">
+        <span style="font-size:9px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Total Year 1</span>
+        <span style="font-size:20px;font-weight:800;${pkg.isBest ? 'background:linear-gradient(135deg,#6366f1,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;' : 'color:#1e293b;'}">${fmtRaw(yr1Total)}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+// Combine the package overview HTML with the standard quote HTML according to the chosen mode.
+function lioApplyPdfModeToHtml(standardData) {
+  const mode = lioGetPdfMode();
+  if (!standardData) return standardData;
+  if (mode === 'standard') return standardData;
+  const pkgHtml = lioBuildPackageOverviewHtml(standardData);
+  if (mode === 'package') {
+    // Replace entirely — just the package overview as the printed document.
+    return Object.assign({}, standardData, { html: pkgHtml });
+  }
+  if (mode === 'combined') {
+    // Prepend package overview as the cover, then page-break, then standard.
+    // Extract just the <body> contents of the package HTML to merge into the same document.
+    const m = /<body[^>]*>([\s\S]*?)<\/body>/i.exec(pkgHtml);
+    const pkgBody = m ? m[1] : pkgHtml;
+    // Inject a hard page break before the standard body's content.
+    const wrappedPkg = `<div style="page-break-after:always;">${pkgBody}</div>`;
+    // Splice into the standard HTML right after the opening <body...> tag.
+    const combined = standardData.html.replace(/<body([^>]*)>/i, '<body$1>' + wrappedPkg);
+    return Object.assign({}, standardData, { html: combined });
+  }
+  return standardData;
+}
+
+// Wrap downloadQuotePDF + downloadQuoteAsPDF so the PDF mode selector is honored.
+(function () {
+  const origPrint = window.downloadQuotePDF;
+  if (typeof origPrint === 'function' && !origPrint._pkgWrapped) {
+    window.downloadQuotePDF = function () {
+      const data = generateQuoteData();
+      if (!data) return;
+      const mode = lioGetPdfMode();
+      const out = (mode === 'standard') ? data : lioApplyPdfModeToHtml(data);
+      saveQuoteToHistory(out);
+      const w = window.open('', '_blank');
+      w.document.write(out.html); w.document.close();
+      setTimeout(() => w.print(), 500);
+    };
+    window.downloadQuotePDF._pkgWrapped = true;
+  }
+  const origDl = window.downloadQuoteAsPDF;
+  if (typeof origDl === 'function' && !origDl._pkgWrapped) {
+    window.downloadQuoteAsPDF = async function () {
+      const data = generateQuoteData();
+      if (!data) return;
+      const mode = lioGetPdfMode();
+      const out = (mode === 'standard') ? data : lioApplyPdfModeToHtml(data);
+      // Reuse the original PDF flow with the patched data. The original
+      // function reads `data.html` so we monkey-patch generateQuoteData
+      // temporarily.
+      const _origGen = window.generateQuoteData;
+      window.generateQuoteData = function () { return out; };
+      try { await origDl.apply(this, arguments); }
+      finally { window.generateQuoteData = _origGen; }
+    };
+    window.downloadQuoteAsPDF._pkgWrapped = true;
+  }
+})();
+
+// Save/Load: persist _packageConfig + _quoteView + _pkgCellOverrides into formState.
+const _origSaveQuoteToHistory_pkg = window.saveQuoteToHistory;
+if (typeof _origSaveQuoteToHistory_pkg === 'function' && !_origSaveQuoteToHistory_pkg._pkgWrapped) {
+  window.saveQuoteToHistory = function (data) {
+    const result = _origSaveQuoteToHistory_pkg.apply(this, arguments);
+    setTimeout(() => {
+      try {
+        const hist = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
+        if (hist.length === 0) return;
+        const top = hist[0];
+        if (!top.formState) top.formState = {};
+        top.formState.quoteView = window._quoteView || 'standard';
+        top.formState.packageConfig = window._packageConfig;
+        top.formState.packageCellOverrides = window._pkgCellOverrides;
+        top.formState.pdfMode = lioGetPdfMode();
+        hist[0] = top;
+        localStorage.setItem('lio-quote-history', JSON.stringify(hist));
+      } catch (e) {}
+    }, 100);
+    return result;
+  };
+  window.saveQuoteToHistory._pkgWrapped = true;
+}
+const _origLoadQuote_pkg = window.loadQuote;
+if (typeof _origLoadQuote_pkg === 'function' && !_origLoadQuote_pkg._pkgWrapped) {
+  window.loadQuote = function (id) {
+    const result = _origLoadQuote_pkg.apply(this, arguments);
+    setTimeout(() => {
+      try {
+        const hist = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
+        const q = hist.find(h => h.id === id);
+        const fs = q && q.formState;
+        if (!fs) return;
+        if (fs.packageConfig) window._packageConfig = fs.packageConfig;
+        if (fs.packageCellOverrides) window._pkgCellOverrides = fs.packageCellOverrides;
+        if (fs.quoteView) lioSetQuoteView(fs.quoteView);
+        if (fs.pdfMode) {
+          const r = document.querySelector('input[name="pdf-mode"][value="' + fs.pdfMode + '"]');
+          if (r) r.checked = true;
+        }
+      } catch (e) {}
+    }, 250);
+    return result;
+  };
+  window.loadQuote._pkgWrapped = true;
+}
+
 // Hook the existing openQuoteModal to also render the segment picker + module-overrides editor.
 const _origOpenQuoteModal = window.openQuoteModal;
 if (typeof _origOpenQuoteModal === 'function') {
@@ -7402,6 +8155,8 @@ if (typeof _origOpenQuoteModal === 'function') {
     renderModuleOverridesEditorDark();
     const hideTiersCb = document.getElementById('quote-hide-all-tier-ladders');
     if (hideTiersCb) hideTiersCb.checked = !!window._hideTierLadder;
+    // Default the view to Standard each time the modal opens (state preserved).
+    if (typeof lioSetQuoteView === 'function') lioSetQuoteView(window._quoteView || 'standard');
   };
 }
 

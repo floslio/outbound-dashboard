@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lio Package Pricing — 3 Total Display Variants</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  fontFamily: { sans: ['Inter', 'sans-serif'] },
+  colors: { lio: { 50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca' } }
+}}}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+body { font-family:'Inter',sans-serif; background:#f8fafc; }
+.best-gradient { background:linear-gradient(135deg,#6366f1,#22d3ee); }
+.card-shadow { box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.06); }
+.card-shadow-lg { box-shadow: 0 10px 25px -5px rgba(99,102,241,0.15), 0 4px 6px -2px rgba(0,0,0,0.05); }
+.year-tab.active { background:#0f172a; color:#fff; }
+.gradient-text { background:linear-gradient(135deg,#6366f1,#22d3ee); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.dashed-divider { background-image: linear-gradient(to right,#cbd5e1 50%,transparent 50%); background-size:8px 1px; background-repeat:repeat-x; }
+</style>
+</head>
+<body class="text-slate-800">
+
+<div class="max-w-7xl mx-auto px-6 py-10">
+
+  <!-- HEADER -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-slate-900 mb-2">Lio Package Pricing — Total Display Variants</h1>
+    <p class="text-slate-500 text-sm">Three different approaches to showing the package total. Same 3 packages (Basic / Premium / Diamond), different presentations. Toggle the Year-Mode below to see how each variant handles per-year pricing.</p>
+  </div>
+
+  <!-- YEAR MODE TOGGLE -->
+  <div class="mb-10 p-4 rounded-xl bg-white border border-slate-200 card-shadow flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <div class="text-sm font-semibold text-slate-900">Per-Year Pricing</div>
+      <div class="text-xs text-slate-500">When ON: each package shows Year 1 / Year 2 / Year 3 prices separately. When OFF: single annual price.</div>
+    </div>
+    <label class="inline-flex items-center cursor-pointer gap-3">
+      <span class="text-xs text-slate-500">OFF</span>
+      <input type="checkbox" id="yearMode" class="sr-only peer" onchange="renderAll()">
+      <div class="relative w-11 h-6 bg-slate-200 peer-checked:bg-lio-500 rounded-full transition">
+        <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition peer-checked:translate-x-5 shadow"></div>
+      </div>
+      <span class="text-xs text-slate-500">ON</span>
+    </label>
+  </div>
+
+  <!-- ========== VARIANT A: STRIPE / LINEAR STYLE ========== -->
+  <section class="mb-14">
+    <div class="flex items-baseline gap-3 mb-4">
+      <h2 class="text-xl font-bold text-slate-900">Variant A — Stripe / Linear Style</h2>
+      <span class="text-xs text-slate-400">clean, minimal, "starting at" subtitle, subtle gradient border on Best Value</span>
+    </div>
+    <div class="grid grid-cols-3 gap-5" id="variantA-cards"></div>
+  </section>
+
+  <!-- ========== VARIANT B: VERCEL / MODERN TECH ========== -->
+  <section class="mb-14">
+    <div class="flex items-baseline gap-3 mb-4">
+      <h2 class="text-xl font-bold text-slate-900">Variant B — Vercel / Modern Tech</h2>
+      <span class="text-xs text-slate-400">single huge price, "billed annually" muted, Best Value with filled black header (Vercel-style)</span>
+    </div>
+    <div class="grid grid-cols-3 gap-5" id="variantB-cards"></div>
+  </section>
+
+  <!-- ========== VARIANT C: ENTERPRISE / LIO PREMIUM ========== -->
+  <section class="mb-14">
+    <div class="flex items-baseline gap-3 mb-4">
+      <h2 class="text-xl font-bold text-slate-900">Variant C — Enterprise / Lio Premium</h2>
+      <span class="text-xs text-slate-400">full breakdown per card: Annual SaaS, Implementation (15%), CS (10%), Total Year 1 — most informative for procurement teams</span>
+    </div>
+    <div class="grid grid-cols-3 gap-5" id="variantC-cards"></div>
+  </section>
+
+  <!-- DECISION CALLOUT -->
+  <div class="mt-12 p-6 rounded-2xl bg-lio-50 border border-lio-200">
+    <div class="text-sm font-semibold text-lio-700 mb-2">Which variant do you prefer?</div>
+    <div class="text-xs text-slate-600">Tell Claude: "Variant A" / "Variant B" / "Variant C" — or mix elements ("Variant A but with Variant C's breakdown rows").</div>
+  </div>
+
+</div>
+
+<script>
+// =========================================================
+// Data — 3 sample packages with realistic Lio agent prices
+// =========================================================
+const PACKAGES = [
+  {
+    name: 'Basic',
+    tagline: 'Perfect for the start',
+    isBest: false,
+    annual: 170505,
+    annualY1: 170505,
+    annualY2: 145000,
+    annualY3: 135000,
+    delta: 0,        // vs Basic
+    bullets: ['Guided Buying','Goods Receipt','Basic integrations']
+  },
+  {
+    name: 'Premium',
+    tagline: 'AI that understands, decides & acts',
+    isBest: true,
+    annual: 303515,
+    annualY1: 303515,
+    annualY2: 280000,
+    annualY3: 265000,
+    delta: 133010,   // vs Basic
+    bullets: ['Everything in Basic','PR Reviews','Order Confirmations','Lio Assistant']
+  },
+  {
+    name: 'Diamond',
+    tagline: '100% faster than any human',
+    isBest: false,
+    annual: 368515,
+    annualY1: 368515,
+    annualY2: 340000,
+    annualY3: 320000,
+    delta: 65000,    // vs Premium
+    bullets: ['Everything in Premium','Negotiation Agent','Sourcing Agent','Custom workflows']
+  }
+];
+
+const fmt = n => '€' + n.toLocaleString('de-DE');
+
+// =========================================================
+// Variant A — Stripe / Linear Style
+// =========================================================
+function renderVariantA() {
+  const yearMode = document.getElementById('yearMode').checked;
+  const host = document.getElementById('variantA-cards');
+  host.innerHTML = PACKAGES.map(p => `
+    <div class="relative rounded-2xl ${p.isBest ? 'ring-2 ring-transparent bg-white' : 'bg-white border border-slate-200'} card-shadow p-6"
+         ${p.isBest ? 'style="background-image: linear-gradient(white, white), linear-gradient(135deg, #6366f1, #22d3ee); background-origin: border-box; background-clip: padding-box, border-box; border: 2px solid transparent;"' : ''}>
+      ${p.isBest ? '<div class="absolute -top-3 left-1/2 -translate-x-1/2 best-gradient text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">Best Value</div>' : ''}
+      <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">${p.name}</div>
+      <div class="text-sm italic text-slate-600 mb-5 min-h-[2.5rem]">${p.tagline}</div>
+      <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Starting at</div>
+      ${yearMode ? `
+        <div class="space-y-2 mb-5">
+          <div class="flex items-baseline justify-between"><span class="text-xs text-slate-500">Year 1</span><span class="text-lg font-bold text-slate-900">${fmt(p.annualY1)}</span></div>
+          <div class="flex items-baseline justify-between"><span class="text-xs text-slate-500">Year 2</span><span class="text-lg font-bold text-slate-900">${fmt(p.annualY2)}</span></div>
+          <div class="flex items-baseline justify-between"><span class="text-xs text-slate-500">Year 3</span><span class="text-lg font-bold text-slate-900">${fmt(p.annualY3)}</span></div>
+        </div>
+      ` : `
+        <div class="flex items-baseline gap-1.5 mb-5">
+          <div class="text-4xl font-bold text-slate-900">${fmt(p.annual)}</div>
+          <div class="text-sm text-slate-400">/year</div>
+        </div>
+      `}
+      <div class="space-y-1.5">
+        ${p.bullets.map(b => `<div class="flex items-center gap-2 text-xs text-slate-600"><span class="text-emerald-500">✓</span>${b}</div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// =========================================================
+// Variant B — Vercel / Modern Tech
+// =========================================================
+function renderVariantB() {
+  const yearMode = document.getElementById('yearMode').checked;
+  const host = document.getElementById('variantB-cards');
+  host.innerHTML = PACKAGES.map(p => `
+    <div class="rounded-2xl border ${p.isBest ? 'border-slate-900 bg-white' : 'border-slate-200 bg-white'} card-shadow overflow-hidden">
+      ${p.isBest ? '<div class="bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-widest text-center py-2">★ Best Value</div>' : '<div class="py-2 bg-slate-50 text-[11px] uppercase tracking-widest text-slate-400 text-center">Standard</div>'}
+      <div class="p-6">
+        <div class="text-2xl font-bold text-slate-900 mb-1">${p.name}</div>
+        <div class="text-sm text-slate-500 mb-6 min-h-[2.5rem]">${p.tagline}</div>
+        ${yearMode ? `
+          <div class="flex gap-1 mb-3 p-1 bg-slate-100 rounded-lg">
+            <button class="flex-1 px-2 py-1.5 text-[11px] font-semibold rounded year-tab active" data-y="1" onclick="setYearTabB(this, ${p.annualY1})">Yr 1</button>
+            <button class="flex-1 px-2 py-1.5 text-[11px] font-semibold rounded year-tab text-slate-500" data-y="2" onclick="setYearTabB(this, ${p.annualY2})">Yr 2</button>
+            <button class="flex-1 px-2 py-1.5 text-[11px] font-semibold rounded year-tab text-slate-500" data-y="3" onclick="setYearTabB(this, ${p.annualY3})">Yr 3</button>
+          </div>
+          <div class="vb-price-host">
+            <div class="text-5xl font-bold text-slate-900 leading-none mb-1">${fmt(p.annualY1)}</div>
+            <div class="text-xs text-slate-400 mb-5">billed annually · Year 1</div>
+          </div>
+        ` : `
+          <div class="text-5xl font-bold text-slate-900 leading-none mb-1">${fmt(p.annual)}</div>
+          <div class="text-xs text-slate-400 mb-5">billed annually</div>
+        `}
+        ${p.delta > 0 ? `<div class="inline-flex items-center gap-1 mb-5 text-[11px] font-semibold text-lio-600 bg-lio-50 px-2 py-1 rounded">+${fmt(p.delta)} vs previous tier</div>` : ''}
+        <div class="border-t border-slate-100 pt-4 space-y-2">
+          ${p.bullets.map(b => `<div class="flex items-center gap-2 text-xs text-slate-700"><span class="w-1 h-1 rounded-full bg-slate-900"></span>${b}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function setYearTabB(btn, price) {
+  const card = btn.closest('.rounded-2xl');
+  card.querySelectorAll('.year-tab').forEach(b => { b.classList.remove('active'); b.classList.add('text-slate-500'); });
+  btn.classList.add('active'); btn.classList.remove('text-slate-500');
+  const host = card.querySelector('.vb-price-host');
+  if (host) host.innerHTML = `<div class="text-5xl font-bold text-slate-900 leading-none mb-1">${fmt(price)}</div><div class="text-xs text-slate-400 mb-5">billed annually · Year ${btn.dataset.y}</div>`;
+}
+
+// =========================================================
+// Variant C — Enterprise / Lio Premium (full breakdown)
+// =========================================================
+function renderVariantC() {
+  const yearMode = document.getElementById('yearMode').checked;
+  const host = document.getElementById('variantC-cards');
+  host.innerHTML = PACKAGES.map(p => {
+    const annual = yearMode ? p.annualY1 : p.annual;
+    const impl = Math.round(annual * 0.15);
+    const cs = Math.round(annual * 0.10);
+    const yr1Total = annual + impl;
+    return `
+      <div class="rounded-2xl ${p.isBest ? 'border-2 border-lio-500 bg-white card-shadow-lg' : 'border border-slate-200 bg-white card-shadow'} relative overflow-hidden">
+        ${p.isBest ? '<div class="best-gradient text-white text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 absolute top-4 right-4 rounded">Best Value</div>' : ''}
+        <div class="p-6">
+          <div class="text-xl font-bold text-slate-900 mb-1">${p.name}</div>
+          <div class="text-xs text-slate-500 italic mb-5 min-h-[2.5rem]">${p.tagline}</div>
+          ${yearMode ? `
+            <div class="grid grid-cols-3 gap-2 mb-5">
+              <div class="rounded-lg bg-slate-50 border border-slate-200 p-2 text-center">
+                <div class="text-[9px] uppercase tracking-wider text-slate-400 font-semibold">Yr 1</div>
+                <div class="text-sm font-bold text-slate-900">${fmt(p.annualY1)}</div>
+              </div>
+              <div class="rounded-lg bg-slate-50 border border-slate-200 p-2 text-center">
+                <div class="text-[9px] uppercase tracking-wider text-slate-400 font-semibold">Yr 2</div>
+                <div class="text-sm font-bold text-slate-900">${fmt(p.annualY2)}</div>
+              </div>
+              <div class="rounded-lg bg-slate-50 border border-slate-200 p-2 text-center">
+                <div class="text-[9px] uppercase tracking-wider text-slate-400 font-semibold">Yr 3</div>
+                <div class="text-sm font-bold text-slate-900">${fmt(p.annualY3)}</div>
+              </div>
+            </div>
+          ` : ''}
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between"><span class="text-slate-500">SaaS subscription /yr</span><span class="font-semibold text-slate-900">${fmt(annual)}</span></div>
+            <div class="flex justify-between text-xs"><span class="text-slate-400">Implementation (15% one-time)</span><span class="text-slate-600">${fmt(impl)}</span></div>
+            <div class="flex justify-between text-xs"><span class="text-slate-400">Customer Success (10% / yr)</span><span class="text-slate-600">${fmt(cs)}</span></div>
+            <div class="dashed-divider h-px my-2"></div>
+            <div class="flex items-baseline justify-between">
+              <span class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">${yearMode ? 'Total Year 1' : 'Total Year 1'}</span>
+              <span class="text-2xl font-bold ${p.isBest ? 'gradient-text' : 'text-slate-900'}">${fmt(yr1Total)}</span>
+            </div>
+          </div>
+          <div class="mt-5 pt-4 border-t border-slate-100 space-y-1.5">
+            ${p.bullets.map(b => `<div class="flex items-center gap-2 text-[11px] text-slate-600"><span class="text-emerald-500">✓</span>${b}</div>`).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderAll() {
+  renderVariantA();
+  renderVariantB();
+  renderVariantC();
+}
+
+renderAll();
+</script>
+</body>
+</html>
