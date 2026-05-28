@@ -8197,58 +8197,71 @@ function lioBuildPackageOverviewHtml(quoteData, opts) {
   })();
   const nPkg = cfg.packages.length;
   const colCount = nPkg + 1;
-  const gridCols = `1.5fr repeat(${nPkg}, minmax(0, 1fr))`;
+  // Column widths (% of table) — agent col is wider than each pkg col.
+  const agentColPct = 28;
+  const pkgColPct = ((100 - agentColPct) / nPkg);
+  const colHtml = `<col style="width:${agentColPct}%">` +
+    cfg.packages.map(() => `<col style="width:${pkgColPct.toFixed(3)}%">`).join('');
   const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
   const activeModKeys = std.filter(k => cfg.packages.some(pkg => pkg.items && pkg.items[k] && pkg.items[k].included));
-  // Density tuning: shrink fonts/padding when we have lots of rows so it still
-  // fits on one A4 landscape page. Total expected rows = agents + impl + cs + maint.
+  // Density tuning — tighten when there are many rows so the PDF stays single-page.
   const footerRowCount = (cfg.showImpl ? 1 : 0) + (cfg.showCs ? 1 : 0) + (cfg.showMaint ? 1 : 0);
   const totalRows = activeModKeys.length + footerRowCount;
-  const dense = totalRows >= 9;       // tighten when packed
-  const veryDense = totalRows >= 13;  // extreme: smaller font everywhere
+  const dense = totalRows >= 9;
+  const veryDense = totalRows >= 13;
   const rowPad = veryDense ? '4px 10px' : (dense ? '5px 12px' : '7px 13px');
-  const cellPad = veryDense ? '4px' : (dense ? '5px' : '7px');
+  const cellPad = veryDense ? '4px 6px' : (dense ? '5px 8px' : '7px 10px');
   const agentNameFs = veryDense ? 10 : (dense ? 10.5 : 11);
   const tierFs = veryDense ? 8.5 : (dense ? 9 : 9.5);
   const priceFs = veryDense ? 11 : (dense ? 11.5 : 12.5);
-  const cardPad = veryDense ? '8px 10px' : (dense ? '10px 12px' : '12px 14px');
+  const cardPad = veryDense ? '10px 12px' : (dense ? '12px 14px' : '14px 16px');
 
-  // -- Card row: "Plans" label cell + N package cards aligned with table cols --
-  const plansCell = `<div style="padding:${cardPad};display:flex;align-items:flex-end;">
+  // -- Cards row: Plans label TD + N package card TDs ----------------------
+  const plansCellTd = `<td style="padding:${cardPad};vertical-align:bottom;border-bottom:1px solid #e2e8f0;">
     <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;font-weight:600;">Plans</div>
-  </div>`;
-  const cardsRow = plansCell + cfg.packages.map(pkg => {
+  </td>`;
+  const cardCells = cfg.packages.map(pkg => {
     const annual = _pkgPackageTotal(pkg, null);
     const y1 = _pkgPackageTotal(pkg, 'yr1');
     const ab = cfg.yearMode ? y1 : annual;
     const impl = cfg.showImpl ? Math.round(ab * (cfg.implPct/100)) : 0;
     const cs   = cfg.showCs   ? Math.round(ab * (cfg.csPct/100))   : 0;
     const totalY1 = ab + impl;
-    const bestBg = pkg.isBest ? 'background:linear-gradient(180deg, #eef2ff 0%, #ffffff 100%);border-left:2px solid #6366f1;' : 'border-left:1px solid #e2e8f0;';
-    // Top badge (small pill in top-right corner like the UI)
+    const bestCellBg = pkg.isBest
+      ? 'background:#eef2ff;border-left:2px solid #6366f1;border-right:2px solid #6366f1;'
+      : 'border-left:1px solid #e2e8f0;';
+    // Use a small inline <table> for the name + badge row (flex doesn't render
+    // reliably in html2canvas). Two-column layout: name left, badge right.
     const topBadge = pkg.isBest
-      ? `<div style="display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,#6366f1,#22d3ee);color:white;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;padding:3px 8px;border-radius:4px;">★ Best Value</div>`
-      : `<div style="display:inline-flex;align-items:center;gap:3px;color:#94a3b8;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;padding:3px 8px;border:1px solid #e2e8f0;border-radius:4px;background:#f8fafc;">○ Standard</div>`;
-    return `<div style="${bestBg}padding:${cardPad};">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-        <div style="font-size:${veryDense ? 14 : (dense ? 15 : 17)}px;font-weight:800;color:#1e293b;">${pkg.name}</div>
-        ${topBadge}
-      </div>
-      <div style="font-size:${veryDense ? 9 : 10}px;color:#64748b;font-style:italic;line-height:1.35;margin-bottom:${veryDense ? 5 : 7}px;">${pkg.tagline || ''}</div>
-      <div style="font-size:${veryDense ? 9.5 : 10}px;color:#1e293b;line-height:1.5;">
-        <div style="display:flex;justify-content:space-between;"><span style="color:#64748b;">SaaS subscription / yr</span><span style="font-weight:700;">${fmtRaw(ab)}</span></div>
-        ${cfg.showImpl ? `<div style="display:flex;justify-content:space-between;"><span style="color:#94a3b8;">Implementation (${cfg.implPct}% one-time)</span><span style="color:#475569;">${fmtRaw(impl)}</span></div>` : ''}
-        ${cfg.showCs   ? `<div style="display:flex;justify-content:space-between;"><span style="color:#94a3b8;">Customer Success (${cfg.csPct}% / yr)</span><span style="color:#475569;">${fmtRaw(cs)}</span></div>` : ''}
-      </div>
-      <div style="border-top:1px dashed #cbd5e1;margin-top:${veryDense ? 5 : 7}px;padding-top:${veryDense ? 4 : 6}px;display:flex;justify-content:space-between;align-items:baseline;">
-        <span style="font-size:8.5px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Total Year 1</span>
-        <span style="font-size:${veryDense ? 15 : (dense ? 17 : 19)}px;font-weight:800;${pkg.isBest ? 'background:linear-gradient(135deg,#6366f1,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;' : 'color:#1e293b;'}">${fmtRaw(totalY1)}</span>
-      </div>
-    </div>`;
+      ? `<span style="display:inline-block;background:#6366f1;color:white;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;padding:3px 8px;border-radius:4px;">★ Best Value</span>`
+      : `<span style="display:inline-block;color:#94a3b8;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;padding:3px 8px;border:1px solid #e2e8f0;border-radius:4px;background:#f8fafc;">Standard</span>`;
+    // Breakdown lines using inline <table> instead of flex — html2canvas renders these reliably.
+    const breakdownTable = `<table style="width:100%;border-collapse:collapse;font-size:${veryDense ? 9.5 : 10}px;color:#1e293b;line-height:1.5;">
+      <tr><td style="padding:1px 0;color:#64748b;">SaaS subscription / yr</td><td style="padding:1px 0;text-align:right;font-weight:700;">${fmtRaw(ab)}</td></tr>
+      ${cfg.showImpl ? `<tr><td style="padding:1px 0;color:#94a3b8;font-size:${veryDense ? 9 : 9.5}px;">Implementation (${cfg.implPct}% one-time)</td><td style="padding:1px 0;text-align:right;color:#475569;font-size:${veryDense ? 9 : 9.5}px;">${fmtRaw(impl)}</td></tr>` : ''}
+      ${cfg.showCs   ? `<tr><td style="padding:1px 0;color:#94a3b8;font-size:${veryDense ? 9 : 9.5}px;">Customer Success (${cfg.csPct}% / yr)</td><td style="padding:1px 0;text-align:right;color:#475569;font-size:${veryDense ? 9 : 9.5}px;">${fmtRaw(cs)}</td></tr>` : ''}
+    </table>`;
+    return `<td style="${bestCellBg}padding:${cardPad};vertical-align:top;border-bottom:1px solid #e2e8f0;">
+      <table style="width:100%;border-collapse:collapse;margin-bottom:4px;">
+        <tr>
+          <td style="font-size:${veryDense ? 14 : (dense ? 15 : 17)}px;font-weight:800;color:#1e293b;line-height:1.1;">${pkg.name}</td>
+          <td style="text-align:right;white-space:nowrap;">${topBadge}</td>
+        </tr>
+      </table>
+      <div style="font-size:${veryDense ? 9 : 10}px;color:#64748b;font-style:italic;line-height:1.35;margin-bottom:${veryDense ? 6 : 9}px;min-height:${veryDense ? 13 : 18}px;">${pkg.tagline || ''}</div>
+      ${breakdownTable}
+      <table style="width:100%;border-collapse:collapse;border-top:1px dashed #cbd5e1;margin-top:${veryDense ? 5 : 7}px;padding-top:${veryDense ? 4 : 6}px;">
+        <tr>
+          <td style="font-size:8.5px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding-top:${veryDense ? 4 : 6}px;">Total Year 1</td>
+          <td style="font-size:${veryDense ? 15 : (dense ? 17 : 19)}px;font-weight:800;text-align:right;color:${pkg.isBest ? '#4338ca' : '#1e293b'};padding-top:${veryDense ? 4 : 6}px;">${fmtRaw(totalY1)}</td>
+        </tr>
+      </table>
+    </td>`;
   }).join('');
+  const cardsRowTr = `<tr>${plansCellTd}${cardCells}</tr>`;
 
-  // -- Agent rows (compact) --
-  let agentRowsHtml = '';
+  // -- Agent rows: name+tier TD + N package TDs ----------------------------
+  let agentRowsTr = '';
   activeModKeys.forEach((modKey, rowIdx) => {
     const mod = modules[modKey];
     if (!mod) return;
@@ -8256,15 +8269,14 @@ function lioBuildPackageOverviewHtml(quoteData, opts) {
     const primaryEff = firstPkg ? _pkgGetEffectiveCell(firstPkg.id, modKey) : null;
     const primaryTier = primaryEff ? (primaryEff.label || primaryEff.tier?.vol || '') : '';
     const rowBg = rowIdx % 2 === 0 ? '#fafbfc' : 'white';
-    agentRowsHtml += `<div style="padding:${rowPad};background:${rowBg};border-top:1px solid #f1f5f9;">
+    const left = `<td style="padding:${rowPad};background:${rowBg};vertical-align:middle;">
       <div style="font-size:${agentNameFs}px;font-weight:700;color:#1e293b;line-height:1.25;">${mod.name}</div>
       <div style="font-size:${tierFs}px;color:#64748b;font-style:italic;line-height:1.25;">${primaryTier || '—'}</div>
-    </div>`;
-    cfg.packages.forEach(pkg => {
+    </td>`;
+    const cells = cfg.packages.map(pkg => {
       const itemMeta = (pkg.items && pkg.items[modKey]) || { included: false };
       if (!itemMeta.included) {
-        agentRowsHtml += `<div style="padding:${cellPad};background:${rowBg};border-top:1px solid #f1f5f9;border-left:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:#cbd5e1;font-size:16px;">×</div>`;
-        return;
+        return `<td style="padding:${cellPad};background:${rowBg};border-left:1px solid #e2e8f0;text-align:center;vertical-align:middle;color:#cbd5e1;font-size:16px;">×</td>`;
       }
       const eff = _pkgGetEffectiveCell(pkg.id, modKey);
       const price = eff.prices[currentCurrency] || 0;
@@ -8278,83 +8290,85 @@ function lioBuildPackageOverviewHtml(quoteData, opts) {
         ? `<div style="font-size:${tierFs - 1}px;color:#64748b;margin-top:2px;">Y1 ${fmtRaw(yr1)} · Y2 ${fmtRaw(yr2)} · Y3 ${fmtRaw(yr3)}</div>`
         : '';
       const discBadge = discPct > 0
-        ? `<span style="display:inline-block;font-size:7.5px;font-weight:700;color:#059669;background:#d1fae5;border:1px solid #6ee7b7;padding:1px 4px;border-radius:3px;margin-left:3px;letter-spacing:0.2px;">−${discPct}%</span>`
+        ? ` <span style="display:inline-block;font-size:7.5px;font-weight:700;color:#059669;background:#d1fae5;border:1px solid #6ee7b7;padding:1px 4px;border-radius:3px;letter-spacing:0.2px;">−${discPct}%</span>`
         : '';
-      agentRowsHtml += `<div style="padding:${cellPad};background:${rowBg};border-top:1px solid #f1f5f9;border-left:1px solid #e2e8f0;text-align:center;">
-        <div style="display:inline-flex;align-items:center;gap:4px;line-height:1;">
-          <span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;flex-shrink:0;"></span>
-          <span style="font-size:${priceFs}px;font-weight:700;color:#1e293b;">${fmtRaw(price)}</span>
-          <span style="font-size:${tierFs}px;color:#94a3b8;">/yr</span>
-          ${discBadge}
+      return `<td style="padding:${cellPad};background:${rowBg};border-left:1px solid #e2e8f0;text-align:center;vertical-align:middle;">
+        <div style="white-space:nowrap;line-height:1.1;">
+          <span style="color:#10b981;font-size:11px;font-weight:900;">●</span>
+          <span style="font-size:${priceFs}px;font-weight:700;color:#1e293b;margin-left:3px;">${fmtRaw(price)}</span>
+          <span style="font-size:${tierFs}px;color:#94a3b8;">/yr</span>${discBadge}
         </div>
         ${tierDiffers ? `<div style="font-size:${tierFs - 0.5}px;color:#64748b;margin-top:2px;line-height:1.2;">${label}</div>` : ''}
         ${yearBlock}
-      </div>`;
-    });
+      </td>`;
+    }).join('');
+    agentRowsTr += `<tr style="border-top:1px solid #f1f5f9;">${left}${cells}</tr>`;
   });
-  const noAgentsRow = activeModKeys.length === 0
-    ? `<div style="padding:24px;text-align:center;color:#94a3b8;font-size:11px;border-top:1px solid #e2e8f0;grid-column: span ${colCount};">No agents assigned yet. Add them in the Package View.</div>`
+  const noAgentsTr = activeModKeys.length === 0
+    ? `<tr><td colspan="${colCount}" style="padding:24px;text-align:center;color:#94a3b8;font-size:11px;border-top:1px solid #e2e8f0;">No agents assigned yet. Add them in the Package View.</td></tr>`
     : '';
 
-  // -- Footer rows: Impl + CS + Maintenance (compact) --
+  // -- Footer fee rows: Implementation / Customer Success / Maintenance ----
   const footerRowPad = veryDense ? '6px 13px' : (dense ? '7px 13px' : '9px 14px');
   const feeBoxPad = veryDense ? '3px 10px' : (dense ? '4px 12px' : '5px 13px');
   const feeBoxFs = veryDense ? 11 : (dense ? 12 : 13);
-  let footerRowsHtml = '';
+  let footerRowsTr = '';
+  function _feeRow(labelHtml, valuesFn, headBg, cellBg, borderTopColor) {
+    const left = `<td style="padding:${footerRowPad};background:${headBg};vertical-align:middle;border-top:1px solid ${borderTopColor};">${labelHtml}</td>`;
+    const cells = cfg.packages.map(pkg => {
+      const v = valuesFn(pkg);
+      return `<td style="padding:${cellPad};border-left:1px solid #e2e8f0;border-top:1px solid ${borderTopColor};text-align:center;background:${cellBg};vertical-align:middle;">${v}</td>`;
+    }).join('');
+    return `<tr>${left}${cells}</tr>`;
+  }
   if (cfg.showImpl) {
-    footerRowsHtml += `<div style="padding:${footerRowPad};background:#eef2ff;border-top:1px solid #c7d2fe;display:flex;flex-direction:column;justify-content:center;">
+    const label = `
       <div style="font-size:${agentNameFs}px;font-weight:700;color:#4338ca;line-height:1.2;">Implementation fee</div>
-      <div style="font-size:${tierFs}px;color:#6366f1;font-weight:500;line-height:1.2;">${cfg.implPct}% one-time</div>
-    </div>`;
-    cfg.packages.forEach(pkg => {
+      <div style="font-size:${tierFs}px;color:#6366f1;font-weight:500;line-height:1.2;">${cfg.implPct}% one-time</div>`;
+    footerRowsTr += _feeRow(label, (pkg) => {
       const ab = cfg.yearMode ? _pkgPackageTotal(pkg, 'yr1') : _pkgPackageTotal(pkg, null);
       const impl = Math.round(ab * (cfg.implPct/100));
-      footerRowsHtml += `<div style="padding:${cellPad};border-top:1px solid #c7d2fe;border-left:1px solid #e2e8f0;text-align:center;background:#f8fafc;display:flex;align-items:center;justify-content:center;">
-        <div style="display:inline-block;padding:${feeBoxPad};border:1.5px dashed #6366f1;border-radius:5px;font-size:${feeBoxFs}px;font-weight:800;color:#4338ca;">${fmtRaw(impl)} <span style="font-size:8px;color:#818cf8;font-weight:500;">one-time</span></div>
-      </div>`;
-    });
+      return `<span style="display:inline-block;padding:${feeBoxPad};border:1.5px dashed #6366f1;border-radius:5px;font-size:${feeBoxFs}px;font-weight:800;color:#4338ca;white-space:nowrap;">${fmtRaw(impl)} <span style="font-size:8px;color:#818cf8;font-weight:500;">one-time</span></span>`;
+    }, '#eef2ff', '#f8fafc', '#c7d2fe');
   }
   if (cfg.showCs) {
-    footerRowsHtml += `<div style="padding:${footerRowPad};background:#eef2ff;border-top:1px solid #c7d2fe;display:flex;flex-direction:column;justify-content:center;">
+    const label = `
       <div style="font-size:${agentNameFs}px;font-weight:700;color:#4338ca;line-height:1.2;">Customer Success fee</div>
-      <div style="font-size:${tierFs}px;color:#6366f1;font-weight:500;line-height:1.2;">${cfg.csPct}% / year</div>
-    </div>`;
-    cfg.packages.forEach(pkg => {
+      <div style="font-size:${tierFs}px;color:#6366f1;font-weight:500;line-height:1.2;">${cfg.csPct}% / year</div>`;
+    footerRowsTr += _feeRow(label, (pkg) => {
       const ab = cfg.yearMode ? _pkgPackageTotal(pkg, 'yr1') : _pkgPackageTotal(pkg, null);
       const cs = Math.round(ab * (cfg.csPct/100));
-      footerRowsHtml += `<div style="padding:${cellPad};border-top:1px solid #c7d2fe;border-left:1px solid #e2e8f0;text-align:center;background:#f8fafc;display:flex;align-items:center;justify-content:center;">
-        <div style="display:inline-block;padding:${feeBoxPad};border:1.5px solid #c7d2fe;border-radius:5px;background:white;font-size:${feeBoxFs}px;font-weight:800;color:#4338ca;">${fmtRaw(cs)} <span style="font-size:8px;color:#818cf8;font-weight:500;">/ year</span></div>
-      </div>`;
-    });
+      return `<span style="display:inline-block;padding:${feeBoxPad};border:1.5px solid #c7d2fe;border-radius:5px;background:white;font-size:${feeBoxFs}px;font-weight:800;color:#4338ca;white-space:nowrap;">${fmtRaw(cs)} <span style="font-size:8px;color:#818cf8;font-weight:500;">/ year</span></span>`;
+    }, '#eef2ff', '#f8fafc', '#c7d2fe');
   }
   if (cfg.showMaint) {
     const isPct = cfg.maintMode === 'pct';
-    footerRowsHtml += `<div style="padding:${footerRowPad};background:#fef3c7;border-top:1px solid #fcd34d;display:flex;flex-direction:column;justify-content:center;">
+    const label = `
       <div style="font-size:${agentNameFs}px;font-weight:700;color:#92400e;line-height:1.2;">Maintenance fee</div>
-      <div style="font-size:${tierFs}px;color:#b45309;font-weight:500;line-height:1.2;">${isPct ? cfg.maintAmount + '% of SaaS / yr' : fmtRaw(cfg.maintAmount) + ' fixed / yr'}</div>
-    </div>`;
-    cfg.packages.forEach(pkg => {
+      <div style="font-size:${tierFs}px;color:#b45309;font-weight:500;line-height:1.2;">${isPct ? cfg.maintAmount + '% of SaaS / yr' : fmtRaw(cfg.maintAmount) + ' fixed / yr'}</div>`;
+    footerRowsTr += _feeRow(label, (pkg) => {
       const ab = cfg.yearMode ? _pkgPackageTotal(pkg, 'yr1') : _pkgPackageTotal(pkg, null);
       const maint = isPct ? Math.round(ab * (cfg.maintAmount/100)) : Math.round(cfg.maintAmount);
-      footerRowsHtml += `<div style="padding:${cellPad};border-top:1px solid #fcd34d;border-left:1px solid #e2e8f0;text-align:center;background:#fffbeb;display:flex;align-items:center;justify-content:center;">
-        <div style="display:inline-block;padding:${feeBoxPad};border:1.5px solid #fcd34d;border-radius:5px;background:white;font-size:${feeBoxFs}px;font-weight:800;color:#92400e;">${fmtRaw(maint)} <span style="font-size:8px;color:#d97706;font-weight:500;">/ year</span></div>
-      </div>`;
-    });
+      return `<span style="display:inline-block;padding:${feeBoxPad};border:1.5px solid #fcd34d;border-radius:5px;background:white;font-size:${feeBoxFs}px;font-weight:800;color:#92400e;white-space:nowrap;">${fmtRaw(maint)} <span style="font-size:8px;color:#d97706;font-weight:500;">/ year</span></span>`;
+    }, '#fef3c7', '#fffbeb', '#fcd34d');
   }
 
-  // -- Footer note (single compact line beneath grid) --
+  // -- Footer note (full-width below table) --
   const footerNote = (cfg.footerNote || '').trim();
   const footerNoteHtml = footerNote
-    ? `<div style="margin-top:${dense ? 8 : 10}px;padding:${dense ? '7px 12px' : '8px 14px'};background:#eef2ff;border-left:3px solid #6366f1;border-radius:0 6px 6px 0;display:flex;align-items:flex-start;gap:8px;">
-        <div style="font-size:14px;line-height:1;color:#6366f1;flex-shrink:0;">⛓️</div>
-        <div style="font-size:${tierFs + 0.5}px;color:#4338ca;line-height:1.45;flex:1;">${footerNote.replace(/\n/g,'<br>')}</div>
-      </div>`
+    ? `<table style="width:100%;border-collapse:collapse;margin-top:${dense ? 8 : 10}px;background:#eef2ff;border-left:3px solid #6366f1;border-radius:0 6px 6px 0;">
+        <tr>
+          <td style="padding:${dense ? '7px 12px' : '8px 14px'};font-size:${tierFs + 0.5}px;color:#4338ca;line-height:1.45;">
+            <strong style="color:#6366f1;margin-right:6px;">↳</strong>${footerNote.replace(/\n/g,'<br>')}
+          </td>
+        </tr>
+      </table>`
     : '';
 
   const appendixHtml = includeDetailsAppendix ? lioBuildPkgModuleDetailsAppendix() : '';
 
-  // Compact A4 LANDSCAPE one-pager. Margins kept tight so the whole grid
-  // (header + cards + agents + impl/cs/maint + footer note + Lio line) fits.
+  // Single A4 LANDSCAPE page. Layout uses HTML <table> end-to-end so html2canvas
+  // (and any other PDF engine) renders the columns reliably side-by-side.
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Package Overview · ${ref}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -8362,38 +8376,47 @@ function lioBuildPackageOverviewHtml(quoteData, opts) {
       * { box-sizing: border-box; }
       html, body { font-family:'Inter',sans-serif; background:white; color:#1e293b; margin:0; padding:0; }
       body { padding: 8mm 10mm; }
-      .pkg-grid { display: grid; grid-template-columns: ${gridCols}; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; background: white; box-shadow: 0 1px 3px rgba(15,23,42,0.04); }
+      table.pkg-table { width: 100%; border-collapse: collapse; table-layout: fixed; border: 1px solid #e2e8f0; border-radius: 10px; background: white; box-shadow: 0 1px 3px rgba(15,23,42,0.04); }
     </style>
   </head><body>
-    <!-- Compact header: title left, Lio logo right -->
-    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1.5px solid #1e293b;padding-bottom:8px;margin-bottom:${dense ? 8 : 12}px;">
-      <div>
-        <div style="font-size:9px;color:#6366f1;text-transform:uppercase;letter-spacing:2.5px;font-weight:700;margin-bottom:2px;">Lio · Package Overview</div>
-        <div style="font-size:${dense ? 18 : 22}px;font-weight:800;color:#1e293b;line-height:1;">Overview Package Prices</div>
-        ${company ? `<div style="margin-top:4px;font-size:10px;color:#64748b;">Prepared for <strong style="color:#1e293b;font-weight:700;">${company}</strong>${contact ? ' — Attn: <strong style="color:#1e293b;">' + contact + '</strong>' : ''}</div>` : ''}
-      </div>
-      <div style="text-align:right;font-size:9.5px;color:#64748b;display:flex;align-items:center;gap:14px;">
-        <div>
-          <div>Ref: <strong style="color:#1e293b;">${ref}</strong></div>
-          <div>${today}</div>
-          <div style="color:#94a3b8;font-size:9px;">Valid until ${validUntil}</div>
-        </div>
-        <div style="flex-shrink:0;">${_LIO_SVG_PDF}</div>
-      </div>
-    </div>
-    <!-- Comparison grid -->
-    <div class="pkg-grid">
-      ${cardsRow}
-      ${agentRowsHtml}
-      ${noAgentsRow}
-      ${footerRowsHtml}
-    </div>
+    <!-- Compact header — table-based so it renders identically in every PDF engine -->
+    <table style="width:100%;border-collapse:collapse;border-bottom:1.5px solid #1e293b;margin-bottom:${dense ? 8 : 12}px;">
+      <tr>
+        <td style="padding-bottom:8px;vertical-align:middle;">
+          <div style="font-size:9px;color:#6366f1;text-transform:uppercase;letter-spacing:2.5px;font-weight:700;margin-bottom:2px;">Lio · Package Overview</div>
+          <div style="font-size:${dense ? 18 : 22}px;font-weight:800;color:#1e293b;line-height:1;">Overview Package Prices</div>
+          ${company ? `<div style="margin-top:4px;font-size:10px;color:#64748b;">Prepared for <strong style="color:#1e293b;font-weight:700;">${company}</strong>${contact ? ' — Attn: <strong style="color:#1e293b;">' + contact + '</strong>' : ''}</div>` : ''}
+        </td>
+        <td style="padding-bottom:8px;vertical-align:middle;text-align:right;font-size:9.5px;color:#64748b;width:280px;">
+          <table style="border-collapse:collapse;margin-left:auto;">
+            <tr>
+              <td style="vertical-align:middle;text-align:right;padding-right:14px;line-height:1.4;">
+                <div>Ref: <strong style="color:#1e293b;">${ref}</strong></div>
+                <div>${today}</div>
+                <div style="color:#94a3b8;font-size:9px;">Valid until ${validUntil}</div>
+              </td>
+              <td style="vertical-align:middle;">${_LIO_SVG_PDF}</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+    <!-- Comparison table — cards on top row, agents in body, fees in footer -->
+    <table class="pkg-table">
+      <colgroup>${colHtml}</colgroup>
+      ${cardsRowTr}
+      ${agentRowsTr}
+      ${noAgentsTr}
+      ${footerRowsTr}
+    </table>
     ${footerNoteHtml}
-    <!-- Bottom Lio line -->
-    <div style="margin-top:${dense ? 8 : 10}px;padding-top:6px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;font-size:8.5px;color:#94a3b8;">
-      <div><strong style="color:#1e293b;">Lio Technologies GmbH</strong> · Karlstr. 64-68/Seidlstr. 21-23 · 80335 München · lio.ai</div>
-      <div style="text-transform:uppercase;letter-spacing:2px;font-weight:700;color:#cbd5e1;">Confidential</div>
-    </div>
+    <!-- Bottom Lio company line -->
+    <table style="width:100%;border-collapse:collapse;margin-top:${dense ? 8 : 10}px;border-top:1px solid #e2e8f0;">
+      <tr>
+        <td style="padding-top:6px;font-size:8.5px;color:#94a3b8;"><strong style="color:#1e293b;">Lio Technologies GmbH</strong> · Karlstr. 64-68/Seidlstr. 21-23 · 80335 München · lio.ai</td>
+        <td style="padding-top:6px;text-align:right;font-size:8.5px;text-transform:uppercase;letter-spacing:2px;font-weight:700;color:#cbd5e1;">Confidential</td>
+      </tr>
+    </table>
     ${appendixHtml}
   </body></html>`;
 }
