@@ -7795,10 +7795,37 @@ function lioRenderPackageView() {
   lioRebuildAddAgentDropdown();
 }
 
-// Returns the set of module keys currently included in at least one package.
+// Returns the set of module keys currently included in at least one package,
+// ORDERED by inclusion count (descending) so agents that appear in ALL
+// packages come first, then in 2 packages, then in 1 — making the
+// build-up across tiers visually obvious. Tie-breaks by the original
+// std module order.
 function _pkgActiveAgentKeys() {
   const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
-  return std.filter(k => window._packageConfig.packages.some(pkg => pkg.items && pkg.items[k] && pkg.items[k].included));
+  const cfg = window._packageConfig;
+  const active = std.filter(k => cfg.packages.some(pkg => pkg.items && pkg.items[k] && pkg.items[k].included));
+  return active.sort((a, b) => {
+    const ca = cfg.packages.filter(p => p.items && p.items[a] && p.items[a].included).length;
+    const cb = cfg.packages.filter(p => p.items && p.items[b] && p.items[b].included).length;
+    if (cb !== ca) return cb - ca;
+    return std.indexOf(a) - std.indexOf(b);
+  });
+}
+
+// Sum of tier LIST prices (pre-discount, pre-override) for included agents.
+// Used to show the discount savings in package cards.
+function _pkgPackageListTotal(pkg) {
+  if (!pkg || !pkg.items) return 0;
+  let total = 0;
+  Object.keys(pkg.items).forEach(modKey => {
+    const meta = pkg.items[modKey];
+    if (!meta || !meta.included) return;
+    const mod = modules[modKey];
+    if (!mod) return;
+    const tier = mod.tiers[meta.tierIdx || 0] || mod.tiers[0];
+    total += _tierPriceInCurrency(tier, currentCurrency) || 0;
+  });
+  return total;
 }
 
 // Rebuild the "+ Add agent" dropdown with only modules not yet in any package.
@@ -7834,13 +7861,26 @@ function lioRenderPackageCards() {
   host.innerHTML = leadCell + cfg.packages.map(pkg => `<div class="p-3 border-l border-slate-700/40">${cfg.style === 'B' ? _pkgCardHtmlB(pkg) : _pkgCardHtmlC(pkg)}</div>`).join('');
 }
 
-// Style B: Vercel/Modern — big number, "billed annually"
+// Style B: Vercel/Modern — big number, "billed annually" + discount pill if applicable
 function _pkgCardHtmlB(pkg) {
   const cfg = window._packageConfig;
   const annual = _pkgPackageTotal(pkg, null);
   const y1 = _pkgPackageTotal(pkg, 'yr1');
   const y2 = _pkgPackageTotal(pkg, 'yr2');
   const y3 = _pkgPackageTotal(pkg, 'yr3');
+  const annualForBreakdown = cfg.yearMode ? y1 : annual;
+  const nd = cfg.namedDiscount || { name: '', pct: 0, targets: [] };
+  const isDiscTarget = nd.name && nd.pct > 0 && nd.targets && nd.targets.includes(pkg.id);
+  let discountPill = '';
+  if (isDiscTarget) {
+    const listSum = _pkgPackageListTotal(pkg);
+    const saved = Math.max(0, listSum - annualForBreakdown);
+    if (saved > 0) {
+      discountPill = `<div class="inline-flex items-center gap-1.5 px-2 py-1 mb-2 rounded text-[10px] font-semibold bg-emerald-500/15 border border-emerald-400/40 text-emerald-300">
+        <span>${nd.name}</span><span class="opacity-80">−${nd.pct}%</span><span class="opacity-80">·</span><span>−${fmtRaw(saved)}</span>
+      </div>`;
+    }
+  }
   const header = pkg.isBest
     ? `<div class="bg-white text-slate-900 text-[11px] font-semibold uppercase tracking-widest text-center py-1.5">★ Best Value</div>`
     : `<div class="bg-slate-800 text-slate-500 text-[11px] uppercase tracking-widest text-center py-1.5">Standard</div>`;
@@ -7857,7 +7897,8 @@ function _pkgCardHtmlB(pkg) {
       <input type="text" value="${pkg.name}" data-pkg-name="${pkg.id}" oninput="window._packageConfig.packages.find(p=>p.id==='${pkg.id}').name=this.value;lioRenderPackageAgentTable();" class="w-full bg-transparent text-xl font-bold text-white outline-none mb-1 hover:bg-slate-800/40 px-1 rounded">
       <input type="text" value="${pkg.tagline || ''}" data-pkg-tagline="${pkg.id}" oninput="window._packageConfig.packages.find(p=>p.id==='${pkg.id}').tagline=this.value" placeholder="Add tagline..." class="w-full bg-transparent text-xs text-slate-400 outline-none mb-4 hover:bg-slate-800/40 px-1 rounded">
       ${yearBlock}
-      <div class="text-3xl font-bold text-white leading-none mb-1">${fmtRaw(cfg.yearMode ? y1 : annual)}</div>
+      ${discountPill}
+      <div class="text-3xl font-bold text-white leading-none mb-1">${fmtRaw(annualForBreakdown)}</div>
       <div class="text-[11px] text-slate-500 mb-4">billed annually${cfg.yearMode ? ' · Year 1' : ''}</div>
       <div class="flex items-center gap-2">
         <button onclick="lioPkgToggleBest('${pkg.id}')" class="text-[10px] px-2 py-1 rounded border ${pkg.isBest ? 'bg-lio-500/30 border-lio-500/40 text-lio-200' : 'bg-slate-700/30 border-slate-600 text-slate-400 hover:text-slate-200'}">${pkg.isBest ? '★ Best Value' : 'Set Best Value'}</button>
@@ -7874,9 +7915,25 @@ function _pkgCardHtmlC(pkg) {
   const y2 = _pkgPackageTotal(pkg, 'yr2');
   const y3 = _pkgPackageTotal(pkg, 'yr3');
   const annualForBreakdown = cfg.yearMode ? y1 : annual;
+  // Impl + CS calculated on the POST-discount SaaS subtotal (since per-cell
+  // prices already reflect any applied discount).
   const impl = cfg.showImpl ? Math.round(annualForBreakdown * (cfg.implPct/100)) : 0;
   const cs   = cfg.showCs   ? Math.round(annualForBreakdown * (cfg.csPct/100))   : 0;
   const yr1Total = annualForBreakdown + impl;
+  // Named-discount line item — appears only if a name+pct are set AND this
+  // package is in the targets list. Shows the savings amount in money + %.
+  const nd = cfg.namedDiscount || { name: '', pct: 0, targets: [] };
+  const isDiscTarget = nd.name && nd.pct > 0 && nd.targets && nd.targets.includes(pkg.id);
+  let discountLineHtml = '';
+  let listLineHtml = '';
+  if (isDiscTarget) {
+    const listSum = _pkgPackageListTotal(pkg);
+    const saved = Math.max(0, listSum - annualForBreakdown);
+    if (saved > 0) {
+      listLineHtml = `<div class="flex justify-between"><span class="text-slate-500 text-[11px]">List price</span><span class="text-slate-400 text-[11px] line-through">${fmtRaw(listSum)}</span></div>`;
+      discountLineHtml = `<div class="flex justify-between"><span class="text-emerald-400 text-[11px] font-semibold">${nd.name} (−${nd.pct}%)</span><span class="text-emerald-400 text-[11px] font-semibold">−${fmtRaw(saved)}</span></div>`;
+    }
+  }
   const badgeColor = pkg.isBest ? 'pkg-best-gradient text-white' : 'bg-slate-700/40 text-slate-400';
   return `<div class="rounded-2xl ${pkg.isBest ? 'border-2 border-lio-500/70' : 'border border-slate-700/50'} bg-slate-900/60 relative overflow-hidden">
     <div class="absolute top-3 right-3">
@@ -7891,6 +7948,8 @@ function _pkgCardHtmlC(pkg) {
         <div class="rounded-lg bg-slate-800/60 border border-slate-700 p-1.5 text-center"><div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">Yr 3</div><div class="text-xs font-bold text-white">${fmtRaw(y3)}</div></div>
       </div>` : ''}
       <div class="space-y-1.5 text-sm">
+        ${listLineHtml}
+        ${discountLineHtml}
         <div class="flex justify-between"><span class="text-slate-400 text-xs">SaaS subscription / yr</span><span class="font-semibold text-white text-xs">${fmtRaw(annualForBreakdown)}</span></div>
         ${cfg.showImpl ? `<div class="flex justify-between"><span class="text-slate-500 text-[11px]">Implementation (${cfg.implPct}% one-time)</span><span class="text-slate-300 text-[11px]">${fmtRaw(impl)}</span></div>` : ''}
         ${cfg.showCs   ? `<div class="flex justify-between"><span class="text-slate-500 text-[11px]">Customer Success (${cfg.csPct}% / yr)</span><span class="text-slate-300 text-[11px]">${fmtRaw(cs)}</span></div>` : ''}
@@ -8100,31 +8159,8 @@ function lioRenderPackageFooterRows() {
   const cols = cfg.packages.length;
   host.style.gridTemplateColumns = `1.4fr repeat(${cols}, minmax(0, 1fr))`;
   let html = '';
-  // Named discount row (only when a name + pct are set + applied)
-  const nd = cfg.namedDiscount || { name: '', pct: 0, targets: [] };
-  if (nd.name && nd.pct > 0 && nd.targets && nd.targets.length > 0) {
-    html += `<div class="p-3 bg-emerald-500/10 border-t border-slate-700/40 flex items-center text-xs text-emerald-200 font-semibold">${nd.name} <span class="ml-2 text-[10px] text-slate-400 font-normal">(−${nd.pct}%)</span></div>`;
-    cfg.packages.forEach(pkg => {
-      if (!nd.targets.includes(pkg.id)) {
-        html += `<div class="p-3 bg-slate-900/30 border-t border-l border-slate-700/40 text-center text-xs text-slate-500">—</div>`;
-        return;
-      }
-      // Compute savings = sum of (listPrice - currentPrice) for included agents
-      let savings = 0;
-      Object.keys(pkg.items || {}).forEach(modKey => {
-        const meta = pkg.items[modKey];
-        if (!meta || !meta.included) return;
-        const mod = modules[modKey];
-        if (!mod) return;
-        const tier = mod.tiers[meta.tierIdx || 0] || mod.tiers[0];
-        const listP = _tierPriceInCurrency(tier, currentCurrency) || 0;
-        const eff = _pkgGetEffectiveCell(pkg.id, modKey);
-        const cur = eff.prices[currentCurrency] || 0;
-        if (listP > cur) savings += (listP - cur);
-      });
-      html += `<div class="p-3 bg-slate-900/30 border-t border-l border-slate-700/40 text-center text-sm font-semibold text-emerald-300">−${fmtRaw(savings)}</div>`;
-    });
-  }
+  // (Named discount no longer renders as a separate row — it's shown inside
+  // each affected card's breakdown via _pkgCardHtmlC/B.)
   if (cfg.showImpl) {
     html += `<div class="p-3 bg-lio-600/10 border-t border-slate-700/40 flex items-center text-xs text-lio-200 font-semibold">Implementation Fee <span class="ml-2 text-[10px] text-slate-400 font-normal">(${cfg.implPct}% one-time)</span></div>`;
     cfg.packages.forEach(pkg => {
@@ -8287,8 +8323,9 @@ function lioBuildPackageOverviewHtml(quoteData, opts) {
   const pkgColPct = ((100 - agentColPct) / nPkg);
   const colHtml = `<col style="width:${agentColPct}%">` +
     cfg.packages.map(() => `<col style="width:${pkgColPct.toFixed(3)}%">`).join('');
-  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
-  const activeModKeys = std.filter(k => cfg.packages.some(pkg => pkg.items && pkg.items[k] && pkg.items[k].included));
+  // Use the shared helper so agent rows are sorted by inclusion count desc
+  // (agents in ALL packages first, then 2, then 1) — gives a clear build-up.
+  const activeModKeys = _pkgActiveAgentKeys();
   // Density tuning — tighten when there are many rows so the PDF stays single-page.
   const footerRowCount = (cfg.showImpl ? 1 : 0) + (cfg.showCs ? 1 : 0) + (cfg.showMaint ? 1 : 0);
   const totalRows = activeModKeys.length + footerRowCount;
@@ -8305,6 +8342,8 @@ function lioBuildPackageOverviewHtml(quoteData, opts) {
   const plansCellTd = `<td style="padding:${cardPad};vertical-align:bottom;border-bottom:1px solid #e2e8f0;">
     <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;font-weight:600;">Plans</div>
   </td>`;
+  // Read the named discount once outside the card-cells map for use below.
+  const ndCfg = cfg.namedDiscount || { name: '', pct: 0, targets: [] };
   const cardCells = cfg.packages.map(pkg => {
     const annual = _pkgPackageTotal(pkg, null);
     const y1 = _pkgPackageTotal(pkg, 'yr1');
@@ -8312,16 +8351,26 @@ function lioBuildPackageOverviewHtml(quoteData, opts) {
     const impl = cfg.showImpl ? Math.round(ab * (cfg.implPct/100)) : 0;
     const cs   = cfg.showCs   ? Math.round(ab * (cfg.csPct/100))   : 0;
     const totalY1 = ab + impl;
+    // Named-discount line: pre-discount list price + savings, shown above SaaS.
+    const isDiscTarget = ndCfg.name && ndCfg.pct > 0 && ndCfg.targets && ndCfg.targets.includes(pkg.id);
+    let discountRowsHtml = '';
+    if (isDiscTarget) {
+      const listSum = _pkgPackageListTotal(pkg);
+      const saved = Math.max(0, listSum - ab);
+      if (saved > 0) {
+        discountRowsHtml = `
+          <tr><td style="padding:1px 0;color:#94a3b8;font-size:${veryDense ? 9 : 9.5}px;">List price</td><td style="padding:1px 0;text-align:right;color:#94a3b8;font-size:${veryDense ? 9 : 9.5}px;text-decoration:line-through;">${fmtRaw(listSum)}</td></tr>
+          <tr><td style="padding:1px 0;color:#047857;font-size:${veryDense ? 9 : 9.5}px;font-weight:700;">${ndCfg.name} (−${ndCfg.pct}%)</td><td style="padding:1px 0;text-align:right;color:#047857;font-size:${veryDense ? 9 : 9.5}px;font-weight:700;">−${fmtRaw(saved)}</td></tr>`;
+      }
+    }
     const bestCellBg = pkg.isBest
       ? 'background:#eef2ff;border-left:2px solid #6366f1;border-right:2px solid #6366f1;'
       : 'border-left:1px solid #e2e8f0;';
-    // Use a small inline <table> for the name + badge row (flex doesn't render
-    // reliably in html2canvas). Two-column layout: name left, badge right.
     const topBadge = pkg.isBest
       ? `<span style="display:inline-block;background:#6366f1;color:white;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;padding:3px 8px;border-radius:4px;">★ Best Value</span>`
       : `<span style="display:inline-block;color:#94a3b8;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;padding:3px 8px;border:1px solid #e2e8f0;border-radius:4px;background:#f8fafc;">Standard</span>`;
-    // Breakdown lines using inline <table> instead of flex — html2canvas renders these reliably.
     const breakdownTable = `<table style="width:100%;border-collapse:collapse;font-size:${veryDense ? 9.5 : 10}px;color:#1e293b;line-height:1.5;">
+      ${discountRowsHtml}
       <tr><td style="padding:1px 0;color:#64748b;">SaaS subscription / yr</td><td style="padding:1px 0;text-align:right;font-weight:700;">${fmtRaw(ab)}</td></tr>
       ${cfg.showImpl ? `<tr><td style="padding:1px 0;color:#94a3b8;font-size:${veryDense ? 9 : 9.5}px;">Implementation (${cfg.implPct}% one-time)</td><td style="padding:1px 0;text-align:right;color:#475569;font-size:${veryDense ? 9 : 9.5}px;">${fmtRaw(impl)}</td></tr>` : ''}
       ${cfg.showCs   ? `<tr><td style="padding:1px 0;color:#94a3b8;font-size:${veryDense ? 9 : 9.5}px;">Customer Success (${cfg.csPct}% / yr)</td><td style="padding:1px 0;text-align:right;color:#475569;font-size:${veryDense ? 9 : 9.5}px;">${fmtRaw(cs)}</td></tr>` : ''}
@@ -8406,35 +8455,8 @@ function lioBuildPackageOverviewHtml(quoteData, opts) {
     }).join('');
     return `<tr>${left}${cells}</tr>`;
   }
-  // Named discount row (between agents and Impl/CS — only when set + applied)
-  const _nd = cfg.namedDiscount || { name: '', pct: 0, targets: [] };
-  if (_nd.name && _nd.pct > 0 && _nd.targets && _nd.targets.length > 0) {
-    const label = `
-      <div style="font-size:${agentNameFs}px;font-weight:700;color:#047857;line-height:1.2;">${_nd.name}</div>
-      <div style="font-size:${tierFs}px;color:#059669;font-weight:500;line-height:1.2;">−${_nd.pct}% off agents</div>`;
-    const leftCell = `<td style="padding:${footerRowPad};background:#d1fae5;vertical-align:middle;border-top:1px solid #6ee7b7;">${label}</td>`;
-    const valueCells = cfg.packages.map(pkg => {
-      if (!_nd.targets.includes(pkg.id)) {
-        return `<td style="padding:${cellPad};border-left:1px solid #e2e8f0;border-top:1px solid #6ee7b7;text-align:center;background:#f8fafc;vertical-align:middle;color:#94a3b8;font-size:${tierFs}px;">—</td>`;
-      }
-      let savings = 0;
-      Object.keys(pkg.items || {}).forEach(modKey => {
-        const meta = pkg.items[modKey];
-        if (!meta || !meta.included) return;
-        const mod = modules[modKey];
-        if (!mod) return;
-        const tier = mod.tiers[meta.tierIdx || 0] || mod.tiers[0];
-        const listP = _tierPriceInCurrency(tier, currentCurrency) || 0;
-        const eff = _pkgGetEffectiveCell(pkg.id, modKey);
-        const cur = eff.prices[currentCurrency] || 0;
-        if (listP > cur) savings += (listP - cur);
-      });
-      return `<td style="padding:${cellPad};border-left:1px solid #e2e8f0;border-top:1px solid #6ee7b7;text-align:center;background:#ecfdf5;vertical-align:middle;">
-        <span style="display:inline-block;padding:${feeBoxPad};border:1.5px solid #6ee7b7;border-radius:5px;background:white;font-size:${feeBoxFs}px;font-weight:800;color:#047857;white-space:nowrap;">−${fmtRaw(savings)}</span>
-      </td>`;
-    }).join('');
-    footerRowsTr += `<tr>${leftCell}${valueCells}</tr>`;
-  }
+  // (Named-discount row removed from here — the discount is now shown
+  // inside each affected card's breakdown table at the top of the page.)
   if (cfg.showImpl) {
     const label = `
       <div style="font-size:${agentNameFs}px;font-weight:700;color:#4338ca;line-height:1.2;">Implementation fee</div>
