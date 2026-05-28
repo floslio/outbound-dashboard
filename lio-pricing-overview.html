@@ -1859,31 +1859,31 @@ input[type="checkbox"] { accent-color: #6366f1; }
           </label>
         </div>
 
-        <!-- Cards: Basic / Premium / Diamond -->
+        <!-- Unified Package Overview — Cards on top, Agent rows below, aligned -->
         <div class="mt-4">
           <div class="flex items-center justify-between mb-3">
-            <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Packages</div>
+            <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Package Overview</div>
             <div class="flex items-center gap-2">
               <button type="button" onclick="lioRemovePackage()" id="pkg-remove-btn" class="px-2 py-1 text-xs bg-slate-700/40 hover:bg-slate-700 border border-slate-600 rounded text-slate-300 transition disabled:opacity-40 disabled:cursor-not-allowed">− Remove</button>
               <button type="button" onclick="lioAddPackage()" id="pkg-add-btn" class="px-2 py-1 text-xs bg-lio-500/30 hover:bg-lio-500/40 border border-lio-500/40 rounded text-lio-200 font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed">+ Add</button>
             </div>
           </div>
-          <div id="pkg-cards-host" class="grid gap-4"></div>
-        </div>
-
-        <!-- Agent assignment table -->
-        <div class="mt-6">
-          <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-2">Agent Assignment</div>
-          <div class="rounded-lg border border-slate-700/50 overflow-hidden overflow-x-auto">
-            <table class="w-full text-sm min-w-[600px]" id="pkg-agent-table">
-              <thead><tr id="pkg-agent-head" class="bg-slate-800/50 text-slate-400 text-xs uppercase"></tr></thead>
-              <tbody id="pkg-agent-tbody"></tbody>
-            </table>
+          <!-- Single unified grid: agent column on left + N package columns to right -->
+          <div id="pkg-overview-grid" class="rounded-lg border border-slate-700/50 bg-slate-900/40 overflow-x-auto">
+            <!-- top: cards aligned with package columns -->
+            <div id="pkg-cards-host" class="grid gap-0"></div>
+            <!-- body: agent rows -->
+            <div id="pkg-agent-rows" class="grid gap-0 border-t border-slate-700/50"></div>
+            <!-- bottom: implementation + cs + footer note -->
+            <div id="pkg-footer-rows" class="grid gap-0 border-t border-slate-700/50"></div>
           </div>
-          <div class="mt-2 flex items-center gap-2">
+          <div class="mt-2 flex items-center gap-2 flex-wrap">
             <button type="button" onclick="lioPkgSeedFromStandard()" class="px-3 py-1.5 text-xs bg-slate-700/40 hover:bg-slate-700 border border-slate-600 rounded text-slate-300 transition" title="Pre-fill all packages from the currently selected modules + prices in the Standard view">↻ Seed from Standard View</button>
-            <button type="button" onclick="lioPkgClearAll()" class="px-3 py-1.5 text-xs bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 rounded text-rose-300 transition">× Clear all</button>
-            <span class="text-[10px] text-slate-500 ml-auto">Click any ✓/× to toggle. Click tier or price to edit.</span>
+            <button type="button" onclick="lioPkgClearAll()" class="px-3 py-1.5 text-xs bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 rounded text-rose-300 transition">× Clear all packages</button>
+            <select id="pkg-add-agent" onchange="lioPkgAddAgent(this.value); this.value='';" class="ml-auto bg-slate-800/50 border border-slate-600 rounded px-2 py-1.5 text-xs text-slate-300 outline-none">
+              <option value="">+ Add agent to overview…</option>
+            </select>
+            <span class="text-[10px] text-slate-500">Click ✓/× to toggle · click tier or price to edit</span>
           </div>
         </div>
 
@@ -7717,18 +7717,57 @@ function lioRenderPackageView() {
   if (ymEl)      window._packageConfig.yearMode = !!ymEl.checked;
   if (implEl)    window._packageConfig.showImpl = !!implEl.checked;
   if (csEl)      window._packageConfig.showCs   = !!csEl.checked;
+  // Set the unified grid column-template so cards row + agent rows + footer rows align.
+  // Agent column = 1.4fr, each package = 1fr.
+  const cols = window._packageConfig.packages.length;
+  const gridTemplate = `1.4fr repeat(${cols}, minmax(0, 1fr))`;
+  ['pkg-cards-host','pkg-agent-rows','pkg-footer-rows'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.gridTemplateColumns = gridTemplate;
+  });
   lioRenderPackageCards();
   lioRenderPackageAgentTable();
+  lioRenderPackageFooterRows();
+  lioRebuildAddAgentDropdown();
+}
+
+// Returns the set of module keys currently included in at least one package.
+function _pkgActiveAgentKeys() {
+  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  return std.filter(k => window._packageConfig.packages.some(pkg => pkg.items && pkg.items[k] && pkg.items[k].included));
+}
+
+// Rebuild the "+ Add agent" dropdown with only modules not yet in any package.
+function lioRebuildAddAgentDropdown() {
+  const sel = document.getElementById('pkg-add-agent');
+  if (!sel) return;
+  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const active = new Set(_pkgActiveAgentKeys());
+  const available = std.filter(k => !active.has(k));
+  sel.innerHTML = '<option value="">+ Add agent to overview…</option>' +
+    available.map(k => `<option value="${k}">${modules[k]?.name || k}</option>`).join('');
+}
+
+// Add an agent to a default package (first package) — user then toggles in/out per-package.
+function lioPkgAddAgent(modKey) {
+  if (!modKey) return;
+  // Add to the FIRST package only by default — user toggles others in via ✓/×.
+  const pkg = window._packageConfig.packages[0];
+  if (!pkg.items[modKey]) pkg.items[modKey] = { included: true, tierIdx: 0, customLabel: '' };
+  else pkg.items[modKey].included = true;
+  lioRenderPackageView();
 }
 
 // ── Render the cards (style B or C) ────────────────────────────────────────
+// Cards sit in the SAME grid as the agent rows below — first cell is a small
+// "Plans" label so the cards visually align with the package columns of the
+// agent table underneath.
 function lioRenderPackageCards() {
   const host = document.getElementById('pkg-cards-host');
   if (!host) return;
   const cfg = window._packageConfig;
-  const cols = cfg.packages.length;
-  host.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
-  host.innerHTML = cfg.packages.map(pkg => cfg.style === 'B' ? _pkgCardHtmlB(pkg) : _pkgCardHtmlC(pkg)).join('');
+  const leadCell = '<div class="p-3 flex items-end"><div class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Plans</div></div>';
+  host.innerHTML = leadCell + cfg.packages.map(pkg => `<div class="p-3 border-l border-slate-700/40">${cfg.style === 'B' ? _pkgCardHtmlB(pkg) : _pkgCardHtmlC(pkg)}</div>`).join('');
 }
 
 // Style B: Vercel/Modern — big number, "billed annually"
@@ -7804,48 +7843,116 @@ function lioPkgToggleBest(pkgId) {
   lioRenderPackageCards();
 }
 
-// ── Render the Agent Assignment table ──────────────────────────────────────
+// ── Render the Agent rows inside the unified grid ──────────────────────────
+// Only shows agents that are included in at least one package (cleaner overview).
+// Layout per row: agent name + tier on the LEFT, then one cell per package
+// showing ✓/× and price (or just × for excluded).
 function lioRenderPackageAgentTable() {
-  const head = document.getElementById('pkg-agent-head');
-  const tbody = document.getElementById('pkg-agent-tbody');
-  if (!head || !tbody) return;
+  const host = document.getElementById('pkg-agent-rows');
+  if (!host) return;
   const cfg = window._packageConfig;
-  // Header: Agent col + one col per package
-  head.innerHTML = '<th class="text-left p-2 pl-3 font-semibold text-slate-300">Agent</th>' +
-    cfg.packages.map(p => `<th class="text-center p-2 font-semibold ${p.isBest ? 'text-lio-300' : 'text-slate-300'}">${p.name}${p.isBest ? ' ★' : ''}</th>`).join('');
-  // Rows: all 16 standard modules — include only when at least one package would want it visible (always show all so user can toggle)
-  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
-  tbody.innerHTML = std.map(modKey => {
+  const active = _pkgActiveAgentKeys();
+  if (active.length === 0) {
+    host.innerHTML = '<div class="col-span-full p-6 text-center text-xs text-slate-500">No agents added yet — use the "+ Add agent" dropdown below or click "Seed from Standard View".</div>';
+    host.style.gridTemplateColumns = '1fr';
+    return;
+  }
+  // Restore the multi-col grid template (renderPackageView already set it, but
+  // the empty-state above may have overwritten it).
+  const cols = cfg.packages.length;
+  host.style.gridTemplateColumns = `1.4fr repeat(${cols}, minmax(0, 1fr))`;
+  // Find a "primary" tier label for each agent — pick the first included
+  // package's tier so the left column shows a sensible default. (Per-package
+  // tier overrides still take effect in each cell.)
+  let html = '';
+  active.forEach((modKey, rowIdx) => {
     const mod = modules[modKey];
-    if (!mod) return '';
-    const cells = cfg.packages.map(pkg => {
+    if (!mod) return;
+    const firstPkg = cfg.packages.find(p => p.items && p.items[modKey] && p.items[modKey].included);
+    const primaryEff = firstPkg ? _pkgGetEffectiveCell(firstPkg.id, modKey) : null;
+    const primaryTier = primaryEff ? (primaryEff.label || primaryEff.tier?.vol || '') : '';
+    const rowBg = rowIdx % 2 === 0 ? 'bg-slate-900/30' : 'bg-slate-900/10';
+    // Left cell: agent name + tier label + remove-row button
+    html += `<div class="${rowBg} p-3 border-t border-slate-700/40 flex items-start justify-between gap-2">
+      <div class="flex-1 min-w-0">
+        <div class="text-sm font-semibold text-slate-100 truncate">${mod.name}</div>
+        <div class="text-[11px] text-slate-400 italic truncate">${primaryTier || '—'}</div>
+      </div>
+      <button onclick="lioPkgRemoveAgent('${modKey}')" class="text-slate-500 hover:text-rose-400 text-base leading-none" title="Remove this agent from all packages">×</button>
+    </div>`;
+    // Per-package cells
+    cfg.packages.forEach(pkg => {
       const itemMeta = (pkg.items && pkg.items[modKey]) || { included: false };
       if (!itemMeta.included) {
-        return `<td class="p-2 text-center">
-          <button onclick="lioPkgToggleItem('${pkg.id}','${modKey}')" class="text-rose-400/60 hover:text-rose-300 text-lg" title="Click to include">×</button>
-        </td>`;
+        html += `<div class="${rowBg} p-3 border-t border-l border-slate-700/40 flex items-center justify-center">
+          <button onclick="lioPkgToggleItem('${pkg.id}','${modKey}')" class="text-slate-500 hover:text-emerald-400 text-2xl leading-none" title="Click to include in ${pkg.name}">×</button>
+        </div>`;
+        return;
       }
       const eff = _pkgGetEffectiveCell(pkg.id, modKey);
       const tierOpts = mod.tiers.map((t, i) => `<option value="${i}" ${i === eff.tierIdx ? 'selected' : ''}>${t.vol}</option>`).join('');
-      const priceStr = fmtRaw(eff.prices[currentCurrency] || 0);
-      return `<td class="p-2 text-center">
-        <div class="inline-flex flex-col gap-1 items-stretch min-w-[140px]">
-          <div class="flex items-center justify-between gap-1">
-            <button onclick="lioPkgToggleItem('${pkg.id}','${modKey}')" class="text-emerald-400 hover:text-emerald-300" title="Click to exclude">✓</button>
-            <select onchange="lioPkgSetTier('${pkg.id}','${modKey}', this.value)" class="flex-1 bg-slate-900/60 border border-slate-700 rounded px-1 py-0.5 text-[10px] text-white outline-none">${tierOpts}</select>
-          </div>
-          <input type="text" value="${eff.label}" oninput="lioPkgSetCellLabel('${pkg.id}','${modKey}',this.value)" placeholder="Custom label..." class="w-full bg-slate-900/60 border border-slate-700 rounded px-1 py-0.5 text-[10px] text-slate-300 outline-none placeholder-slate-500">
-          <input type="number" value="${eff.prices[currentCurrency] || 0}" oninput="lioPkgSetCellPrice('${pkg.id}','${modKey}','${currentCurrency}',this.value)" class="w-full bg-slate-900/60 border border-slate-700 rounded px-1 py-0.5 text-[10px] text-white text-right outline-none" title="Price in active currency (${currentCurrency.toUpperCase()})">
+      const priceVal = eff.prices[currentCurrency] || 0;
+      html += `<div class="${rowBg} p-3 border-t border-l border-slate-700/40">
+        <div class="flex items-center justify-center gap-2 mb-1.5">
+          <button onclick="lioPkgToggleItem('${pkg.id}','${modKey}')" class="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 text-sm flex items-center justify-center hover:bg-emerald-500/30 transition" title="Click to exclude from ${pkg.name}">✓</button>
+          <input type="number" value="${priceVal}" oninput="lioPkgSetCellPrice('${pkg.id}','${modKey}','${currentCurrency}',this.value)" class="w-24 bg-slate-900/60 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-white text-right outline-none font-semibold" title="Click to edit price (${currentCurrency.toUpperCase()})">
+          <span class="text-[10px] text-slate-500">/yr</span>
+        </div>
+        <div class="grid grid-cols-1 gap-1">
+          <select onchange="lioPkgSetTier('${pkg.id}','${modKey}', this.value)" class="bg-slate-900/60 border border-slate-700 rounded px-1 py-0.5 text-[10px] text-slate-300 outline-none" title="Change tier (volume)">${tierOpts}</select>
+          <input type="text" value="${eff.label}" oninput="lioPkgSetCellLabel('${pkg.id}','${modKey}',this.value)" placeholder="Override label…" class="bg-slate-900/60 border border-slate-700 rounded px-1 py-0.5 text-[10px] text-slate-300 outline-none placeholder-slate-600">
           ${cfg.yearMode ? `<div class="grid grid-cols-3 gap-0.5 mt-0.5">
-            <input type="number" value="${eff.yr1 ?? eff.prices[currentCurrency] ?? 0}" oninput="lioPkgSetYear('${pkg.id}','${modKey}','yr1',this.value)" placeholder="Y1" class="bg-slate-900/60 border border-slate-700 rounded px-0.5 py-0.5 text-[9px] text-white text-right outline-none" title="Year 1 price">
-            <input type="number" value="${eff.yr2 ?? eff.prices[currentCurrency] ?? 0}" oninput="lioPkgSetYear('${pkg.id}','${modKey}','yr2',this.value)" placeholder="Y2" class="bg-slate-900/60 border border-slate-700 rounded px-0.5 py-0.5 text-[9px] text-white text-right outline-none" title="Year 2 price">
-            <input type="number" value="${eff.yr3 ?? eff.prices[currentCurrency] ?? 0}" oninput="lioPkgSetYear('${pkg.id}','${modKey}','yr3',this.value)" placeholder="Y3" class="bg-slate-900/60 border border-slate-700 rounded px-0.5 py-0.5 text-[9px] text-white text-right outline-none" title="Year 3 price">
+            <input type="number" value="${eff.yr1 ?? priceVal}" oninput="lioPkgSetYear('${pkg.id}','${modKey}','yr1',this.value)" placeholder="Y1" class="bg-slate-900/60 border border-slate-700 rounded px-0.5 py-0.5 text-[9px] text-white text-right outline-none" title="Year 1 price">
+            <input type="number" value="${eff.yr2 ?? priceVal}" oninput="lioPkgSetYear('${pkg.id}','${modKey}','yr2',this.value)" placeholder="Y2" class="bg-slate-900/60 border border-slate-700 rounded px-0.5 py-0.5 text-[9px] text-white text-right outline-none" title="Year 2 price">
+            <input type="number" value="${eff.yr3 ?? priceVal}" oninput="lioPkgSetYear('${pkg.id}','${modKey}','yr3',this.value)" placeholder="Y3" class="bg-slate-900/60 border border-slate-700 rounded px-0.5 py-0.5 text-[9px] text-white text-right outline-none" title="Year 3 price">
           </div>` : ''}
         </div>
-      </td>`;
-    }).join('');
-    return `<tr class="border-t border-slate-700/30"><td class="p-2 pl-3 text-xs font-semibold text-slate-200">${mod.name}</td>${cells}</tr>`;
-  }).join('');
+      </div>`;
+    });
+  });
+  host.innerHTML = html;
+}
+
+// Remove an agent across all packages
+function lioPkgRemoveAgent(modKey) {
+  window._packageConfig.packages.forEach(pkg => {
+    if (pkg.items && pkg.items[modKey]) delete pkg.items[modKey];
+  });
+  Object.keys(window._pkgCellOverrides || {}).forEach(pkgId => {
+    if (window._pkgCellOverrides[pkgId][modKey]) delete window._pkgCellOverrides[pkgId][modKey];
+  });
+  lioRenderPackageView();
+}
+
+// ── Footer rows: Implementation fee + Customer Success fee + Note ──────────
+function lioRenderPackageFooterRows() {
+  const host = document.getElementById('pkg-footer-rows');
+  if (!host) return;
+  const cfg = window._packageConfig;
+  const cols = cfg.packages.length;
+  host.style.gridTemplateColumns = `1.4fr repeat(${cols}, minmax(0, 1fr))`;
+  let html = '';
+  if (cfg.showImpl) {
+    html += `<div class="p-3 bg-lio-600/10 border-t border-slate-700/40 flex items-center text-xs text-lio-200 font-semibold">Implementation Fee <span class="ml-2 text-[10px] text-slate-400 font-normal">(${cfg.implPct}% one-time)</span></div>`;
+    cfg.packages.forEach(pkg => {
+      const annualBase = cfg.yearMode ? _pkgPackageTotal(pkg, 'yr1') : _pkgPackageTotal(pkg, null);
+      const impl = Math.round(annualBase * (cfg.implPct/100));
+      html += `<div class="p-3 bg-slate-900/30 border-t border-l border-slate-700/40 text-center text-sm font-semibold text-slate-100">${fmtRaw(impl)} <span class="text-[10px] text-slate-500">one-time</span></div>`;
+    });
+  }
+  if (cfg.showCs) {
+    html += `<div class="p-3 bg-lio-600/10 border-t border-slate-700/40 flex items-center text-xs text-lio-200 font-semibold">Customer Success Fee <span class="ml-2 text-[10px] text-slate-400 font-normal">(${cfg.csPct}% / year)</span></div>`;
+    cfg.packages.forEach(pkg => {
+      const annualBase = cfg.yearMode ? _pkgPackageTotal(pkg, 'yr1') : _pkgPackageTotal(pkg, null);
+      const cs = Math.round(annualBase * (cfg.csPct/100));
+      html += `<div class="p-3 bg-slate-900/30 border-t border-l border-slate-700/40 text-center text-sm font-semibold text-slate-100">${fmtRaw(cs)} <span class="text-[10px] text-slate-500">/yr</span></div>`;
+    });
+  }
+  if (cfg.footerNote && cfg.footerNote.trim()) {
+    const totalCols = cols + 1;
+    html += `<div class="p-3 border-t border-slate-700/40 text-[11px] text-slate-300 italic" style="grid-column: span ${totalCols};">${cfg.footerNote.replace(/\n/g,'<br>')}</div>`;
+  }
+  host.innerHTML = html;
 }
 
 function lioPkgToggleItem(pkgId, modKey) {
@@ -7905,49 +8012,89 @@ document.addEventListener('change', (ev) => {
 });
 
 // ── PDF render: Package Overview ───────────────────────────────────────────
-// White-themed, A4 landscape-ish (works in portrait too). Reuses Lio branding.
+// Unified layout matching the Lio Bosch example: agent name + tier label on
+// the LEFT, package columns to the RIGHT with ✓/× and price/year. Cards above
+// the table use the same column widths so everything aligns.
 function lioBuildPackageOverviewHtml(quoteData) {
   const cfg = window._packageConfig || _lioPkgDefaultConfig();
   const ref = quoteData?.quoteRef || ('Q-' + Date.now().toString(36).toUpperCase());
   const today = quoteData?.today || new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
   const company = quoteData?.recipientCompany || '';
   const contact = quoteData?.recipientContact || '';
-  // Build cards (always render WHITE for PDF — invert from dark UI)
-  const cards = cfg.packages.map(pkg => cfg.style === 'B' ? _pkgPdfCardB(pkg) : _pkgPdfCardC(pkg)).join('');
-  // Agent assignment table — concise, only rows that are in at least one package
+  const nPkg = cfg.packages.length;
+  const colCount = nPkg + 1; // 1 agent col + N package cols
+  const gridCols = `1.4fr repeat(${nPkg}, minmax(0, 1fr))`;
+  // Build cards row inside the unified grid
+  const cardsRow = `<div style="padding:8px 12px 14px;">
+      <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;font-weight:600;">Plans</div>
+    </div>` + cfg.packages.map(pkg => `<div style="padding:8px 8px 14px;border-left:1px solid #e2e8f0;">${cfg.style === 'B' ? _pkgPdfCardB(pkg) : _pkgPdfCardC(pkg)}</div>`).join('');
+  // Agent rows (only included agents)
   const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
-  const activeModKeys = std.filter(k =>
-    cfg.packages.some(pkg => pkg.items && pkg.items[k] && pkg.items[k].included));
-  const tableHead = '<tr style="background:#f8fafc;border-bottom:2px solid #cbd5e1;">'
-    + '<th style="padding:10px 14px;text-align:left;font-size:11px;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;">Agent</th>'
-    + cfg.packages.map(p => `<th style="padding:10px 14px;text-align:center;font-size:11px;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;${p.isBest ? 'background:linear-gradient(135deg,#6366f1,#22d3ee);color:white;' : ''}">${p.name}${p.isBest ? ' ★' : ''}</th>`).join('')
-    + '</tr>';
-  const tableRows = activeModKeys.map(modKey => {
+  const activeModKeys = std.filter(k => cfg.packages.some(pkg => pkg.items && pkg.items[k] && pkg.items[k].included));
+  let agentRowsHtml = '';
+  activeModKeys.forEach((modKey, rowIdx) => {
     const mod = modules[modKey];
-    if (!mod) return '';
-    const cells = cfg.packages.map(pkg => {
+    if (!mod) return;
+    const firstPkg = cfg.packages.find(p => p.items && p.items[modKey] && p.items[modKey].included);
+    const primaryEff = firstPkg ? _pkgGetEffectiveCell(firstPkg.id, modKey) : null;
+    const primaryTier = primaryEff ? (primaryEff.label || primaryEff.tier?.vol || '') : '';
+    const rowBg = rowIdx % 2 === 0 ? '#fafbfc' : 'white';
+    agentRowsHtml += `<div style="padding:10px 14px;background:${rowBg};border-top:1px solid #e2e8f0;">
+      <div style="font-size:12px;font-weight:700;color:#1e293b;">${mod.name}</div>
+      <div style="font-size:10px;color:#64748b;font-style:italic;">${primaryTier || '—'}</div>
+    </div>`;
+    cfg.packages.forEach(pkg => {
       const itemMeta = (pkg.items && pkg.items[modKey]) || { included: false };
       if (!itemMeta.included) {
-        return '<td style="padding:9px 14px;text-align:center;color:#cbd5e1;font-size:14px;">×</td>';
+        agentRowsHtml += `<div style="padding:10px;background:${rowBg};border-top:1px solid #e2e8f0;border-left:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:#cbd5e1;font-size:18px;">×</div>`;
+        return;
       }
       const eff = _pkgGetEffectiveCell(pkg.id, modKey);
       const price = eff.prices[currentCurrency] || 0;
-      const label = eff.label || '';
-      return `<td style="padding:9px 14px;text-align:center;">
-        <div style="font-size:11px;font-weight:600;color:#1e293b;">${fmtRaw(price)}/yr</div>
-        <div style="font-size:9px;color:#64748b;">${label}</div>
-      </td>`;
-    }).join('');
-    return `<tr style="border-bottom:1px solid #f1f5f9;">
-      <td style="padding:9px 14px;font-size:11px;font-weight:600;color:#1e293b;">${mod.name}</td>${cells}
-    </tr>`;
-  }).join('');
+      const label = eff.label || eff.tier?.vol || '';
+      const tierDiffers = (label && label !== primaryTier);
+      const yr1 = eff.yr1 ?? price, yr2 = eff.yr2 ?? price, yr3 = eff.yr3 ?? price;
+      const yearBlock = cfg.yearMode
+        ? `<div style="font-size:9px;color:#64748b;margin-top:3px;">Y1 ${fmtRaw(yr1)} · Y2 ${fmtRaw(yr2)} · Y3 ${fmtRaw(yr3)}</div>`
+        : '';
+      agentRowsHtml += `<div style="padding:10px;background:${rowBg};border-top:1px solid #e2e8f0;border-left:1px solid #e2e8f0;text-align:center;">
+        <div style="display:inline-flex;align-items:center;gap:6px;">
+          <span style="width:10px;height:10px;border-radius:50%;background:#10b981;display:inline-block;"></span>
+          <span style="font-size:12px;font-weight:700;color:#1e293b;">${fmtRaw(price)}</span>
+          <span style="font-size:9px;color:#94a3b8;">/yr</span>
+        </div>
+        ${tierDiffers ? `<div style="font-size:9px;color:#64748b;margin-top:2px;">${label}</div>` : ''}
+        ${yearBlock}
+      </div>`;
+    });
+  });
+  // Footer rows: implementation fee + cs fee
+  let footerRowsHtml = '';
+  if (cfg.showImpl) {
+    footerRowsHtml += `<div style="padding:10px 14px;background:#eef2ff;border-top:1px solid #e2e8f0;font-size:11px;font-weight:700;color:#4338ca;">Implementation Fee <span style="font-size:9px;color:#6366f1;font-weight:500;">(${cfg.implPct}% one-time)</span></div>`;
+    cfg.packages.forEach(pkg => {
+      const ab = cfg.yearMode ? _pkgPackageTotal(pkg, 'yr1') : _pkgPackageTotal(pkg, null);
+      const impl = Math.round(ab * (cfg.implPct/100));
+      footerRowsHtml += `<div style="padding:10px;border-top:1px solid #e2e8f0;border-left:1px solid #e2e8f0;text-align:center;font-size:13px;font-weight:700;color:#1e293b;">${fmtRaw(impl)} <span style="font-size:9px;color:#94a3b8;font-weight:500;">one-time</span></div>`;
+    });
+  }
+  if (cfg.showCs) {
+    footerRowsHtml += `<div style="padding:10px 14px;background:#eef2ff;border-top:1px solid #e2e8f0;font-size:11px;font-weight:700;color:#4338ca;">Customer Success Fee <span style="font-size:9px;color:#6366f1;font-weight:500;">(${cfg.csPct}% / year)</span></div>`;
+    cfg.packages.forEach(pkg => {
+      const ab = cfg.yearMode ? _pkgPackageTotal(pkg, 'yr1') : _pkgPackageTotal(pkg, null);
+      const cs = Math.round(ab * (cfg.csPct/100));
+      footerRowsHtml += `<div style="padding:10px;border-top:1px solid #e2e8f0;border-left:1px solid #e2e8f0;text-align:center;font-size:13px;font-weight:700;color:#1e293b;">${fmtRaw(cs)} <span style="font-size:9px;color:#94a3b8;font-weight:500;">/yr</span></div>`;
+    });
+  }
+  // Footer note (full-width below grid)
   const footerNote = (cfg.footerNote || '').trim();
-  const footerHtml = `<div style="margin-top:24px;padding:16px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0;">
-    ${cfg.showImpl ? `<div style="font-size:11px;color:#1e293b;margin-bottom:4px;"><strong>Implementation Fee</strong> — ${cfg.implPct}% one-time, calculated on the annual SaaS price.</div>` : ''}
-    ${cfg.showCs   ? `<div style="font-size:11px;color:#1e293b;margin-bottom:4px;"><strong>Customer Success Fee</strong> — ${cfg.csPct}% per year, included in ongoing service.</div>` : ''}
-    ${footerNote   ? `<div style="font-size:11px;color:#1e293b;margin-top:8px;font-style:italic;">${footerNote.replace(/\n/g,'<br>')}</div>` : ''}
-  </div>`;
+  const footerNoteHtml = footerNote
+    ? `<div style="margin-top:16px;padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;font-size:11px;color:#475569;font-style:italic;">${footerNote.replace(/\n/g,'<br>')}</div>`
+    : '';
+  // Empty-state if no agents
+  const noAgentsRow = activeModKeys.length === 0
+    ? `<div style="padding:24px;text-align:center;color:#94a3b8;font-size:12px;border-top:1px solid #e2e8f0;grid-column: span ${colCount};">No agents assigned yet. Add them in the Package View of the Quote Modal.</div>`
+    : '';
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Package Overview · ${ref}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -7957,6 +8104,7 @@ function lioBuildPackageOverviewHtml(quoteData) {
       .pkg-best-gradient { background: linear-gradient(135deg, #6366f1, #22d3ee); }
       .pkg-gradient-text { background: linear-gradient(135deg, #6366f1, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
       .pkg-dashed-divider { background-image: linear-gradient(to right, #cbd5e1 50%, transparent 50%); background-size: 8px 1px; background-repeat: repeat-x; height: 1px; }
+      .pkg-grid { display: grid; grid-template-columns: ${gridCols}; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: white; }
     </style>
   </head><body>
     <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1e293b;padding-bottom:14px;margin-bottom:24px;">
@@ -7970,12 +8118,13 @@ function lioBuildPackageOverviewHtml(quoteData) {
         ${company ? `<div style="margin-top:6px;color:#1e293b;font-weight:600;">${company}${contact ? ' · ' + contact : ''}</div>` : ''}
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(${cfg.packages.length},1fr);gap:14px;margin-bottom:24px;">${cards}</div>
-    <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
-      <thead>${tableHead}</thead>
-      <tbody>${tableRows || '<tr><td colspan="' + (cfg.packages.length+1) + '" style="padding:24px;text-align:center;color:#94a3b8;font-size:12px;">No agents assigned yet — use the Agent Assignment table in the Quote Modal to fill in.</td></tr>'}</tbody>
-    </table>
-    ${footerHtml}
+    <div class="pkg-grid">
+      ${cardsRow}
+      ${agentRowsHtml}
+      ${noAgentsRow}
+      ${footerRowsHtml}
+    </div>
+    ${footerNoteHtml}
     <div style="position:absolute;top:14px;right:24px;font-size:9px;color:#cbd5e1;text-transform:uppercase;letter-spacing:2px;font-weight:600;">Confidential</div>
   </body></html>`;
 }
