@@ -1859,17 +1859,25 @@ input[type="checkbox"] { accent-color: #6366f1; }
           </label>
         </div>
 
-        <!-- Global Discount Bar — applies % to ALL included agents across ALL packages -->
-        <div class="mt-4 p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
-          <div class="flex items-center justify-between mb-2">
-            <label class="text-xs text-indigo-200 font-semibold">Global Agent Discount</label>
-            <span class="text-[10px] text-slate-400">Applies % off to all included agents across all packages · per-cell prices remain individually editable</span>
+        <!-- Discount Bar — applies % to agents in selected packages, with optional named label -->
+        <div class="mt-4 p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="text-xs text-indigo-200 font-semibold">Agent Discount</label>
+            <span class="text-[10px] text-slate-400">Reduces agent prices in the selected packages · optional name renders as a row on the PDF</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2 items-center">
+            <input type="text" id="pkg-disc-name" placeholder="Discount name (optional, e.g. Full P2P Suite discount)" class="bg-slate-800/50 border border-slate-600 rounded-lg p-2 text-sm text-white outline-none">
+            <div class="flex items-center gap-2 flex-wrap justify-end">
+              <span class="text-xs text-slate-400">Apply to:</span>
+              <div id="pkg-disc-targets" class="flex items-center gap-2 flex-wrap"></div>
+            </div>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
             <input type="number" id="pkg-global-disc" value="" min="0" max="100" step="1" placeholder="e.g. 10" class="w-24 bg-slate-800/50 border border-slate-600 rounded-lg p-2 text-sm text-white outline-none text-right">
             <span class="text-xs text-slate-400">%</span>
-            <button type="button" onclick="lioPkgApplyGlobalDiscount()" class="px-3 py-2 bg-indigo-500/30 hover:bg-indigo-500/40 border border-indigo-500/40 rounded-lg text-xs text-indigo-200 font-semibold transition">Apply to all agents</button>
-            <button type="button" onclick="lioPkgResetPrices()" class="px-3 py-2 bg-slate-700/40 hover:bg-slate-700/60 border border-slate-600 rounded-lg text-xs text-slate-300 transition">Reset prices</button>
+            <button type="button" onclick="lioPkgApplyGlobalDiscount()" class="px-3 py-2 bg-indigo-500/30 hover:bg-indigo-500/40 border border-indigo-500/40 rounded-lg text-xs text-indigo-200 font-semibold transition">Apply discount</button>
+            <button type="button" onclick="lioPkgClearDiscount()" class="px-3 py-2 bg-slate-700/40 hover:bg-slate-700/60 border border-slate-600 rounded-lg text-xs text-slate-300 transition">Clear discount</button>
+            <button type="button" onclick="lioPkgResetPrices()" class="px-3 py-2 bg-slate-700/40 hover:bg-slate-700/60 border border-slate-600 rounded-lg text-xs text-slate-300 transition">Reset all prices</button>
             <span id="pkg-global-disc-status" class="text-xs text-emerald-300 ml-auto"></span>
           </div>
         </div>
@@ -7556,6 +7564,9 @@ function _lioPkgDefaultConfig() {
     showImpl: true, implPct: 15,
     showCs: true,   csPct: 10,
     showMaint: false, maintMode: 'pct', maintAmount: 20, // % of SaaS OR fixed
+    // Named discount: applied as % off included agents in selected target packages.
+    // When `name` is set + applied, an extra row shows up on the PDF with that label.
+    namedDiscount: { name: '', pct: 0, targets: [] /* package ids */ },
     footerNote: 'Staggered Approach possible: Start with Basic in year 1, then expand by milestones up to Diamond.',
     packages: [
       { id: 'p1', name: 'Basic',   tagline: 'Perfect for the start',
@@ -7759,6 +7770,8 @@ function lioRenderPackageView() {
   if (ymEl)      window._packageConfig.yearMode = !!ymEl.checked;
   if (implEl)    window._packageConfig.showImpl = !!implEl.checked;
   if (csEl)      window._packageConfig.showCs   = !!csEl.checked;
+  // Render the named-discount UI: name input + per-package target checkboxes.
+  lioPkgRenderDiscountControls();
   // Maintenance fee config — read from inputs + sync UI
   const maintEl    = document.getElementById('pkg-show-maint');
   const maintMode  = document.getElementById('pkg-maint-mode');
@@ -7973,9 +7986,33 @@ function lioRenderPackageAgentTable() {
   host.innerHTML = html;
 }
 
-// Apply a single global discount % to every included agent across every package.
-// Implemented by writing a per-cell price override = listPrice * (1 - pct/100)
-// in the ACTIVE currency. Per-cell prices remain individually editable.
+// Render the discount-controls UI — discount name input value + per-package
+// target checkboxes. Called from lioRenderPackageView whenever the package
+// set changes so the checkboxes always reflect current package names.
+function lioPkgRenderDiscountControls() {
+  const cfg = window._packageConfig;
+  const nd = cfg.namedDiscount || { name: '', pct: 0, targets: [] };
+  const nameInp = document.getElementById('pkg-disc-name');
+  if (nameInp && document.activeElement !== nameInp) nameInp.value = nd.name || '';
+  const pctInp = document.getElementById('pkg-global-disc');
+  if (pctInp && document.activeElement !== pctInp) pctInp.value = nd.pct > 0 ? nd.pct : '';
+  const host = document.getElementById('pkg-disc-targets');
+  if (!host) return;
+  // Default all packages checked when no targets stored.
+  const targets = nd.targets && nd.targets.length > 0 ? nd.targets : cfg.packages.map(p => p.id);
+  host.innerHTML = cfg.packages.map(pkg => {
+    const checked = targets.includes(pkg.id) ? 'checked' : '';
+    return `<label class="inline-flex items-center gap-1 text-xs text-slate-300 cursor-pointer px-2 py-1 rounded bg-slate-800/40 border border-slate-600/50">
+      <input type="checkbox" value="${pkg.id}" ${checked} class="w-3.5 h-3.5">
+      <span>${pkg.name}</span>
+    </label>`;
+  }).join('');
+}
+
+// Apply a discount % to agents in the SELECTED packages. If a discount name
+// is provided, it is stored in _packageConfig.namedDiscount and renders as
+// a dedicated row on the PDF. Per-cell price overrides still win — but the
+// discount also rewrites overrides for each affected (package, agent) cell.
 function lioPkgApplyGlobalDiscount() {
   const inp = document.getElementById('pkg-global-disc');
   const raw = inp?.value?.toString().trim();
@@ -7984,8 +8021,15 @@ function lioPkgApplyGlobalDiscount() {
     alert('Please enter a discount % between 0.1 and 100.');
     return;
   }
+  // Resolve which packages to target — default to all if none ticked.
+  const nameInp = document.getElementById('pkg-disc-name');
+  const name = (nameInp?.value || '').trim();
+  const checkedIds = Array.from(document.querySelectorAll('#pkg-disc-targets input[type=checkbox]:checked')).map(c => c.value);
+  const targets = (checkedIds.length > 0) ? checkedIds : window._packageConfig.packages.map(p => p.id);
   let touched = 0;
+  let totalSavings = 0;
   window._packageConfig.packages.forEach(pkg => {
+    if (!targets.includes(pkg.id)) return;
     Object.keys(pkg.items || {}).forEach(modKey => {
       const meta = pkg.items[modKey];
       if (!meta || !meta.included) return;
@@ -7995,20 +8039,34 @@ function lioPkgApplyGlobalDiscount() {
       const listPrice = _tierPriceInCurrency(tier, currentCurrency) || 0;
       if (listPrice <= 0) return;
       let discounted = listPrice * (1 - pct / 100);
-      // Round to nearest 100 for non-USD, nearest 1 for USD
       discounted = (currentCurrency === 'usd') ? Math.round(discounted) : Math.round(discounted / 100) * 100;
       const existingPrices = _pkgGetCellOverride(pkg.id, modKey).prices || {};
       _pkgSetCellOverride(pkg.id, modKey, {
         prices: Object.assign({}, existingPrices, { [currentCurrency]: discounted })
       });
       touched++;
+      totalSavings += (listPrice - discounted);
     });
   });
+  // Persist the discount metadata so PDF + UI can show the labelled row.
+  window._packageConfig.namedDiscount = { name, pct, targets };
   const statusEl = document.getElementById('pkg-global-disc-status');
   if (statusEl) {
-    statusEl.textContent = '✓ Applied ' + pct + '% to ' + touched + ' agent cells';
-    setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 3500);
+    const targetNames = targets.map(id => (window._packageConfig.packages.find(p => p.id === id) || {}).name).filter(Boolean).join(', ');
+    statusEl.textContent = '✓ ' + (name ? '"' + name + '" ' : '') + pct + '% applied · ' + touched + ' cells · ' + targetNames;
+    setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 4500);
   }
+  lioRenderPackageView();
+}
+
+// Clear the named discount (label + state) WITHOUT resetting prices.
+// Use this if you applied a named discount and want to drop the label but
+// keep the discounted prices as the new baseline.
+function lioPkgClearDiscount() {
+  window._packageConfig.namedDiscount = { name: '', pct: 0, targets: [] };
+  const inp = document.getElementById('pkg-global-disc');     if (inp) inp.value = '';
+  const nameInp = document.getElementById('pkg-disc-name');   if (nameInp) nameInp.value = '';
+  document.querySelectorAll('#pkg-disc-targets input[type=checkbox]').forEach(c => c.checked = true);
   lioRenderPackageView();
 }
 
@@ -8016,8 +8074,10 @@ function lioPkgApplyGlobalDiscount() {
 function lioPkgResetPrices() {
   if (!confirm('Reset all agent prices to their tier baseline in all packages?')) return;
   window._pkgCellOverrides = {};
-  const inp = document.getElementById('pkg-global-disc');
-  if (inp) inp.value = '';
+  window._packageConfig.namedDiscount = { name: '', pct: 0, targets: [] };
+  const inp = document.getElementById('pkg-global-disc');     if (inp) inp.value = '';
+  const nameInp = document.getElementById('pkg-disc-name');   if (nameInp) nameInp.value = '';
+  document.querySelectorAll('#pkg-disc-targets input[type=checkbox]').forEach(c => c.checked = true);
   lioRenderPackageView();
 }
 
@@ -8040,6 +8100,31 @@ function lioRenderPackageFooterRows() {
   const cols = cfg.packages.length;
   host.style.gridTemplateColumns = `1.4fr repeat(${cols}, minmax(0, 1fr))`;
   let html = '';
+  // Named discount row (only when a name + pct are set + applied)
+  const nd = cfg.namedDiscount || { name: '', pct: 0, targets: [] };
+  if (nd.name && nd.pct > 0 && nd.targets && nd.targets.length > 0) {
+    html += `<div class="p-3 bg-emerald-500/10 border-t border-slate-700/40 flex items-center text-xs text-emerald-200 font-semibold">${nd.name} <span class="ml-2 text-[10px] text-slate-400 font-normal">(−${nd.pct}%)</span></div>`;
+    cfg.packages.forEach(pkg => {
+      if (!nd.targets.includes(pkg.id)) {
+        html += `<div class="p-3 bg-slate-900/30 border-t border-l border-slate-700/40 text-center text-xs text-slate-500">—</div>`;
+        return;
+      }
+      // Compute savings = sum of (listPrice - currentPrice) for included agents
+      let savings = 0;
+      Object.keys(pkg.items || {}).forEach(modKey => {
+        const meta = pkg.items[modKey];
+        if (!meta || !meta.included) return;
+        const mod = modules[modKey];
+        if (!mod) return;
+        const tier = mod.tiers[meta.tierIdx || 0] || mod.tiers[0];
+        const listP = _tierPriceInCurrency(tier, currentCurrency) || 0;
+        const eff = _pkgGetEffectiveCell(pkg.id, modKey);
+        const cur = eff.prices[currentCurrency] || 0;
+        if (listP > cur) savings += (listP - cur);
+      });
+      html += `<div class="p-3 bg-slate-900/30 border-t border-l border-slate-700/40 text-center text-sm font-semibold text-emerald-300">−${fmtRaw(savings)}</div>`;
+    });
+  }
   if (cfg.showImpl) {
     html += `<div class="p-3 bg-lio-600/10 border-t border-slate-700/40 flex items-center text-xs text-lio-200 font-semibold">Implementation Fee <span class="ml-2 text-[10px] text-slate-400 font-normal">(${cfg.implPct}% one-time)</span></div>`;
     cfg.packages.forEach(pkg => {
@@ -8321,6 +8406,35 @@ function lioBuildPackageOverviewHtml(quoteData, opts) {
     }).join('');
     return `<tr>${left}${cells}</tr>`;
   }
+  // Named discount row (between agents and Impl/CS — only when set + applied)
+  const _nd = cfg.namedDiscount || { name: '', pct: 0, targets: [] };
+  if (_nd.name && _nd.pct > 0 && _nd.targets && _nd.targets.length > 0) {
+    const label = `
+      <div style="font-size:${agentNameFs}px;font-weight:700;color:#047857;line-height:1.2;">${_nd.name}</div>
+      <div style="font-size:${tierFs}px;color:#059669;font-weight:500;line-height:1.2;">−${_nd.pct}% off agents</div>`;
+    const leftCell = `<td style="padding:${footerRowPad};background:#d1fae5;vertical-align:middle;border-top:1px solid #6ee7b7;">${label}</td>`;
+    const valueCells = cfg.packages.map(pkg => {
+      if (!_nd.targets.includes(pkg.id)) {
+        return `<td style="padding:${cellPad};border-left:1px solid #e2e8f0;border-top:1px solid #6ee7b7;text-align:center;background:#f8fafc;vertical-align:middle;color:#94a3b8;font-size:${tierFs}px;">—</td>`;
+      }
+      let savings = 0;
+      Object.keys(pkg.items || {}).forEach(modKey => {
+        const meta = pkg.items[modKey];
+        if (!meta || !meta.included) return;
+        const mod = modules[modKey];
+        if (!mod) return;
+        const tier = mod.tiers[meta.tierIdx || 0] || mod.tiers[0];
+        const listP = _tierPriceInCurrency(tier, currentCurrency) || 0;
+        const eff = _pkgGetEffectiveCell(pkg.id, modKey);
+        const cur = eff.prices[currentCurrency] || 0;
+        if (listP > cur) savings += (listP - cur);
+      });
+      return `<td style="padding:${cellPad};border-left:1px solid #e2e8f0;border-top:1px solid #6ee7b7;text-align:center;background:#ecfdf5;vertical-align:middle;">
+        <span style="display:inline-block;padding:${feeBoxPad};border:1.5px solid #6ee7b7;border-radius:5px;background:white;font-size:${feeBoxFs}px;font-weight:800;color:#047857;white-space:nowrap;">−${fmtRaw(savings)}</span>
+      </td>`;
+    }).join('');
+    footerRowsTr += `<tr>${leftCell}${valueCells}</tr>`;
+  }
   if (cfg.showImpl) {
     const label = `
       <div style="font-size:${agentNameFs}px;font-weight:700;color:#4338ca;line-height:1.2;">Implementation fee</div>
@@ -8383,9 +8497,8 @@ function lioBuildPackageOverviewHtml(quoteData, opts) {
     <table style="width:100%;border-collapse:collapse;border-bottom:1.5px solid #1e293b;margin-bottom:${dense ? 8 : 12}px;">
       <tr>
         <td style="padding-bottom:8px;vertical-align:middle;">
-          <div style="font-size:9px;color:#6366f1;text-transform:uppercase;letter-spacing:2.5px;font-weight:700;margin-bottom:2px;">Lio · Package Overview</div>
-          <div style="font-size:${dense ? 18 : 22}px;font-weight:800;color:#1e293b;line-height:1;">Overview Package Prices</div>
-          ${company ? `<div style="margin-top:4px;font-size:10px;color:#64748b;">Prepared for <strong style="color:#1e293b;font-weight:700;">${company}</strong>${contact ? ' — Attn: <strong style="color:#1e293b;">' + contact + '</strong>' : ''}</div>` : ''}
+          <div style="font-size:${dense ? 20 : 24}px;font-weight:800;color:#1e293b;line-height:1.1;">Overview Package Prices</div>
+          ${company ? `<div style="margin-top:6px;font-size:10px;color:#64748b;">Prepared for <strong style="color:#1e293b;font-weight:700;">${company}</strong>${contact ? ' — Attn: <strong style="color:#1e293b;">' + contact + '</strong>' : ''}</div>` : ''}
         </td>
         <td style="padding-bottom:8px;vertical-align:middle;text-align:right;font-size:9.5px;color:#64748b;width:280px;">
           <table style="border-collapse:collapse;margin-left:auto;">
