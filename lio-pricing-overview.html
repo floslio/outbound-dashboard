@@ -1859,6 +1859,21 @@ input[type="checkbox"] { accent-color: #6366f1; }
           </label>
         </div>
 
+        <!-- Global Discount Bar — applies % to ALL included agents across ALL packages -->
+        <div class="mt-4 p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-xs text-indigo-200 font-semibold">Global Agent Discount</label>
+            <span class="text-[10px] text-slate-400">Applies % off to all included agents across all packages · per-cell prices remain individually editable</span>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <input type="number" id="pkg-global-disc" value="" min="0" max="100" step="1" placeholder="e.g. 10" class="w-24 bg-slate-800/50 border border-slate-600 rounded-lg p-2 text-sm text-white outline-none text-right">
+            <span class="text-xs text-slate-400">%</span>
+            <button type="button" onclick="lioPkgApplyGlobalDiscount()" class="px-3 py-2 bg-indigo-500/30 hover:bg-indigo-500/40 border border-indigo-500/40 rounded-lg text-xs text-indigo-200 font-semibold transition">Apply to all agents</button>
+            <button type="button" onclick="lioPkgResetPrices()" class="px-3 py-2 bg-slate-700/40 hover:bg-slate-700/60 border border-slate-600 rounded-lg text-xs text-slate-300 transition">Reset prices</button>
+            <span id="pkg-global-disc-status" class="text-xs text-emerald-300 ml-auto"></span>
+          </div>
+        </div>
+
         <!-- Unified Package Overview — Cards on top, Agent rows below, aligned -->
         <div class="mt-4">
           <div class="flex items-center justify-between mb-3">
@@ -1906,6 +1921,20 @@ input[type="checkbox"] { accent-color: #6366f1; }
             <span class="text-slate-500 text-xs">at</span>
             <input type="number" id="pkg-cs-pct" value="10" min="0" max="100" step="1" class="w-14 bg-slate-800/50 border border-slate-600 rounded px-2 py-1 text-xs text-white text-right outline-none" onchange="lioRenderPackageView()" oninput="lioRenderPackageView()">
             <span class="text-slate-400 text-xs">% / year</span>
+          </div>
+          <!-- Maintenance Fee — toggle + mode (% of SaaS or fixed) + amount -->
+          <div class="flex items-center gap-3 flex-wrap">
+            <label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+              <input type="checkbox" id="pkg-show-maint" class="w-4 h-4 rounded" onchange="lioRenderPackageView()">
+              <span>Show <strong>Maintenance Fee</strong></span>
+            </label>
+            <select id="pkg-maint-mode" onchange="lioRenderPackageView()" class="bg-slate-800/50 border border-slate-600 rounded px-2 py-1 text-xs text-white outline-none">
+              <option value="pct">% of SaaS / year</option>
+              <option value="abs">fixed amount / year</option>
+            </select>
+            <input type="number" id="pkg-maint-amount" value="20" min="0" step="1" class="w-20 bg-slate-800/50 border border-slate-600 rounded px-2 py-1 text-xs text-white text-right outline-none" onchange="lioRenderPackageView()" oninput="lioRenderPackageView()">
+            <span class="text-slate-400 text-xs" id="pkg-maint-unit">%</span>
+            <span class="text-slate-500 text-[10px] ml-auto">Maintenance is informational — appears on PDF as separate row but not in totals.</span>
           </div>
           <div>
             <label class="text-xs text-slate-400 block mb-1">Footer Note <span class="text-slate-500">(e.g. "Staggered approach possible...")</span></label>
@@ -7526,6 +7555,7 @@ function _lioPkgDefaultConfig() {
     yearMode: false,       // single annual price (false) or Y1/Y2/Y3 (true)
     showImpl: true, implPct: 15,
     showCs: true,   csPct: 10,
+    showMaint: false, maintMode: 'pct', maintAmount: 20, // % of SaaS OR fixed
     footerNote: 'Staggered Approach possible: Start with Basic in year 1, then expand by milestones up to Diamond.',
     packages: [
       { id: 'p1', name: 'Basic',   tagline: 'Perfect for the start',
@@ -7582,6 +7612,16 @@ function lioSetQuoteView(view) {
   if (shell) {
     shell.classList.toggle('max-w-2xl', view === 'standard');
     shell.classList.toggle('max-w-6xl', view === 'package');
+  }
+  // Auto-route the PDF mode selector to match the active view so that the
+  // Print/Download buttons immediately produce the correct PDF (no second
+  // click on the radio needed). User can still override.
+  const desiredMode = (view === 'package') ? 'combined' : 'standard';
+  const r = document.querySelector('input[name="pdf-mode"][value="' + desiredMode + '"]');
+  if (r) {
+    r.checked = true;
+    // Trigger the change event so the visual pill state updates.
+    r.dispatchEvent(new Event('change', { bubbles: true }));
   }
   if (view === 'package') lioRenderPackageView();
 }
@@ -7717,6 +7757,15 @@ function lioRenderPackageView() {
   if (ymEl)      window._packageConfig.yearMode = !!ymEl.checked;
   if (implEl)    window._packageConfig.showImpl = !!implEl.checked;
   if (csEl)      window._packageConfig.showCs   = !!csEl.checked;
+  // Maintenance fee config — read from inputs + sync UI
+  const maintEl    = document.getElementById('pkg-show-maint');
+  const maintMode  = document.getElementById('pkg-maint-mode');
+  const maintAmt   = document.getElementById('pkg-maint-amount');
+  const maintUnit  = document.getElementById('pkg-maint-unit');
+  if (maintEl)    { maintEl.checked = !!window._packageConfig.showMaint;   window._packageConfig.showMaint = !!maintEl.checked; }
+  if (maintMode)  { maintMode.value = window._packageConfig.maintMode || 'pct'; window._packageConfig.maintMode = maintMode.value; }
+  if (maintAmt)   { if (document.activeElement !== maintAmt) maintAmt.value = window._packageConfig.maintAmount; window._packageConfig.maintAmount = parseFloat(maintAmt.value) || 0; }
+  if (maintUnit)  { maintUnit.textContent = window._packageConfig.maintMode === 'pct' ? '%' : currencySymbols[currentCurrency]; }
   // Set the unified grid column-template so cards row + agent rows + footer rows align.
   // Agent column = 1.4fr, each package = 1fr.
   const cols = window._packageConfig.packages.length;
@@ -7892,11 +7941,20 @@ function lioRenderPackageAgentTable() {
       const eff = _pkgGetEffectiveCell(pkg.id, modKey);
       const tierOpts = mod.tiers.map((t, i) => `<option value="${i}" ${i === eff.tierIdx ? 'selected' : ''}>${t.vol}</option>`).join('');
       const priceVal = eff.prices[currentCurrency] || 0;
+      // Compute per-cell discount badge: compare current cell price to the
+      // tier's baseline list price; show "-X%" if discounted.
+      const tier = mod.tiers[eff.tierIdx] || mod.tiers[0];
+      const listP = _tierPriceInCurrency(tier, currentCurrency) || 0;
+      const discPct = (listP > 0 && priceVal < listP) ? Math.round((1 - priceVal / listP) * 100) : 0;
+      const discBadge = discPct > 0
+        ? `<span class="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-1 py-0.5 rounded" title="${fmtRaw(listP)} list price">−${discPct}%</span>`
+        : '';
       html += `<div class="${rowBg} p-3 border-t border-l border-slate-700/40">
-        <div class="flex items-center justify-center gap-2 mb-1.5">
+        <div class="flex items-center justify-center gap-2 mb-1.5 flex-wrap">
           <button onclick="lioPkgToggleItem('${pkg.id}','${modKey}')" class="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 text-sm flex items-center justify-center hover:bg-emerald-500/30 transition" title="Click to exclude from ${pkg.name}">✓</button>
           <input type="number" value="${priceVal}" oninput="lioPkgSetCellPrice('${pkg.id}','${modKey}','${currentCurrency}',this.value)" class="w-24 bg-slate-900/60 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-white text-right outline-none font-semibold" title="Click to edit price (${currentCurrency.toUpperCase()})">
           <span class="text-[10px] text-slate-500">/yr</span>
+          ${discBadge}
         </div>
         <div class="grid grid-cols-1 gap-1">
           <select onchange="lioPkgSetTier('${pkg.id}','${modKey}', this.value)" class="bg-slate-900/60 border border-slate-700 rounded px-1 py-0.5 text-[10px] text-slate-300 outline-none" title="Change tier (volume)">${tierOpts}</select>
@@ -7913,6 +7971,54 @@ function lioRenderPackageAgentTable() {
   host.innerHTML = html;
 }
 
+// Apply a single global discount % to every included agent across every package.
+// Implemented by writing a per-cell price override = listPrice * (1 - pct/100)
+// in the ACTIVE currency. Per-cell prices remain individually editable.
+function lioPkgApplyGlobalDiscount() {
+  const inp = document.getElementById('pkg-global-disc');
+  const raw = inp?.value?.toString().trim();
+  const pct = parseFloat(raw);
+  if (!isFinite(pct) || pct <= 0 || pct > 100) {
+    alert('Please enter a discount % between 0.1 and 100.');
+    return;
+  }
+  let touched = 0;
+  window._packageConfig.packages.forEach(pkg => {
+    Object.keys(pkg.items || {}).forEach(modKey => {
+      const meta = pkg.items[modKey];
+      if (!meta || !meta.included) return;
+      const mod = modules[modKey];
+      if (!mod) return;
+      const tier = mod.tiers[meta.tierIdx || 0] || mod.tiers[0];
+      const listPrice = _tierPriceInCurrency(tier, currentCurrency) || 0;
+      if (listPrice <= 0) return;
+      let discounted = listPrice * (1 - pct / 100);
+      // Round to nearest 100 for non-USD, nearest 1 for USD
+      discounted = (currentCurrency === 'usd') ? Math.round(discounted) : Math.round(discounted / 100) * 100;
+      const existingPrices = _pkgGetCellOverride(pkg.id, modKey).prices || {};
+      _pkgSetCellOverride(pkg.id, modKey, {
+        prices: Object.assign({}, existingPrices, { [currentCurrency]: discounted })
+      });
+      touched++;
+    });
+  });
+  const statusEl = document.getElementById('pkg-global-disc-status');
+  if (statusEl) {
+    statusEl.textContent = '✓ Applied ' + pct + '% to ' + touched + ' agent cells';
+    setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 3500);
+  }
+  lioRenderPackageView();
+}
+
+// Reset all per-cell price overrides — agents revert to their tier baseline prices.
+function lioPkgResetPrices() {
+  if (!confirm('Reset all agent prices to their tier baseline in all packages?')) return;
+  window._pkgCellOverrides = {};
+  const inp = document.getElementById('pkg-global-disc');
+  if (inp) inp.value = '';
+  lioRenderPackageView();
+}
+
 // Remove an agent across all packages
 function lioPkgRemoveAgent(modKey) {
   window._packageConfig.packages.forEach(pkg => {
@@ -7924,7 +8030,7 @@ function lioPkgRemoveAgent(modKey) {
   lioRenderPackageView();
 }
 
-// ── Footer rows: Implementation fee + Customer Success fee + Note ──────────
+// ── Footer rows: Implementation + CS + Maintenance + Note ──────────────────
 function lioRenderPackageFooterRows() {
   const host = document.getElementById('pkg-footer-rows');
   if (!host) return;
@@ -7946,6 +8052,16 @@ function lioRenderPackageFooterRows() {
       const annualBase = cfg.yearMode ? _pkgPackageTotal(pkg, 'yr1') : _pkgPackageTotal(pkg, null);
       const cs = Math.round(annualBase * (cfg.csPct/100));
       html += `<div class="p-3 bg-slate-900/30 border-t border-l border-slate-700/40 text-center text-sm font-semibold text-slate-100">${fmtRaw(cs)} <span class="text-[10px] text-slate-500">/yr</span></div>`;
+    });
+  }
+  if (cfg.showMaint) {
+    const isPct = cfg.maintMode === 'pct';
+    const unit = isPct ? '%' : currencySymbols[currentCurrency];
+    html += `<div class="p-3 bg-amber-500/10 border-t border-slate-700/40 flex items-center text-xs text-amber-200 font-semibold">Maintenance Fee <span class="ml-2 text-[10px] text-slate-400 font-normal">(${isPct ? cfg.maintAmount + '% of SaaS / yr' : fmtRaw(cfg.maintAmount) + ' fixed / yr'})</span> <span class="ml-2 text-[9px] text-slate-500 font-normal">informational</span></div>`;
+    cfg.packages.forEach(pkg => {
+      const annualBase = cfg.yearMode ? _pkgPackageTotal(pkg, 'yr1') : _pkgPackageTotal(pkg, null);
+      const maint = isPct ? Math.round(annualBase * (cfg.maintAmount/100)) : Math.round(cfg.maintAmount);
+      html += `<div class="p-3 bg-slate-900/30 border-t border-l border-slate-700/40 text-center text-sm font-semibold text-amber-100">${fmtRaw(maint)} <span class="text-[10px] text-amber-300/60">/yr</span></div>`;
     });
   }
   if (cfg.footerNote && cfg.footerNote.trim()) {
@@ -8011,24 +8127,137 @@ document.addEventListener('change', (ev) => {
   }
 });
 
+// ── Inline Lio SVG logo (reuse from white file) ────────────────────────────
+const _LIO_SVG_PDF = `<svg style="width:80px;height:auto;" viewBox="0 0 2000 1000" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M944.33 624.3H944.38C935.73 609.32 920 599.11 897.68 593.99C891.95 592.68 885.92 591.88 879.88 591.57C847.5 590.06 785.22 580.71 732.23 535.57C707.49 514.5 674.56 476.65 657.73 415.47C654.11 402.4 648.23 353.04 649.14 169.24C649.19 148.88 645.22 129.93 637.32 112.94C630.74 98.86 622.09 86.59 611.53 76.39C527.38 -4.85001 342.57 58.19 244.14 126.31C71.56 245.9 52.3 449.51 51.55 458.15C43.46 552.61 67.24 651.24 118.41 735.8C169.33 820.01 245.6 887.32 333.12 925.27C345.19 930.5 421.7 961.91 522.4 961.91C573.43 961.91 630.68 953.82 688.95 930.19C814.73 879.21 917.84 768.97 944.83 691.8C949.55 678.22 951.91 665.86 951.91 654.7C951.91 643.54 949.45 633.09 944.32 624.29V624.31L944.33 624.3ZM674.07 894.56L674.12 894.61C515.91 958.7 365.44 897.28 348.86 890.04C268.67 855.25 198.8 793.52 151.94 716.1C104.89 638.37 83.07 547.89 90.46 461.37C90.96 455.59 100.52 354.29 167.43 257.51C162.05 293.51 160.44 330.1 162.71 367.05C178.94 619.97 384.21 827.34 640.3 849.47C655.89 850.83 671.42 851.48 686.85 851.48C712.29 851.48 737.57 849.72 762.56 846.05C735.16 865.15 705.3 881.94 674.08 894.57H674.07V894.56ZM827.46 792.57C767.89 810.27 706.1 816.5 643.66 811.12C406.68 790.66 216.7 598.72 201.67 364.76C198.15 306.55 204.84 249.23 221.68 194.23C235.26 181.46 250.18 169.2 266.62 157.84C270.69 155.03 274.86 152.21 279.14 149.5C275.82 172.62 274.01 196.55 273.82 220.94C273.32 357.93 327.41 487.79 426.15 586.42C524.99 685.1 655.94 740.06 794.99 741.11C822.74 741.11 850.29 739.1 877.44 735.03C863.86 753.93 846.97 773.54 827.47 792.59L827.46 792.57ZM907.94 679.2V679.25C906.53 683.12 904.98 687.2 903.12 691.32C867.98 698.76 831.68 702.58 795.13 702.58C666.64 701.63 545.48 650.75 453.99 559.35C362.54 468 312.42 347.85 312.88 221.17C313.19 187.69 316.65 155.26 323.23 124.54C361.09 105.64 402.16 91.01 440.52 83.16C461.74 78.84 481.39 76.68 499.24 76.68C536.29 76.68 565.6 85.88 584.25 103.92C591.39 110.75 597.32 119.2 601.85 128.95C607.38 140.87 610.15 154.33 610.09 168.97C609.39 314.61 612.6 398.56 620.05 425.57C639.45 496.05 677.91 540.14 706.72 564.67C768.55 617.41 840.59 628.22 878 629.98C881.77 630.18 885.39 630.68 888.81 631.43C896.6 633.19 906.66 636.75 910.48 643.29C914.45 650.23 913.55 663.3 907.97 679.18H907.95L907.94 679.2Z" fill="#1e293b"/><path d="M1098.04 792.7V257.92H1163.74V735.26H1415.93V792.71H1098.04V792.7Z" fill="#1e293b"/><path d="M1496.17 324.75C1483.98 324.75 1473.53 320.67 1464.78 312.47C1456.03 304.29 1451.66 294.45 1451.66 282.95C1451.66 271.45 1456.03 261.62 1464.78 253.43C1473.53 245.25 1484.01 241.15 1496.17 241.15C1508.33 241.15 1518.81 245.25 1527.56 253.43C1536.31 261.61 1540.68 271.45 1540.68 282.95C1540.68 294.45 1536.31 304.29 1527.56 312.47C1518.81 320.65 1508.39 324.75 1496.17 324.75Z" fill="#1e293b"/><path d="M1526.91 391.61H1464.39V792.68H1526.91V391.61Z" fill="#1e293b"/><path d="M1926.82 484.84C1911.34 453.67 1889.82 429.49 1862.17 412.25C1834.52 395.01 1802.35 386.36 1765.65 386.36C1728.95 386.36 1696.72 395.01 1669.08 412.25C1641.43 429.49 1619.86 453.67 1604.43 484.84C1588.95 516.01 1581.25 552.8 1581.25 594.24C1581.25 635.68 1588.95 671.91 1604.43 702.88C1619.87 733.85 1641.43 757.98 1669.08 775.22C1696.73 792.42 1728.9 801.06 1765.65 801.06C1802.4 801.06 1834.52 792.41 1862.17 775.22C1889.82 757.98 1911.39 733.84 1926.82 702.88C1942.26 671.87 1950 636.02 1950 594.24C1950 552.46 1942.26 516.01 1926.82 484.84ZM1874.49 668.95C1865.84 691.93 1852.52 710.47 1834.47 724.55C1816.48 738.67 1793.55 745.71 1765.64 745.71C1737.73 745.71 1714.76 738.67 1696.71 724.55C1678.72 710.47 1665.39 691.92 1656.74 668.95C1648.04 645.97 1643.72 621.09 1643.72 594.24C1643.72 567.39 1648.05 542.46 1656.74 519.33C1665.39 496.15 1678.71 477.45 1696.71 463.17C1714.76 448.89 1737.68 441.75 1765.64 441.75C1793.6 441.75 1816.46 448.89 1834.47 463.17C1852.52 477.45 1865.84 496.15 1874.49 519.33C1883.19 542.45 1887.51 567.44 1887.51 594.24C1887.51 621.04 1883.19 645.97 1874.49 668.95Z" fill="#1e293b"/></svg>`;
+
+// Build a "Module Details" appendix HTML (one section per included agent).
+// Reused when combined PDF mode is selected so the customer gets a full
+// breakdown of every agent in the offer after the package overview page.
+function lioBuildPkgModuleDetailsAppendix() {
+  const cfg = window._packageConfig || _lioPkgDefaultConfig();
+  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const active = std.filter(k => cfg.packages.some(pkg => pkg.items && pkg.items[k] && pkg.items[k].included));
+  if (active.length === 0) return '';
+  // The wizard already stores extended descriptions/features in moduleDetails
+  // (defined in the dark file's script) — but for safety, fall back to the
+  // module's own .desc / .features when those aren't available.
+  const md = (typeof moduleDetails !== 'undefined') ? moduleDetails : {};
+  const sections = active.map(k => {
+    const mod = modules[k];
+    if (!mod) return '';
+    const desc = (md[k] && md[k].desc) || mod.desc || '';
+    const features = (md[k] && md[k].features) || mod.features || [];
+    const tierRows = (mod.tiers || []).map(t => {
+      const price = _tierPriceInCurrency(t, currentCurrency);
+      return `<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:4px 10px;font-size:10px;color:#1e293b;">${t.vol}</td><td style="padding:4px 10px;font-size:10px;color:#1e293b;text-align:right;">${fmtRaw(price)}/yr</td></tr>`;
+    }).join('');
+    const featuresHtml = (features && features.length > 0)
+      ? `<div style="margin-bottom:10px;">${features.map(f => `<span style="display:inline-block;background:#eef2ff;color:#4338ca;padding:3px 8px;border-radius:6px;font-size:10px;margin:2px 4px 2px 0;border:1px solid #c7d2fe;">✓ ${f}</span>`).join('')}</div>`
+      : '';
+    return `<div style="margin-bottom:22px;page-break-inside:avoid;">
+      <h3 style="font-size:15px;font-weight:800;color:#1e293b;margin:0 0 6px 0;">${mod.name}</h3>
+      ${desc ? `<p style="font-size:11px;color:#475569;margin:0 0 10px 0;line-height:1.5;white-space:pre-line;">${desc}</p>` : ''}
+      ${featuresHtml}
+      <div style="margin-top:6px;">
+        <div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers (${currencySymbols[currentCurrency].trim() || currentCurrency.toUpperCase()})</div>
+        <table style="width:100%;max-width:420px;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;font-size:10px;">
+          <thead><tr style="background:#f8fafc;"><th style="padding:5px 10px;text-align:left;font-size:9px;color:#64748b;text-transform:uppercase;">Volume</th><th style="padding:5px 10px;text-align:right;font-size:9px;color:#64748b;text-transform:uppercase;">Price</th></tr></thead>
+          <tbody>${tierRows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div style="page-break-before:always;padding:24px;">
+    <div style="border-bottom:2px solid #1e293b;padding-bottom:12px;margin-bottom:18px;">
+      <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;font-weight:600;">Appendix</div>
+      <div style="font-size:20px;font-weight:800;color:#1e293b;">Agent Details</div>
+    </div>
+    ${sections}
+  </div>`;
+}
+
 // ── PDF render: Package Overview ───────────────────────────────────────────
-// Unified layout matching the Lio Bosch example: agent name + tier label on
-// the LEFT, package columns to the RIGHT with ✓/× and price/year. Cards above
-// the table use the same column widths so everything aligns.
-function lioBuildPackageOverviewHtml(quoteData) {
+// Premium A4 portrait layout. Lio logo top-right, big title top-left,
+// 3-card row aligned with agent comparison rows underneath, Implementation
+// + CS + Maintenance fee rows in accent boxes, footer note + Confidential.
+// Optionally appends Module Details when called from combined mode.
+function lioBuildPackageOverviewHtml(quoteData, opts) {
+  opts = opts || {};
+  const includeDetailsAppendix = !!opts.includeDetailsAppendix;
   const cfg = window._packageConfig || _lioPkgDefaultConfig();
   const ref = quoteData?.quoteRef || ('Q-' + Date.now().toString(36).toUpperCase());
   const today = quoteData?.today || new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
   const company = quoteData?.recipientCompany || '';
   const contact = quoteData?.recipientContact || '';
+  const validUntil = quoteData?.validUntil || (() => {
+    const d = new Date(); d.setDate(d.getDate() + 30);
+    return d.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  })();
   const nPkg = cfg.packages.length;
-  const colCount = nPkg + 1; // 1 agent col + N package cols
-  const gridCols = `1.4fr repeat(${nPkg}, minmax(0, 1fr))`;
-  // Build cards row inside the unified grid
-  const cardsRow = `<div style="padding:8px 12px 14px;">
-      <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;font-weight:600;">Plans</div>
-    </div>` + cfg.packages.map(pkg => `<div style="padding:8px 8px 14px;border-left:1px solid #e2e8f0;">${cfg.style === 'B' ? _pkgPdfCardB(pkg) : _pkgPdfCardC(pkg)}</div>`).join('');
-  // Agent rows (only included agents)
+  const colCount = nPkg + 1;
+  const gridCols = `1.5fr repeat(${nPkg}, minmax(0, 1fr))`;
+
+  // -- Card row: "Plans" label cell + N package cards aligned with table cols --
+  const plansCell = `<div style="padding:18px 16px 16px;display:flex;align-items:flex-end;">
+    <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;font-weight:600;">Plans</div>
+  </div>`;
+  const cardsRow = plansCell + cfg.packages.map(pkg => {
+    const annual = _pkgPackageTotal(pkg, null);
+    const y1 = _pkgPackageTotal(pkg, 'yr1');
+    const y2 = _pkgPackageTotal(pkg, 'yr2');
+    const y3 = _pkgPackageTotal(pkg, 'yr3');
+    const ab = cfg.yearMode ? y1 : annual;
+    const impl = cfg.showImpl ? Math.round(ab * (cfg.implPct/100)) : 0;
+    const cs   = cfg.showCs   ? Math.round(ab * (cfg.csPct/100))   : 0;
+    const totalY1 = ab + impl;
+    const bestBg = pkg.isBest ? 'background:linear-gradient(180deg, #eef2ff 0%, #ffffff 100%);' : '';
+    const bestBadge = pkg.isBest
+      ? `<div style="background:linear-gradient(135deg,#6366f1,#22d3ee);color:white;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:2px;padding:5px 0;text-align:center;border-radius:6px 6px 0 0;margin:-1px -1px 0 -1px;">★ Best Value</div>`
+      : `<div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;padding:5px 0;text-align:center;">Standard</div>`;
+    // Style B vs C — same overall structure but C shows breakdown
+    if (cfg.style === 'B') {
+      const yearBlock = cfg.yearMode
+        ? `<div style="display:flex;gap:3px;margin-bottom:8px;padding:3px;background:#f1f5f9;border-radius:6px;">
+             <div style="flex:1;padding:4px;font-size:9px;text-align:center;background:#0f172a;color:white;border-radius:3px;font-weight:600;">Y1 ${fmtRaw(y1)}</div>
+             <div style="flex:1;padding:4px;font-size:9px;text-align:center;color:#64748b;">Y2 ${fmtRaw(y2)}</div>
+             <div style="flex:1;padding:4px;font-size:9px;text-align:center;color:#64748b;">Y3 ${fmtRaw(y3)}</div>
+           </div>`
+        : '';
+      return `<div style="border-left:1px solid #e2e8f0;${bestBg}padding:0;">
+        ${bestBadge}
+        <div style="padding:14px 14px 16px;">
+          <div style="font-size:18px;font-weight:800;color:#1e293b;margin-bottom:2px;">${pkg.name}</div>
+          <div style="font-size:10.5px;color:#64748b;margin-bottom:12px;min-height:30px;line-height:1.4;">${pkg.tagline || ''}</div>
+          ${yearBlock}
+          <div style="font-size:26px;font-weight:800;color:#1e293b;line-height:1;margin-bottom:3px;">${fmtRaw(ab)}</div>
+          <div style="font-size:9.5px;color:#94a3b8;letter-spacing:0.3px;">billed annually${cfg.yearMode ? ' · Year 1' : ''}</div>
+        </div>
+      </div>`;
+    }
+    return `<div style="border-left:1px solid #e2e8f0;${bestBg}padding:0;">
+      ${bestBadge}
+      <div style="padding:14px 14px 16px;">
+        <div style="font-size:16px;font-weight:800;color:#1e293b;margin-bottom:2px;">${pkg.name}</div>
+        <div style="font-size:10px;color:#64748b;font-style:italic;margin-bottom:10px;min-height:28px;line-height:1.4;">${pkg.tagline || ''}</div>
+        ${cfg.yearMode ? `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:10px;">
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:5px;padding:4px;text-align:center;"><div style="font-size:8px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Yr 1</div><div style="font-size:10.5px;font-weight:700;color:#1e293b;">${fmtRaw(y1)}</div></div>
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:5px;padding:4px;text-align:center;"><div style="font-size:8px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Yr 2</div><div style="font-size:10.5px;font-weight:700;color:#1e293b;">${fmtRaw(y2)}</div></div>
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:5px;padding:4px;text-align:center;"><div style="font-size:8px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Yr 3</div><div style="font-size:10.5px;font-weight:700;color:#1e293b;">${fmtRaw(y3)}</div></div>
+        </div>` : ''}
+        <div style="font-size:10.5px;color:#1e293b;line-height:1.6;">
+          <div style="display:flex;justify-content:space-between;"><span style="color:#64748b;">SaaS subscription</span><span style="font-weight:700;">${fmtRaw(ab)}</span></div>
+          ${cfg.showImpl ? `<div style="display:flex;justify-content:space-between;"><span style="color:#94a3b8;font-size:9.5px;">Implementation (${cfg.implPct}%)</span><span style="color:#475569;font-size:9.5px;">${fmtRaw(impl)}</span></div>` : ''}
+          ${cfg.showCs   ? `<div style="display:flex;justify-content:space-between;"><span style="color:#94a3b8;font-size:9.5px;">Customer Success (${cfg.csPct}%)</span><span style="color:#475569;font-size:9.5px;">${fmtRaw(cs)}</span></div>` : ''}
+        </div>
+        <div style="border-top:1px dashed #cbd5e1;margin-top:8px;padding-top:8px;display:flex;justify-content:space-between;align-items:baseline;">
+          <span style="font-size:9px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Total Yr 1</span>
+          <span style="font-size:19px;font-weight:800;${pkg.isBest ? 'background:linear-gradient(135deg,#6366f1,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;' : 'color:#1e293b;'}">${fmtRaw(totalY1)}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // -- Agent rows --
   const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
   const activeModKeys = std.filter(k => cfg.packages.some(pkg => pkg.items && pkg.items[k] && pkg.items[k].included));
   let agentRowsHtml = '';
@@ -8039,85 +8268,131 @@ function lioBuildPackageOverviewHtml(quoteData) {
     const primaryEff = firstPkg ? _pkgGetEffectiveCell(firstPkg.id, modKey) : null;
     const primaryTier = primaryEff ? (primaryEff.label || primaryEff.tier?.vol || '') : '';
     const rowBg = rowIdx % 2 === 0 ? '#fafbfc' : 'white';
-    agentRowsHtml += `<div style="padding:10px 14px;background:${rowBg};border-top:1px solid #e2e8f0;">
-      <div style="font-size:12px;font-weight:700;color:#1e293b;">${mod.name}</div>
+    agentRowsHtml += `<div style="padding:10px 16px;background:${rowBg};border-top:1px solid #f1f5f9;">
+      <div style="font-size:11.5px;font-weight:700;color:#1e293b;">${mod.name}</div>
       <div style="font-size:10px;color:#64748b;font-style:italic;">${primaryTier || '—'}</div>
     </div>`;
     cfg.packages.forEach(pkg => {
       const itemMeta = (pkg.items && pkg.items[modKey]) || { included: false };
       if (!itemMeta.included) {
-        agentRowsHtml += `<div style="padding:10px;background:${rowBg};border-top:1px solid #e2e8f0;border-left:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:#cbd5e1;font-size:18px;">×</div>`;
+        agentRowsHtml += `<div style="padding:10px;background:${rowBg};border-top:1px solid #f1f5f9;border-left:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:#cbd5e1;font-size:18px;">×</div>`;
         return;
       }
       const eff = _pkgGetEffectiveCell(pkg.id, modKey);
       const price = eff.prices[currentCurrency] || 0;
+      const tier = mod.tiers[eff.tierIdx] || mod.tiers[0];
+      const listP = _tierPriceInCurrency(tier, currentCurrency) || 0;
+      const discPct = (listP > 0 && price < listP) ? Math.round((1 - price / listP) * 100) : 0;
       const label = eff.label || eff.tier?.vol || '';
       const tierDiffers = (label && label !== primaryTier);
       const yr1 = eff.yr1 ?? price, yr2 = eff.yr2 ?? price, yr3 = eff.yr3 ?? price;
       const yearBlock = cfg.yearMode
         ? `<div style="font-size:9px;color:#64748b;margin-top:3px;">Y1 ${fmtRaw(yr1)} · Y2 ${fmtRaw(yr2)} · Y3 ${fmtRaw(yr3)}</div>`
         : '';
-      agentRowsHtml += `<div style="padding:10px;background:${rowBg};border-top:1px solid #e2e8f0;border-left:1px solid #e2e8f0;text-align:center;">
+      const discBadge = discPct > 0
+        ? `<span style="display:inline-block;font-size:8px;font-weight:700;color:#059669;background:#d1fae5;border:1px solid #6ee7b7;padding:1px 5px;border-radius:3px;margin-left:4px;letter-spacing:0.3px;">−${discPct}%</span>`
+        : '';
+      agentRowsHtml += `<div style="padding:10px;background:${rowBg};border-top:1px solid #f1f5f9;border-left:1px solid #e2e8f0;text-align:center;">
         <div style="display:inline-flex;align-items:center;gap:6px;">
-          <span style="width:10px;height:10px;border-radius:50%;background:#10b981;display:inline-block;"></span>
+          <span style="width:10px;height:10px;border-radius:50%;background:#10b981;display:inline-block;flex-shrink:0;"></span>
           <span style="font-size:12px;font-weight:700;color:#1e293b;">${fmtRaw(price)}</span>
           <span style="font-size:9px;color:#94a3b8;">/yr</span>
+          ${discBadge}
         </div>
         ${tierDiffers ? `<div style="font-size:9px;color:#64748b;margin-top:2px;">${label}</div>` : ''}
         ${yearBlock}
       </div>`;
     });
   });
-  // Footer rows: implementation fee + cs fee
+  const noAgentsRow = activeModKeys.length === 0
+    ? `<div style="padding:32px;text-align:center;color:#94a3b8;font-size:11px;border-top:1px solid #e2e8f0;grid-column: span ${colCount};">No agents assigned yet. Add them in the Package View of the Quote Modal.</div>`
+    : '';
+
+  // -- Footer rows: Implementation / Customer Success / Maintenance --
   let footerRowsHtml = '';
   if (cfg.showImpl) {
-    footerRowsHtml += `<div style="padding:10px 14px;background:#eef2ff;border-top:1px solid #e2e8f0;font-size:11px;font-weight:700;color:#4338ca;">Implementation Fee <span style="font-size:9px;color:#6366f1;font-weight:500;">(${cfg.implPct}% one-time)</span></div>`;
+    footerRowsHtml += `<div style="padding:11px 16px;background:#eef2ff;border-top:1px solid #c7d2fe;display:flex;align-items:center;">
+      <div>
+        <div style="font-size:11.5px;font-weight:700;color:#4338ca;">Implementation fee</div>
+        <div style="font-size:9.5px;color:#6366f1;font-weight:500;">${cfg.implPct}% one-time</div>
+      </div>
+    </div>`;
     cfg.packages.forEach(pkg => {
       const ab = cfg.yearMode ? _pkgPackageTotal(pkg, 'yr1') : _pkgPackageTotal(pkg, null);
       const impl = Math.round(ab * (cfg.implPct/100));
-      footerRowsHtml += `<div style="padding:10px;border-top:1px solid #e2e8f0;border-left:1px solid #e2e8f0;text-align:center;font-size:13px;font-weight:700;color:#1e293b;">${fmtRaw(impl)} <span style="font-size:9px;color:#94a3b8;font-weight:500;">one-time</span></div>`;
+      footerRowsHtml += `<div style="padding:11px;border-top:1px solid #c7d2fe;border-left:1px solid #e2e8f0;text-align:center;background:#f8fafc;">
+        <div style="display:inline-block;padding:6px 14px;border:1.5px dashed #6366f1;border-radius:6px;font-size:13.5px;font-weight:800;color:#4338ca;">${fmtRaw(impl)} <span style="font-size:9px;color:#818cf8;font-weight:500;">one-time</span></div>
+      </div>`;
     });
   }
   if (cfg.showCs) {
-    footerRowsHtml += `<div style="padding:10px 14px;background:#eef2ff;border-top:1px solid #e2e8f0;font-size:11px;font-weight:700;color:#4338ca;">Customer Success Fee <span style="font-size:9px;color:#6366f1;font-weight:500;">(${cfg.csPct}% / year)</span></div>`;
+    footerRowsHtml += `<div style="padding:11px 16px;background:#eef2ff;border-top:1px solid #c7d2fe;display:flex;align-items:center;">
+      <div>
+        <div style="font-size:11.5px;font-weight:700;color:#4338ca;">Customer Success fee</div>
+        <div style="font-size:9.5px;color:#6366f1;font-weight:500;">${cfg.csPct}% / year</div>
+      </div>
+    </div>`;
     cfg.packages.forEach(pkg => {
       const ab = cfg.yearMode ? _pkgPackageTotal(pkg, 'yr1') : _pkgPackageTotal(pkg, null);
       const cs = Math.round(ab * (cfg.csPct/100));
-      footerRowsHtml += `<div style="padding:10px;border-top:1px solid #e2e8f0;border-left:1px solid #e2e8f0;text-align:center;font-size:13px;font-weight:700;color:#1e293b;">${fmtRaw(cs)} <span style="font-size:9px;color:#94a3b8;font-weight:500;">/yr</span></div>`;
+      footerRowsHtml += `<div style="padding:11px;border-top:1px solid #c7d2fe;border-left:1px solid #e2e8f0;text-align:center;background:#f8fafc;">
+        <div style="display:inline-block;padding:6px 14px;border:1.5px solid #c7d2fe;border-radius:6px;background:white;font-size:13.5px;font-weight:800;color:#4338ca;">${fmtRaw(cs)} <span style="font-size:9px;color:#818cf8;font-weight:500;">/ year</span></div>
+      </div>`;
     });
   }
-  // Footer note (full-width below grid)
+  if (cfg.showMaint) {
+    const isPct = cfg.maintMode === 'pct';
+    footerRowsHtml += `<div style="padding:11px 16px;background:#fef3c7;border-top:1px solid #fcd34d;display:flex;align-items:center;">
+      <div>
+        <div style="font-size:11.5px;font-weight:700;color:#92400e;">Maintenance fee</div>
+        <div style="font-size:9.5px;color:#b45309;font-weight:500;">${isPct ? cfg.maintAmount + '% of SaaS / year' : fmtRaw(cfg.maintAmount) + ' fixed / year'} · informational</div>
+      </div>
+    </div>`;
+    cfg.packages.forEach(pkg => {
+      const ab = cfg.yearMode ? _pkgPackageTotal(pkg, 'yr1') : _pkgPackageTotal(pkg, null);
+      const maint = isPct ? Math.round(ab * (cfg.maintAmount/100)) : Math.round(cfg.maintAmount);
+      footerRowsHtml += `<div style="padding:11px;border-top:1px solid #fcd34d;border-left:1px solid #e2e8f0;text-align:center;background:#fffbeb;">
+        <div style="display:inline-block;padding:6px 14px;border:1.5px solid #fcd34d;border-radius:6px;background:white;font-size:13.5px;font-weight:800;color:#92400e;">${fmtRaw(maint)} <span style="font-size:9px;color:#d97706;font-weight:500;">/ year</span></div>
+      </div>`;
+    });
+  }
+
+  // -- Footer note (full-width below grid, with optional staggered icon) --
   const footerNote = (cfg.footerNote || '').trim();
   const footerNoteHtml = footerNote
-    ? `<div style="margin-top:16px;padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;font-size:11px;color:#475569;font-style:italic;">${footerNote.replace(/\n/g,'<br>')}</div>`
+    ? `<div style="margin-top:18px;padding:14px 18px;background:linear-gradient(135deg, #eef2ff 0%, #f8fafc 100%);border:1px solid #c7d2fe;border-radius:10px;display:flex;align-items:flex-start;gap:10px;">
+        <div style="font-size:18px;line-height:1;color:#6366f1;">⛓️</div>
+        <div style="font-size:11px;color:#4338ca;line-height:1.55;flex:1;">${footerNote.replace(/\n/g,'<br>')}</div>
+      </div>`
     : '';
-  // Empty-state if no agents
-  const noAgentsRow = activeModKeys.length === 0
-    ? `<div style="padding:24px;text-align:center;color:#94a3b8;font-size:12px;border-top:1px solid #e2e8f0;grid-column: span ${colCount};">No agents assigned yet. Add them in the Package View of the Quote Modal.</div>`
-    : '';
+
+  // -- Appendix: Module Details (only if requested via opts) --
+  const appendixHtml = includeDetailsAppendix ? lioBuildPkgModuleDetailsAppendix() : '';
+
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Package Overview · ${ref}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-      @page { size: A4 landscape; margin: 12mm; }
+      @page { size: A4 landscape; margin: 10mm 10mm 14mm; }
       * { box-sizing: border-box; }
-      body { font-family:'Inter',sans-serif; background:white; color:#1e293b; margin:0; padding:24px; }
-      .pkg-best-gradient { background: linear-gradient(135deg, #6366f1, #22d3ee); }
-      .pkg-gradient-text { background: linear-gradient(135deg, #6366f1, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-      .pkg-dashed-divider { background-image: linear-gradient(to right, #cbd5e1 50%, transparent 50%); background-size: 8px 1px; background-repeat: repeat-x; height: 1px; }
-      .pkg-grid { display: grid; grid-template-columns: ${gridCols}; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: white; }
+      body { font-family:'Inter',sans-serif; background:white; color:#1e293b; margin:0; padding:14mm; }
+      .pkg-grid { display: grid; grid-template-columns: ${gridCols}; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; background: white; box-shadow: 0 1px 3px rgba(15,23,42,0.05); }
     </style>
   </head><body>
-    <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1e293b;padding-bottom:14px;margin-bottom:24px;">
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1e293b;padding-bottom:16px;margin-bottom:22px;">
       <div>
-        <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;margin-bottom:2px;">Lio · Package Overview</div>
-        <div style="font-size:22px;font-weight:800;color:#1e293b;">Overview Package Prices</div>
+        <div style="font-size:10px;color:#6366f1;text-transform:uppercase;letter-spacing:2.5px;font-weight:700;margin-bottom:4px;">Lio · Package Overview</div>
+        <div style="font-size:26px;font-weight:800;color:#1e293b;line-height:1.1;">Overview Package Prices</div>
+        ${company ? `<div style="margin-top:10px;font-size:11px;color:#64748b;">Prepared for <strong style="color:#1e293b;font-weight:700;">${company}</strong>${contact ? ' — Attn: <strong style="color:#1e293b;">' + contact + '</strong>' : ''}</div>` : ''}
       </div>
       <div style="text-align:right;font-size:11px;color:#64748b;">
+        <div style="margin-bottom:8px;">${_LIO_SVG_PDF}</div>
         <div>Ref: <strong style="color:#1e293b;">${ref}</strong></div>
         <div>${today}</div>
-        ${company ? `<div style="margin-top:6px;color:#1e293b;font-weight:600;">${company}${contact ? ' · ' + contact : ''}</div>` : ''}
+        <div style="color:#94a3b8;font-size:10px;">Valid until ${validUntil}</div>
       </div>
     </div>
+    <!-- Comparison grid -->
     <div class="pkg-grid">
       ${cardsRow}
       ${agentRowsHtml}
@@ -8125,7 +8400,12 @@ function lioBuildPackageOverviewHtml(quoteData) {
       ${footerRowsHtml}
     </div>
     ${footerNoteHtml}
-    <div style="position:absolute;top:14px;right:24px;font-size:9px;color:#cbd5e1;text-transform:uppercase;letter-spacing:2px;font-weight:600;">Confidential</div>
+    <!-- Lio company footer + confidential -->
+    <div style="margin-top:22px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;font-size:9.5px;color:#94a3b8;">
+      <div><strong style="color:#1e293b;">Lio Technologies GmbH</strong> · Karlstr. 64-68/Seidlstr. 21-23 · 80335 München · lio.ai</div>
+      <div style="text-transform:uppercase;letter-spacing:2px;font-weight:700;color:#cbd5e1;">Confidential</div>
+    </div>
+    ${appendixHtml}
   </body></html>`;
 }
 
@@ -8194,19 +8474,19 @@ function lioApplyPdfModeToHtml(standardData) {
   const mode = lioGetPdfMode();
   if (!standardData) return standardData;
   if (mode === 'standard') return standardData;
-  const pkgHtml = lioBuildPackageOverviewHtml(standardData);
+  // "Package only" → just the package overview document, with Module Details
+  // appendix included so the customer still sees per-agent breakdowns.
   if (mode === 'package') {
-    // Replace entirely — just the package overview as the printed document.
+    const pkgHtml = lioBuildPackageOverviewHtml(standardData, { includeDetailsAppendix: true });
     return Object.assign({}, standardData, { html: pkgHtml });
   }
+  // "Combined" → Package overview (with appendix) on the first pages,
+  // then page-break, then the standard pricing breakdown PDF behind it.
   if (mode === 'combined') {
-    // Prepend package overview as the cover, then page-break, then standard.
-    // Extract just the <body> contents of the package HTML to merge into the same document.
+    const pkgHtml = lioBuildPackageOverviewHtml(standardData, { includeDetailsAppendix: false });
     const m = /<body[^>]*>([\s\S]*?)<\/body>/i.exec(pkgHtml);
     const pkgBody = m ? m[1] : pkgHtml;
-    // Inject a hard page break before the standard body's content.
     const wrappedPkg = `<div style="page-break-after:always;">${pkgBody}</div>`;
-    // Splice into the standard HTML right after the opening <body...> tag.
     const combined = standardData.html.replace(/<body([^>]*)>/i, '<body$1>' + wrappedPkg);
     return Object.assign({}, standardData, { html: combined });
   }
