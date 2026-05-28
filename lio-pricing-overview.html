@@ -8504,6 +8504,50 @@ function lioApplyPdfModeToHtml(standardData) {
   return standardData;
 }
 
+// ── Dedicated landscape PDF download for Package mode ─────────────────────
+// The original downloadQuoteAsPDF hardcodes jsPDF to PORTRAIT and the iframe
+// to 800×1200 — that forces our A4-landscape Package design to overflow and
+// stack vertically. This custom path renders the Package PDF in true A4
+// landscape, single-page, exactly matching the on-screen design.
+async function lioDownloadPackagePdfDirect(html, filename) {
+  // Wait for html2pdf library to be available
+  if (typeof html2pdf === 'undefined') {
+    alert('PDF library not loaded yet — please retry in a moment.');
+    return;
+  }
+  // A4 landscape proportions in CSS pixels (~96 DPI): 297mm × 210mm ≈ 1123 × 794 px.
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;left:0;top:0;width:1123px;height:794px;z-index:99999;opacity:0;pointer-events:none;border:none;';
+  document.body.appendChild(iframe);
+  iframe.contentDocument.open();
+  iframe.contentDocument.write(html);
+  iframe.contentDocument.close();
+  // Wait for fonts + layout to settle
+  await new Promise(r => setTimeout(r, 900));
+  try {
+    await html2pdf().set({
+      margin: [4, 4, 6, 4],
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0, width: 1123, windowWidth: 1123 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    }).from(iframe.contentDocument.body).toPdf().get('pdf').then(pdf => {
+      const total = pdf.internal.getNumberOfPages();
+      const w = pdf.internal.pageSize.getWidth();
+      const h = pdf.internal.pageSize.getHeight();
+      for (let i = 1; i <= total; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(148, 163, 184);
+        pdf.text(`${i} / ${total}`, w - 8, h - 4, { align: 'right' });
+      }
+    }).save();
+  } finally {
+    document.body.removeChild(iframe);
+  }
+}
+
 // Wrap downloadQuotePDF + downloadQuoteAsPDF so the PDF mode selector is honored.
 (function () {
   const origPrint = window.downloadQuotePDF;
@@ -8516,6 +8560,8 @@ function lioApplyPdfModeToHtml(standardData) {
       saveQuoteToHistory(out);
       const w = window.open('', '_blank');
       w.document.write(out.html); w.document.close();
+      // For package/combined modes, the @page CSS rule (size: A4 landscape)
+      // controls native print orientation — works in Chrome / Safari / Edge.
       setTimeout(() => w.print(), 500);
     };
     window.downloadQuotePDF._pkgWrapped = true;
@@ -8526,14 +8572,19 @@ function lioApplyPdfModeToHtml(standardData) {
       const data = generateQuoteData();
       if (!data) return;
       const mode = lioGetPdfMode();
-      const out = (mode === 'standard') ? data : lioApplyPdfModeToHtml(data);
-      // Reuse the original PDF flow with the patched data. The original
-      // function reads `data.html` so we monkey-patch generateQuoteData
-      // temporarily.
-      const _origGen = window.generateQuoteData;
-      window.generateQuoteData = function () { return out; };
-      try { await origDl.apply(this, arguments); }
-      finally { window.generateQuoteData = _origGen; }
+      // Standard mode → unchanged: portrait flow via the original downloader.
+      if (mode === 'standard') {
+        return await origDl.apply(this, arguments);
+      }
+      // Package / Combined → custom LANDSCAPE downloader.
+      const html = (mode === 'package')
+        ? lioBuildPackageOverviewHtml(data, { includeDetailsAppendix: false })
+        : lioApplyPdfModeToHtml(data).html;
+      saveQuoteToHistory(data);
+      const company = data.recipientCompany || 'Quote';
+      const suffix = mode === 'package' ? '_Package' : '_Combined';
+      const filename = data.quoteRef + suffix + '_' + company.replace(/[^a-zA-Z0-9]/g, '_') + '.pdf';
+      await lioDownloadPackagePdfDirect(html, filename);
     };
     window.downloadQuoteAsPDF._pkgWrapped = true;
   }
