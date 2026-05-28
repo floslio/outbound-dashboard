@@ -6,46 +6,47 @@
 -- return 401/403 for anon-key requests even when RLS policies
 -- allow access.
 --
--- This migration is idempotent — safe to re-run. Run it once
--- now to lock in privileges before the deadline.
+-- This migration is idempotent + DEFENSIVE — every table grant
+-- is wrapped in an existence check so missing tables don't
+-- abort the whole transaction. Safe to re-run any time.
 -- Supabase Dashboard → SQL Editor → paste → Run.
 -- ============================================================
 
--- 1. quotes — main quote history
-grant select, insert, update, delete on public.quotes to anon, authenticated;
--- if the table has a serial PK, also grant the sequence:
-do $$ begin
-  if exists (select 1 from pg_class where relname = 'quotes_id_seq') then
-    execute 'grant usage, select on sequence public.quotes_id_seq to anon, authenticated';
-  end if;
-end $$;
-
--- 2. roi_calculations — ROI calculator
-grant select, insert, update, delete on public.roi_calculations to anon, authenticated;
-grant usage, select on sequence public.roi_calculations_id_seq to anon, authenticated;
-
--- 3. custom_modules — team-shared module library
-grant select, insert, update, delete on public.custom_modules to anon, authenticated;
-do $$ begin
-  if exists (select 1 from pg_class where relname = 'custom_modules_id_seq') then
-    execute 'grant usage, select on sequence public.custom_modules_id_seq to anon, authenticated';
-  end if;
-end $$;
-
--- 4. segment_factors — per-segment pricing multipliers
-grant select, insert, update, delete on public.segment_factors to anon, authenticated;
-
--- 5. segment_module_prices — per-(segment, module) custom tier prices
-grant select, insert, update, delete on public.segment_module_prices to anon, authenticated;
-
--- 6. manual_activities — outbound dashboard activities
-do $$ begin
-  if exists (select 1 from information_schema.tables where table_schema='public' and table_name='manual_activities') then
-    execute 'grant select, insert, update, delete on public.manual_activities to anon, authenticated';
-    if exists (select 1 from pg_class where relname = 'manual_activities_id_seq') then
-      execute 'grant usage, select on sequence public.manual_activities_id_seq to anon, authenticated';
+-- Helper: grant CRUD on a table only if it exists (and its
+-- *_id_seq sequence too when one is present).
+do $$
+declare
+  t text;
+  tables text[] := array[
+    'quotes',
+    'roi_calculations',
+    'custom_modules',
+    'segment_factors',
+    'segment_module_prices',
+    'manual_activities'
+  ];
+begin
+  foreach t in array tables loop
+    if exists (
+      select 1 from information_schema.tables
+      where table_schema = 'public' and table_name = t
+    ) then
+      execute format(
+        'grant select, insert, update, delete on public.%I to anon, authenticated',
+        t
+      );
+      -- Also grant the matching sequence if the table uses a SERIAL/IDENTITY PK.
+      if exists (select 1 from pg_class where relname = t || '_id_seq') then
+        execute format(
+          'grant usage, select on sequence public.%I to anon, authenticated',
+          t || '_id_seq'
+        );
+      end if;
+      raise notice 'Granted: public.%', t;
+    else
+      raise notice 'Skipped (does not exist): public.%', t;
     end if;
-  end if;
+  end loop;
 end $$;
 
 -- Verify
