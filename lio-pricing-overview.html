@@ -7796,18 +7796,33 @@ function lioRenderPackageView() {
 }
 
 // Returns the set of module keys currently included in at least one package,
-// ORDERED by inclusion count (descending) so agents that appear in ALL
-// packages come first, then in 2 packages, then in 1 — making the
-// build-up across tiers visually obvious. Tie-breaks by the original
-// std module order.
+// ORDERED by a "ladder" pattern: agents that appear in MORE packages float
+// up, and within the same count, agents whose inclusion is anchored on the
+// RIGHT (Diamond) come before those anchored on the LEFT (Basic).
+//
+// Score = bitfield where pkg index i contributes (1 << i). Highest bit is
+// the LAST package, so being in the last package weighs more than being in
+// earlier ones. Resulting sort by score DESC produces:
+//   - (1,1,1) → all included → first
+//   - (0,1,1) → Premium + Diamond → next
+//   - (0,0,1) → Diamond only → before any pattern missing Diamond
+//   - (1,1,0) → Basic + Premium (no Diamond) → lower
+// This eliminates the "× gap in the middle" pattern the user wanted to avoid.
+// Tie-broken by the original std module order so the result is stable.
 function _pkgActiveAgentKeys() {
   const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
   const cfg = window._packageConfig;
   const active = std.filter(k => cfg.packages.some(pkg => pkg.items && pkg.items[k] && pkg.items[k].included));
+  function _ladderScore(k) {
+    let s = 0;
+    cfg.packages.forEach((pkg, idx) => {
+      if (pkg.items && pkg.items[k] && pkg.items[k].included) s += (1 << idx);
+    });
+    return s;
+  }
   return active.sort((a, b) => {
-    const ca = cfg.packages.filter(p => p.items && p.items[a] && p.items[a].included).length;
-    const cb = cfg.packages.filter(p => p.items && p.items[b] && p.items[b].included).length;
-    if (cb !== ca) return cb - ca;
+    const sa = _ladderScore(a), sb = _ladderScore(b);
+    if (sb !== sa) return sb - sa;
     return std.indexOf(a) - std.indexOf(b);
   });
 }
@@ -8258,8 +8273,8 @@ const _LIO_SVG_PDF = `<svg style="width:80px;height:auto;" viewBox="0 0 2000 100
 // breakdown of every agent in the offer after the package overview page.
 function lioBuildPkgModuleDetailsAppendix() {
   const cfg = window._packageConfig || _lioPkgDefaultConfig();
-  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
-  const active = std.filter(k => cfg.packages.some(pkg => pkg.items && pkg.items[k] && pkg.items[k].included));
+  // Use the shared sorted helper so appendix order matches the overview page.
+  const active = _pkgActiveAgentKeys();
   if (active.length === 0) return '';
   // The wizard already stores extended descriptions/features in moduleDetails
   // (defined in the dark file's script) — but for safety, fall back to the
