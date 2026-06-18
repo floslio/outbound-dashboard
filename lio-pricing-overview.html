@@ -1347,6 +1347,48 @@ input[type="checkbox"] { accent-color: #6366f1; }
           </div>
         </div>
 
+        <!-- Contract Agent -->
+        <div class="glass rounded-xl p-5 transition-all duration-300" id="calc-ca">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="check-ca" class="w-5 h-5 rounded" onchange="calcUpdate()">
+              <label for="check-ca" class="font-semibold cursor-pointer">📜 Contract Agent</label>
+            </div>
+            <span class="text-sm text-pink-400 font-semibold" id="calc-ca-price">$0</span>
+          </div>
+          <div class="ml-8 hidden" id="calc-ca-opts">
+            <label class="text-xs text-slate-500">Contracts processed per Year</label>
+            <select id="calc-ca-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="15000">Up to 250 — $15,000/yr</option>
+              <option value="26000">Up to 500 — $26,000/yr</option>
+              <option value="45500">Up to 1,000 — $45,500/yr</option>
+              <option value="80000">Up to 5,000 — $80,000/yr</option>
+              <option value="135000">Up to 10,000 — $135,000/yr</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Supplier Onboarding Agent -->
+        <div class="glass rounded-xl p-5 transition-all duration-300" id="calc-soa">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="check-soa" class="w-5 h-5 rounded" onchange="calcUpdate()">
+              <label for="check-soa" class="font-semibold cursor-pointer">🪪 Supplier Onboarding Agent</label>
+            </div>
+            <span class="text-sm text-sky-400 font-semibold" id="calc-soa-price">$0</span>
+          </div>
+          <div class="ml-8 hidden" id="calc-soa-opts">
+            <label class="text-xs text-slate-500">Suppliers onboarded per Year</label>
+            <select id="calc-soa-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="12000">Up to 100 — $12,000/yr</option>
+              <option value="25000">Up to 250 — $25,000/yr</option>
+              <option value="42000">Up to 500 — $42,000/yr</option>
+              <option value="68000">Up to 1,000 — $68,000/yr</option>
+              <option value="135000">Up to 5,000 — $135,000/yr</option>
+            </select>
+          </div>
+        </div>
+
       </div>
 
       <!-- Right: Pricing Summary -->
@@ -3066,6 +3108,30 @@ const modules = {
       { vol: 'Flat Rate', price: 75000, eur: 70000, gbp: 62000 }
     ],
     unit: 'Flat Rate'
+  },
+  ca: { name: 'Contract Agent', color: 'pink', icon: '📜',
+    desc: 'End-to-end contract automation — AI-assisted drafting, clause-level risk analysis, approval workflows, signature orchestration, and renewal management for procurement contracts. Reduces legal review cycles and prevents auto-renewal blind spots.',
+    features: ['AI-powered contract drafting from templates','Clause library + risk detection (legal, commercial, ESG)','Multi-step approval workflows','Renewal tracking with proactive alerts','SAP / Coupa / DocuSign integration','Full audit trail + version control'],
+    tiers: [
+      { vol: 'Up to 250', price: 15000, eur: 13000, gbp: 11500 },
+      { vol: 'Up to 500', price: 26000, eur: 22500, gbp: 20000 },
+      { vol: 'Up to 1,000', price: 45500, eur: 38500, gbp: 34000 },
+      { vol: 'Up to 5,000', price: 80000, eur: 68000, gbp: 60000 },
+      { vol: 'Up to 10,000', price: 135000, eur: 115000, gbp: 100000 }
+    ],
+    unit: 'Contracts / yr'
+  },
+  soa: { name: 'Supplier Onboarding Agent', color: 'sky', icon: '🪪',
+    desc: 'Automated supplier onboarding pipeline — data collection, KYC/AML compliance, risk and ESG checks via external sources (Dun & Bradstreet, EcoVadis), document validation, and integration into your ERP. Cuts time-to-onboard from weeks to hours.',
+    features: ['Self-service supplier portal — no platform login required','External risk checks (D&B, sanctions, ESG, EcoVadis)','Document & certificate validation','Multi-step internal approval workflows','SAP MM / Ariba / Coupa integration','Continuous monitoring + re-validation triggers'],
+    tiers: [
+      { vol: 'Up to 100', price: 12000, eur: 10500, gbp: 9300 },
+      { vol: 'Up to 250', price: 25000, eur: 21500, gbp: 19000 },
+      { vol: 'Up to 500', price: 42000, eur: 36000, gbp: 32000 },
+      { vol: 'Up to 1,000', price: 68000, eur: 58000, gbp: 52000 },
+      { vol: 'Up to 5,000', price: 135000, eur: 115000, gbp: 100000 }
+    ],
+    unit: 'Suppliers onboarded / yr'
   }
 };
 
@@ -3571,6 +3637,36 @@ const moduleDetails = {
     ],
     tiers: modules.sh.tiers,
     unit: 'Annual Flat Rate'
+  },
+  ca: {
+    title: 'Contract Agent',
+    subtitle: 'Contract',
+    color: 'pink',
+    icon: '📜',
+    desc: 'End-to-end contract automation — AI-assisted drafting, clause-level risk analysis, approval workflows, signature orchestration, and renewal management for procurement contracts. Cuts legal review cycles from days to hours and eliminates auto-renewal blind spots.',
+    features: ['AI-powered contract drafting from templates','Clause library + risk detection (legal, commercial, ESG)','Multi-step approval workflows with delegation','Renewal tracking with proactive 90/60/30-day alerts','SAP / Coupa / DocuSign integration','Full audit trail + version control'],
+    metrics: [
+      { label: 'Legal Review Time', value: '-70%' },
+      { label: 'Renewal Capture', value: '99%' },
+      { label: 'Contract Cycle Time', value: '-50%' }
+    ],
+    tiers: modules.ca.tiers,
+    unit: 'Contracts / yr'
+  },
+  soa: {
+    title: 'Supplier Onboarding Agent',
+    subtitle: 'Onboarding',
+    color: 'sky',
+    icon: '🪪',
+    desc: 'Automated supplier onboarding pipeline — data collection, KYC/AML compliance, risk and ESG checks via external sources (Dun & Bradstreet, EcoVadis), document validation, and ERP integration. Cuts time-to-onboard from weeks to hours while keeping every step compliant.',
+    features: ['Self-service supplier portal — no platform login required','External risk checks (D&B, sanctions, ESG, EcoVadis)','Document & certificate validation (insurance, ISO, ESG)','Multi-step internal approval workflows','SAP MM / Ariba / Coupa integration','Continuous monitoring + re-validation triggers'],
+    metrics: [
+      { label: 'Time-to-Onboard', value: '-85%' },
+      { label: 'Risk Coverage', value: '100%' },
+      { label: 'Compliance Audit', value: 'instant' }
+    ],
+    tiers: modules.soa.tiers,
+    unit: 'Suppliers onboarded / yr'
   }
 };
 
@@ -3640,7 +3736,7 @@ function hideModulePage() {
 // CALCULATOR
 // ============================
 function calcUpdate() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
   let totalSaas = 0;
   let count = 0;
   let lineItems = '';
@@ -4815,7 +4911,7 @@ function openQuoteModal() {
   // Populate additional agents (modules not in the quote)
   const additionalContainer = document.getElementById('quote-additional-agents');
   if (additionalContainer) {
-    const allModKeys = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
+    const allModKeys = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa'];
     const selectedKeys = [];
     allModKeys.forEach(m => {
       const cb = document.getElementById('check-' + m);
@@ -4854,7 +4950,7 @@ function closeQuoteModal() {
 function selectBundle(index) {
   const bundle = bundleDefs[index];
   if (!bundle) return;
-  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
+  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa'];
   allMods.forEach(m => { document.getElementById('check-' + m).checked = false; });
   bundle.modules.forEach(m => { const cb = document.getElementById('check-' + m); if (cb) cb.checked = true; });
   calcUpdate();
@@ -4869,7 +4965,7 @@ const bundleDefs = [
   { name: 'Intelligence Suite', discount: 6, modules: ['liox','pia','npa'] },
   { name: 'Source to Pay', discount: 8, modules: ['sm','sa','npa','cna'] },
   { name: 'P2P Complete', discount: 10, modules: ['gb2po','ntpo','aa','oc','gr','inv'] },
-  { name: 'Enterprise – Total Procurement AI', discount: 15, modules: ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'] }
+  { name: 'Enterprise – Total Procurement AI', discount: 15, modules: ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa'] }
 ];
 
 function detectBundle(selectedKeys) {
@@ -5130,7 +5226,7 @@ function _tierPriceInCurrency(tier, cur) {
 }
 
 function populateQuotePricing() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
   const tbody = document.getElementById('quote-pricing-lines');
   // First pass — collect modules currently in the quote so the per-row module
   // dropdown can hide options that are already in another row (no duplicates).
@@ -5504,7 +5600,7 @@ function resetGlobalDiscount() {
 
 
 function updateQuotePricing() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
   const selectedKeys = mods.filter(m => document.getElementById('check-' + m)?.checked);
   const bundle = detectBundle(selectedKeys);
   const bundleApply = document.getElementById('quote-bundle-apply')?.checked && bundle;
@@ -5599,7 +5695,7 @@ function updateQuotePricing() {
 // PDF QUOTE DOWNLOAD
 // ============================
 function generateQuoteData() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
   const selectedMods = [];
   let totalSaas = 0;
   let hasSM = false;
@@ -6478,7 +6574,7 @@ function loadQuote(id) {
   if (entry.currency && typeof setCurrency === 'function') setCurrency(entry.currency);
 
   // Select modules in calculator
-  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm'];
+  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa'];
   allMods.forEach(m => {
     const cb = document.getElementById('check-' + m);
     if (cb) cb.checked = fs.selectedModules.includes(m);
@@ -6667,7 +6763,7 @@ function lioPhasesEnabled() { return !!document.getElementById('quote-phases-ena
 
 // Snapshot of selected modules + custom positions ready for phase grouping.
 function lioGetActiveSelections() {
-  const STD = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const STD = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
   const out = [];
   STD.forEach(k => {
     if (!document.getElementById('check-' + k)?.checked) return;
@@ -7118,12 +7214,12 @@ function lioResetModuleOverride(k) {
 }
 
 // Module-icons map for the per-module editor card headers.
-const _DARK_MOD_ICONS = { gb2po: '🛒', ntpo: '✅', na: '🤝', sa: '🔍', oc: '📋', liox: '🧠', sm: '🏢', aa: '🔐', gr: '📦', inv: '🧾', pia: '📊', npa: '🎯', cna: '📄', aop: '🔧', clm: '📑', sh: '🏗️' };
+const _DARK_MOD_ICONS = { gb2po: '🛒', ntpo: '✅', na: '🤝', sa: '🔍', oc: '📋', liox: '🧠', sm: '🏢', aa: '🔐', gr: '📦', inv: '🧾', pia: '📊', npa: '🎯', cna: '📄', aop: '🔧', clm: '📑', sh: '🏗️', ca: '📜', soa: '🪪' };
 
 function renderModuleOverridesEditorDark() {
   const host = document.getElementById('lio-modedit-host-dark');
   if (!host) return;
-  const STD = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const STD = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
   const selectedKeys = STD.filter(k => document.getElementById('check-' + k)?.checked);
   if (selectedKeys.length === 0) {
     host.innerHTML = '<div class="text-[11px] text-slate-500 italic py-2">Pick at least one module in the calculator behind this modal to edit its PDF copy.</div>';
@@ -7719,7 +7815,7 @@ function lioPkgSeedFromStandard() {
   // Replace each package's items with whatever is currently checked in the
   // standard view, using the qf-{mod} price in the active currency as the
   // per-cell price.
-  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
   const includedKeys = std.filter(k => document.getElementById('check-' + k)?.checked && !excludedModules[k]);
   window._packageConfig.packages.forEach((pkg, idx) => {
     pkg.items = {};
@@ -7810,7 +7906,7 @@ function lioRenderPackageView() {
 // This eliminates the "× gap in the middle" pattern the user wanted to avoid.
 // Tie-broken by the original std module order so the result is stable.
 function _pkgActiveAgentKeys() {
-  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
   const cfg = window._packageConfig;
   const active = std.filter(k => cfg.packages.some(pkg => pkg.items && pkg.items[k] && pkg.items[k].included));
   function _ladderScore(k) {
@@ -7847,7 +7943,7 @@ function _pkgPackageListTotal(pkg) {
 function lioRebuildAddAgentDropdown() {
   const sel = document.getElementById('pkg-add-agent');
   if (!sel) return;
-  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm'];
+  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
   const active = new Set(_pkgActiveAgentKeys());
   const available = std.filter(k => !active.has(k));
   sel.innerHTML = '<option value="">+ Add agent to overview…</option>' +
