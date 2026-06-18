@@ -2557,14 +2557,20 @@ const modules = {
   clm:{name:'Contract Lifecycle Management',color:'teal',icon:'📑',desc:'Monitors your entire contract portfolio in real time. Proactive alerts for renewals, budget tracking, SLA compliance, and risk detection. Multi-step approval workflows with version control and full audit trails.',features:['Real-time contract portfolio monitoring','Proactive renewal and expiry alerts','Budget tracking against framework agreements','Multi-step approval workflows','Version control and compliance tracking','Audit trail linking contracts to POs and invoices'],tiers:[{vol:'Up to 250',price:15000,eur:12500,gbp:11000},{vol:'Up to 500',price:26000,eur:22000,gbp:19000},{vol:'Up to 1,000',price:45500,eur:38000,gbp:33500},{vol:'Up to 5,000',price:80000,eur:67000,gbp:58500},{vol:'Up to 10,000',price:135000,eur:113000,gbp:99000}],unit:'Contracts Managed'},
   sh:{name:'Sourcing Hub',color:'purple',icon:'🏗️',desc:'The strategic sourcing suite of Lio — a hub of AI agents that orchestrates the full complex sourcing lifecycle. From supplier scouting and RFX management to bid evaluation, awarding, and contracting.',features:['RFX Document Agent — automated RFX creation & distribution','Supplier Scouting Agent — AI-powered supplier discovery','RFX Agent — multi-supplier event orchestration','Strategic Negotiation Agent — AI-guided negotiation & strategy','Awarding Agent — data-driven bid evaluation & award decision','Contracting Agent — automated contract generation & sign-off'],tiers:[{vol:'Flat Rate',price:75000,eur:70000,gbp:62000}],unit:'Flat Rate'},
   ca:{name:'Contract Agent',color:'pink',icon:'📜',desc:'End-to-end contract automation — AI-assisted drafting, clause-level risk analysis, approval workflows, signature orchestration, and renewal management for procurement contracts. Reduces legal review cycles and prevents auto-renewal blind spots.',features:['AI-powered contract drafting from templates','Clause library + risk detection (legal, commercial, ESG)','Multi-step approval workflows','Renewal tracking with proactive alerts','SAP / Coupa / DocuSign integration','Full audit trail + version control'],tiers:[{vol:'Up to 250',price:15000,eur:13000,gbp:11500},{vol:'Up to 500',price:26000,eur:22500,gbp:20000},{vol:'Up to 1,000',price:45500,eur:38500,gbp:34000},{vol:'Up to 5,000',price:80000,eur:68000,gbp:60000},{vol:'Up to 10,000',price:135000,eur:115000,gbp:100000}],unit:'Contracts / yr'},
-  soa:{name:'Supplier Onboarding Agent',color:'sky',icon:'🪪',desc:'Automated supplier onboarding pipeline — data collection, KYC/AML compliance, risk and ESG checks via external sources (Dun & Bradstreet, EcoVadis), document validation, and integration into your ERP. Cuts time-to-onboard from weeks to hours.',features:['Self-service supplier portal — no platform login required','External risk checks (D&B, sanctions, ESG, EcoVadis)','Document & certificate validation','Multi-step internal approval workflows','SAP MM / Ariba / Coupa integration','Continuous monitoring + re-validation triggers'],tiers:[{vol:'Up to 100',price:12000,eur:10500,gbp:9300},{vol:'Up to 250',price:25000,eur:21500,gbp:19000},{vol:'Up to 500',price:42000,eur:36000,gbp:32000},{vol:'Up to 1,000',price:68000,eur:58000,gbp:52000},{vol:'Up to 5,000',price:135000,eur:115000,gbp:100000}],unit:'Suppliers onboarded / yr'}
+  soa:{name:'Supplier Onboarding Agent',color:'sky',icon:'🪪',desc:'Automated supplier onboarding pipeline — data collection, KYC/AML compliance, risk and ESG checks via external sources (Dun & Bradstreet, EcoVadis), document validation, and integration into your ERP. Cuts time-to-onboard from weeks to hours.',features:['Self-service supplier portal — no platform login required','External risk checks (D&B, sanctions, ESG, EcoVadis)','Document & certificate validation','Multi-step internal approval workflows','SAP MM / Ariba / Coupa integration','Continuous monitoring + re-validation triggers'],tiers:[{vol:'Up to 100',price:12000,eur:10500,gbp:9300},{vol:'Up to 250',price:25000,eur:21500,gbp:19000},{vol:'Up to 500',price:42000,eur:36000,gbp:32000},{vol:'Up to 1,000',price:68000,eur:58000,gbp:52000},{vol:'Up to 5,000',price:135000,eur:115000,gbp:100000}],unit:'Suppliers onboarded / yr'},
+  at:{name:'Agentic Tenders',color:'orange',icon:'🏛️',desc:'Run fully structured public and private tenders end-to-end — including reverse auctions. AI orchestrates bid invitation, supplier Q&A, deadlines, and award decisions. Cuts tender cycle time by 50% while staying compliant with public-procurement rules.',features:['Multi-stage tender events (RFI/RFP/RFQ)','Reverse-auction support','Automated supplier Q&A routing','Compliance audit trail','GAEB/PEPPOL/UBL document handling','Public-procurement template library'],tiers:[{vol:'Up to 25',price:20000,eur:17500,gbp:15500},{vol:'Up to 50',price:38000,eur:33000,gbp:29000},{vol:'Up to 100',price:70000,eur:60000,gbp:53000},{vol:'Up to 250',price:150000,eur:128000,gbp:113000}],unit:'Tender events / yr'},
+  ae:{name:'Agentic Evaluation',color:'amber',icon:'⚖️',desc:'Normalizes incoming supplier offers across heterogeneous formats, extracts the most relevant decision criteria, and delivers a side-by-side comparison with weighted scoring. Turns 3-day bid analyses into 3 minutes.',features:['Multi-format offer ingestion (PDF, Excel, email)','Auto-extracted TCO + decision criteria','Weighted scoring models','Side-by-side bid comparison','Sensitivity analysis','Export to Award decision memo'],tiers:[{vol:'Up to 250 evaluations',price:14000,eur:12000,gbp:10500},{vol:'Up to 500',price:24000,eur:21000,gbp:18500},{vol:'Up to 1,000',price:42000,eur:36000,gbp:32000},{vol:'Up to 5,000',price:78000,eur:67000,gbp:59000}],unit:'Evaluations / yr'},
+  ada:{name:'Agentic Data Analytics',color:'indigo',icon:'📈',desc:'Always-on agent that understands your full procurement landscape — suppliers, contracts, orders, spend. Surfaces savings opportunities, supplier consolidation candidates, and price drift proactively. Asks the right questions before you do.',features:['Real-time spend visualization','Supplier consolidation analysis','Price-drift + maverick spend detection','Cross-system data harmonization','Custom dashboards + alerts','Export to BI tools (Power BI, Tableau)'],tiers:[{vol:'Up to 10 users',price:15000,eur:13000,gbp:11500},{vol:'Up to 25 users',price:30000,eur:26000,gbp:23000},{vol:'Up to 50 users',price:52000,eur:45000,gbp:40000},{vol:'Up to 100 users',price:85000,eur:73000,gbp:64000}],unit:'Users'},
+  asc:{name:'Agentic Strategy Creation',color:'violet',icon:'🧭',desc:'Builds always-current Material Group strategies for every category. Combines internal spend data with external market intelligence to recommend sourcing strategy, supplier base size, and renegotiation timing — per category, refreshed continuously.',features:['Auto-generated category strategies','Kraljic matrix positioning','Market intelligence integration','Supplier base sizing recommendations','Renegotiation timing alerts','Strategy review workflow'],tiers:[{vol:'Up to 25 categories',price:18000,eur:15500,gbp:13500},{vol:'Up to 50',price:32000,eur:27500,gbp:24000},{vol:'Up to 100',price:60000,eur:51500,gbp:45000},{vol:'Up to 250',price:120000,eur:103000,gbp:90000}],unit:'Categories / yr'},
+  oba:{name:'Order Bundling Agent',color:'lime',icon:'🧩',desc:'Finds the same or similar materials in placed and approved orders, then bundles them into negotiation events. Surfaces forgotten POs and one-off purchases that should be consolidated into framework agreements — turning maverick spend into structured savings.',features:['Cross-order material matching (AI semantic)','Volume aggregation across business units','Auto-generated negotiation candidates','Framework-agreement gap detection','Maverick spend conversion ROI','Integration with negotiation + sourcing agents'],tiers:[{vol:'Up to 10,000 orders',price:14000,eur:12000,gbp:10500},{vol:'Up to 25,000',price:28000,eur:24000,gbp:21000},{vol:'Up to 50,000',price:50000,eur:43000,gbp:38000},{vol:'Up to 100,000',price:90000,eur:77000,gbp:68000}],unit:'Orders analyzed / yr'},
+  csa:{name:'Contract Surveillance Agent',color:'red',icon:'🔭',desc:'Monitors active contracts continuously — flags when in-use prices exceed current market situation and surfaces leakage hidden in contracts you have forgotten about. Catches the compliance and price drift gaps that humans miss.',features:['Real-time price drift detection vs market','In-use vs contracted-price compliance','Auto-renewal & expiry alerts','Hidden leakage discovery','Volume commitment tracking','Renegotiation trigger reports'],tiers:[{vol:'Up to 250 contracts',price:12000,eur:10500,gbp:9300},{vol:'Up to 500',price:22000,eur:19000,gbp:16500},{vol:'Up to 1,000',price:38000,eur:33000,gbp:29000},{vol:'Up to 5,000',price:70000,eur:60000,gbp:53000}],unit:'Contracts monitored / yr'}
 };
 
 let currentCurrency = 'usd';
 // Shared module-keys list — extended at runtime by the Module Library (admin
 // mode) so custom modules participate in calc/PDF flows. All places that
 // previously hardcoded the 16 standard keys now pull from this slice.
-let LIO_ALL_MODKEYS = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
+let LIO_ALL_MODKEYS = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'];
 const currencyRates = { usd: 1, eur: 1/1.08, gbp: 1/1.18, chf: 1/1.10 };
 const currencySymbols = { usd: '$', eur: '€', gbp: '£', chf: 'CHF ' };
 
@@ -2702,12 +2708,14 @@ function closeModule() { document.getElementById('module-overlay').classList.add
 function buildCalc() {
   const container = document.getElementById('calc-modules');
   const categories = [
-    { label: 'P2P — Procure to Pay', keys: ['gb2po','ntpo','aa','oc','gr','inv'] },
-    { label: 'S2P — Source to Pay', keys: ['sm','soa','sa','na'] },
-    { label: 'Intelligence & Assistants', keys: ['liox','pia','npa','cna'] },
-    { label: 'Strategic Sourcing', keys: ['sh'] },
-    { label: 'Platform', keys: ['aop'] },
-    { label: 'Contract Management', keys: ['ca','clm'] }
+    { label: 'P2P Suite — Procure to Pay',           keys: ['gb2po','ntpo','aa','oc','gr','inv'] },
+    { label: 'S2C Suite — Source to Contract',       keys: ['sa','at','ae','na','npa','cna'] },
+    { label: 'P2S Suite — Procure to Strategy',      keys: ['ada','asc','oba','csa'] },
+    { label: 'SRM Suite — Supplier Relationship',    keys: ['sm','soa'] },
+    { label: 'Contract Management',                  keys: ['ca','clm'] },
+    { label: 'Intelligence & Assistants',            keys: ['liox','pia'] },
+    { label: 'Strategic Sourcing',                   keys: ['sh'] },
+    { label: 'Platform',                             keys: ['aop'] }
   ];
   let html = '';
   categories.forEach(cat => {
@@ -3760,7 +3768,7 @@ function closeQuoteModal() {
 function selectBundle(index) {
   const bundle = bundleDefs[index];
   if (!bundle) return;
-  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa'];
+  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'];
   allMods.forEach(m => { document.getElementById('chk-' + m).checked = false; });
   bundle.modules.forEach(m => { const cb = document.getElementById('chk-' + m); if (cb) cb.checked = true; });
   calcUpdate();
@@ -3772,7 +3780,7 @@ const bundleDefs = [
   { name: 'Intelligence Suite', discount: 6, modules: ['liox','pia','npa'] },
   { name: 'Source to Pay', discount: 8, modules: ['sm','sa','npa','cna'] },
   { name: 'P2P Complete', discount: 10, modules: ['gb2po','ntpo','aa','oc','gr','inv'] },
-  { name: 'Enterprise \u2013 Total Procurement AI', discount: 15, modules: ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa'] }
+  { name: 'Enterprise \u2013 Total Procurement AI', discount: 15, modules: ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'] }
 ];
 
 function detectBundle(selectedKeys) {
@@ -5070,7 +5078,7 @@ function loadQuote(id) {
   if (entry.currency && typeof setCurrency === 'function') setCurrency(entry.currency);
 
   // Select modules in calculator
-  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa'];
+  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'];
   allMods.forEach(m => {
     const cb = document.getElementById('chk-' + m);
     if (cb) cb.checked = fs.selectedModules.includes(m);
@@ -5272,7 +5280,7 @@ function lioPhasesEnabled() { return !!document.getElementById('quote-phases-ena
 
 // Snapshot of selected modules + custom positions ready for phase grouping.
 function lioGetActiveSelections() {
-  const STD = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
+  const STD = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'];
   const out = [];
   STD.forEach(k => {
     // White uses chk-{k}, dark uses check-{k}; accept either so the helper
@@ -5838,7 +5846,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
     const host = document.getElementById('lio-modlib-body');
     if (!host) return;
     const customs = window._customModulesIndex || [];
-    const standardKeys = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
+    const standardKeys = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'];
 
     const draftHtml = _modlibDraft ? renderModuleDraft() : '';
     const customsList = customs.length === 0
@@ -6337,8 +6345,8 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
   // STEP 2 — Modules
   // ---------------------------
   // Display order — same priority as the dark file's calculator
-  const MOD_ORDER = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
-  const MOD_ICONS = { gb2po: '🛒', ntpo: '✅', na: '🤝', sa: '🔍', oc: '📋', liox: '🧠', sm: '🏢', aa: '🔐', gr: '📦', inv: '🧾', pia: '📊', npa: '🎯', cna: '📄', aop: '🔧', clm: '📑', sh: '🏗️', ca: '📜', soa: '🪪' };
+  const MOD_ORDER = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'];
+  const MOD_ICONS = { gb2po: '🛒', ntpo: '✅', na: '🤝', sa: '🔍', oc: '📋', liox: '🧠', sm: '🏢', aa: '🔐', gr: '📦', inv: '🧾', pia: '📊', npa: '🎯', cna: '📄', aop: '🔧', clm: '📑', sh: '🏗️', ca: '📜', soa: '🪪', at: '🏛️', ae: '⚖️', ada: '📈', asc: '🧭', oba: '🧩', csa: '🔭' };
 
   function renderStep2Modules(pane) {
     pane.innerHTML =

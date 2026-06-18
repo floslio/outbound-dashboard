@@ -1389,6 +1389,130 @@ input[type="checkbox"] { accent-color: #6366f1; }
           </div>
         </div>
 
+        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-4 mb-2 px-2">S2C Suite — Tenders & Evaluation</div>
+
+        <!-- Agentic Tenders -->
+        <div class="glass rounded-xl p-5 transition-all duration-300" id="calc-at">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="check-at" class="w-5 h-5 rounded" onchange="calcUpdate()">
+              <label for="check-at" class="font-semibold cursor-pointer">🏛️ Agentic Tenders</label>
+            </div>
+            <span class="text-sm text-orange-400 font-semibold" id="calc-at-price">$0</span>
+          </div>
+          <div class="ml-8 hidden" id="calc-at-opts">
+            <label class="text-xs text-slate-500">Tender events per Year</label>
+            <select id="calc-at-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="20000">Up to 25 — $20,000/yr</option>
+              <option value="38000">Up to 50 — $38,000/yr</option>
+              <option value="70000">Up to 100 — $70,000/yr</option>
+              <option value="150000">Up to 250 — $150,000/yr</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Agentic Evaluation -->
+        <div class="glass rounded-xl p-5 transition-all duration-300" id="calc-ae">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="check-ae" class="w-5 h-5 rounded" onchange="calcUpdate()">
+              <label for="check-ae" class="font-semibold cursor-pointer">⚖️ Agentic Evaluation</label>
+            </div>
+            <span class="text-sm text-amber-400 font-semibold" id="calc-ae-price">$0</span>
+          </div>
+          <div class="ml-8 hidden" id="calc-ae-opts">
+            <label class="text-xs text-slate-500">Evaluations per Year</label>
+            <select id="calc-ae-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="14000">Up to 250 — $14,000/yr</option>
+              <option value="24000">Up to 500 — $24,000/yr</option>
+              <option value="42000">Up to 1,000 — $42,000/yr</option>
+              <option value="78000">Up to 5,000 — $78,000/yr</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-4 mb-2 px-2">P2S Suite — Procure to Strategy</div>
+
+        <!-- Agentic Data Analytics -->
+        <div class="glass rounded-xl p-5 transition-all duration-300" id="calc-ada">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="check-ada" class="w-5 h-5 rounded" onchange="calcUpdate()">
+              <label for="check-ada" class="font-semibold cursor-pointer">📈 Agentic Data Analytics</label>
+            </div>
+            <span class="text-sm text-indigo-400 font-semibold" id="calc-ada-price">$0</span>
+          </div>
+          <div class="ml-8 hidden" id="calc-ada-opts">
+            <label class="text-xs text-slate-500">Users</label>
+            <select id="calc-ada-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="15000">Up to 10 users — $15,000/yr</option>
+              <option value="30000">Up to 25 users — $30,000/yr</option>
+              <option value="52000">Up to 50 users — $52,000/yr</option>
+              <option value="85000">Up to 100 users — $85,000/yr</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Agentic Strategy Creation -->
+        <div class="glass rounded-xl p-5 transition-all duration-300" id="calc-asc">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="check-asc" class="w-5 h-5 rounded" onchange="calcUpdate()">
+              <label for="check-asc" class="font-semibold cursor-pointer">🧭 Agentic Strategy Creation</label>
+            </div>
+            <span class="text-sm text-violet-400 font-semibold" id="calc-asc-price">$0</span>
+          </div>
+          <div class="ml-8 hidden" id="calc-asc-opts">
+            <label class="text-xs text-slate-500">Material Group categories</label>
+            <select id="calc-asc-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="18000">Up to 25 categories — $18,000/yr</option>
+              <option value="32000">Up to 50 — $32,000/yr</option>
+              <option value="60000">Up to 100 — $60,000/yr</option>
+              <option value="120000">Up to 250 — $120,000/yr</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Order Bundling Agent -->
+        <div class="glass rounded-xl p-5 transition-all duration-300" id="calc-oba">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="check-oba" class="w-5 h-5 rounded" onchange="calcUpdate()">
+              <label for="check-oba" class="font-semibold cursor-pointer">🧩 Order Bundling Agent</label>
+            </div>
+            <span class="text-sm text-lime-400 font-semibold" id="calc-oba-price">$0</span>
+          </div>
+          <div class="ml-8 hidden" id="calc-oba-opts">
+            <label class="text-xs text-slate-500">Orders analyzed per Year</label>
+            <select id="calc-oba-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="14000">Up to 10,000 — $14,000/yr</option>
+              <option value="28000">Up to 25,000 — $28,000/yr</option>
+              <option value="50000">Up to 50,000 — $50,000/yr</option>
+              <option value="90000">Up to 100,000 — $90,000/yr</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Contract Surveillance Agent -->
+        <div class="glass rounded-xl p-5 transition-all duration-300" id="calc-csa">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="check-csa" class="w-5 h-5 rounded" onchange="calcUpdate()">
+              <label for="check-csa" class="font-semibold cursor-pointer">🔭 Contract Surveillance Agent</label>
+            </div>
+            <span class="text-sm text-red-400 font-semibold" id="calc-csa-price">$0</span>
+          </div>
+          <div class="ml-8 hidden" id="calc-csa-opts">
+            <label class="text-xs text-slate-500">Contracts monitored per Year</label>
+            <select id="calc-csa-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="12000">Up to 250 — $12,000/yr</option>
+              <option value="22000">Up to 500 — $22,000/yr</option>
+              <option value="38000">Up to 1,000 — $38,000/yr</option>
+              <option value="70000">Up to 5,000 — $70,000/yr</option>
+            </select>
+          </div>
+        </div>
+
       </div>
 
       <!-- Right: Pricing Summary -->
@@ -1921,6 +2045,29 @@ input[type="checkbox"] { accent-color: #6366f1; }
             <button type="button" onclick="lioPkgClearDiscount()" class="px-3 py-2 bg-slate-700/40 hover:bg-slate-700/60 border border-slate-600 rounded-lg text-xs text-slate-300 transition">Clear discount</button>
             <button type="button" onclick="lioPkgResetPrices()" class="px-3 py-2 bg-slate-700/40 hover:bg-slate-700/60 border border-slate-600 rounded-lg text-xs text-slate-300 transition">Reset all prices</button>
             <span id="pkg-global-disc-status" class="text-xs text-emerald-300 ml-auto"></span>
+          </div>
+        </div>
+
+        <!-- Suite Quick-Add Bar — drop a whole Suite of agents into a package in one click -->
+        <div class="mt-4 p-3 rounded-lg bg-slate-800/40 border border-slate-700/50">
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-xs text-slate-300 font-semibold">Suite Quick-Add</label>
+            <span class="text-[10px] text-slate-500">Add a whole Suite of agents to a package in one click · agents fill their default first tier</span>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <select id="pkg-suite-picker" class="bg-slate-800/50 border border-slate-600 rounded-lg p-2 text-sm text-white outline-none">
+              <option value="p2p">P2P Suite — Procure to Pay (6 agents)</option>
+              <option value="s2c">S2C Suite — Source to Contract (6 agents)</option>
+              <option value="p2s">P2S Suite — Procure to Strategy (4 agents)</option>
+              <option value="srm">SRM Suite — Supplier Relationship (2 agents)</option>
+              <option value="contract">Contract Management (2 agents)</option>
+              <option value="intelligence">Intelligence & Assistants (2 agents)</option>
+            </select>
+            <span class="text-xs text-slate-400">→</span>
+            <select id="pkg-suite-target" class="bg-slate-800/50 border border-slate-600 rounded-lg p-2 text-sm text-white outline-none"></select>
+            <button type="button" onclick="lioPkgApplySuite()" class="px-3 py-2 bg-lio-500/30 hover:bg-lio-500/40 border border-lio-500/40 rounded-lg text-xs text-lio-200 font-semibold transition">+ Add suite</button>
+            <button type="button" onclick="lioPkgApplySuiteBuildUp()" class="px-3 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 rounded-lg text-xs text-emerald-200 font-semibold transition" title="Distribute the suite across tiers so each higher package contains the previous + more">↗ Apply as ladder (Basic → Premium → Diamond)</button>
+            <span id="pkg-suite-status" class="text-xs text-emerald-300 ml-auto"></span>
           </div>
         </div>
 
@@ -3132,6 +3279,72 @@ const modules = {
       { vol: 'Up to 5,000', price: 135000, eur: 115000, gbp: 100000 }
     ],
     unit: 'Suppliers onboarded / yr'
+  },
+  at: { name: 'Agentic Tenders', color: 'orange', icon: '🏛️',
+    desc: 'Run fully structured public and private tenders end-to-end — including reverse auctions. AI orchestrates bid invitation, supplier Q&A, deadlines, and award decisions. Cuts tender cycle time by 50% while staying compliant with public-procurement rules.',
+    features: ['Multi-stage tender events (RFI/RFP/RFQ)','Reverse-auction support','Automated supplier Q&A routing','Compliance audit trail','GAEB/PEPPOL/UBL document handling','Public-procurement template library'],
+    tiers: [
+      { vol: 'Up to 25', price: 20000, eur: 17500, gbp: 15500 },
+      { vol: 'Up to 50', price: 38000, eur: 33000, gbp: 29000 },
+      { vol: 'Up to 100', price: 70000, eur: 60000, gbp: 53000 },
+      { vol: 'Up to 250', price: 150000, eur: 128000, gbp: 113000 }
+    ],
+    unit: 'Tender events / yr'
+  },
+  ae: { name: 'Agentic Evaluation', color: 'amber', icon: '⚖️',
+    desc: 'Normalizes incoming supplier offers across heterogeneous formats, extracts the most relevant decision criteria, and delivers a side-by-side comparison with weighted scoring. Turns 3-day bid analyses into 3 minutes.',
+    features: ['Multi-format offer ingestion (PDF, Excel, email)','Auto-extracted TCO + decision criteria','Weighted scoring models','Side-by-side bid comparison','Sensitivity analysis','Export to Award decision memo'],
+    tiers: [
+      { vol: 'Up to 250 evaluations', price: 14000, eur: 12000, gbp: 10500 },
+      { vol: 'Up to 500', price: 24000, eur: 21000, gbp: 18500 },
+      { vol: 'Up to 1,000', price: 42000, eur: 36000, gbp: 32000 },
+      { vol: 'Up to 5,000', price: 78000, eur: 67000, gbp: 59000 }
+    ],
+    unit: 'Evaluations / yr'
+  },
+  ada: { name: 'Agentic Data Analytics', color: 'indigo', icon: '📈',
+    desc: 'Always-on agent that understands your full procurement landscape — suppliers, contracts, orders, spend. Surfaces savings opportunities, supplier consolidation candidates, and price drift proactively. Asks the right questions before you do.',
+    features: ['Real-time spend visualization','Supplier consolidation analysis','Price-drift + maverick spend detection','Cross-system data harmonization','Custom dashboards + alerts','Export to BI tools (Power BI, Tableau)'],
+    tiers: [
+      { vol: 'Up to 10 users', price: 15000, eur: 13000, gbp: 11500 },
+      { vol: 'Up to 25 users', price: 30000, eur: 26000, gbp: 23000 },
+      { vol: 'Up to 50 users', price: 52000, eur: 45000, gbp: 40000 },
+      { vol: 'Up to 100 users', price: 85000, eur: 73000, gbp: 64000 }
+    ],
+    unit: 'Users'
+  },
+  asc: { name: 'Agentic Strategy Creation', color: 'violet', icon: '🧭',
+    desc: 'Builds always-current Material Group strategies for every category. Combines internal spend data with external market intelligence to recommend sourcing strategy, supplier base size, and renegotiation timing — per category, refreshed continuously.',
+    features: ['Auto-generated category strategies','Kraljic matrix positioning','Market intelligence integration','Supplier base sizing recommendations','Renegotiation timing alerts','Strategy review workflow'],
+    tiers: [
+      { vol: 'Up to 25 categories', price: 18000, eur: 15500, gbp: 13500 },
+      { vol: 'Up to 50', price: 32000, eur: 27500, gbp: 24000 },
+      { vol: 'Up to 100', price: 60000, eur: 51500, gbp: 45000 },
+      { vol: 'Up to 250', price: 120000, eur: 103000, gbp: 90000 }
+    ],
+    unit: 'Categories / yr'
+  },
+  oba: { name: 'Order Bundling Agent', color: 'lime', icon: '🧩',
+    desc: 'Finds the same or similar materials in placed and approved orders, then bundles them into negotiation events. Surfaces forgotten POs and one-off purchases that should be consolidated into framework agreements — turning maverick spend into structured savings.',
+    features: ['Cross-order material matching (AI semantic)','Volume aggregation across business units','Auto-generated negotiation candidates','Framework-agreement gap detection','Maverick spend conversion ROI','Integration with negotiation + sourcing agents'],
+    tiers: [
+      { vol: 'Up to 10,000 orders', price: 14000, eur: 12000, gbp: 10500 },
+      { vol: 'Up to 25,000', price: 28000, eur: 24000, gbp: 21000 },
+      { vol: 'Up to 50,000', price: 50000, eur: 43000, gbp: 38000 },
+      { vol: 'Up to 100,000', price: 90000, eur: 77000, gbp: 68000 }
+    ],
+    unit: 'Orders analyzed / yr'
+  },
+  csa: { name: 'Contract Surveillance Agent', color: 'red', icon: '🔭',
+    desc: 'Monitors active contracts continuously — flags when in-use prices exceed current market situation and surfaces leakage hidden in contracts you have forgotten about. Catches the compliance and price drift gaps that humans miss.',
+    features: ['Real-time price drift detection vs market','In-use vs contracted-price compliance','Auto-renewal & expiry alerts','Hidden leakage discovery','Volume commitment tracking','Renegotiation trigger reports'],
+    tiers: [
+      { vol: 'Up to 250 contracts', price: 12000, eur: 10500, gbp: 9300 },
+      { vol: 'Up to 500', price: 22000, eur: 19000, gbp: 16500 },
+      { vol: 'Up to 1,000', price: 38000, eur: 33000, gbp: 29000 },
+      { vol: 'Up to 5,000', price: 70000, eur: 60000, gbp: 53000 }
+    ],
+    unit: 'Contracts monitored / yr'
   }
 };
 
@@ -3667,7 +3880,37 @@ const moduleDetails = {
     ],
     tiers: modules.soa.tiers,
     unit: 'Suppliers onboarded / yr'
-  }
+  },
+  at: { title:'Agentic Tenders', subtitle:'Tenders', color:'orange', icon:'🏛️',
+    desc: modules.at.desc,
+    features: modules.at.features,
+    metrics: [{label:'Tender Cycle Time',value:'-50%'},{label:'Compliance Coverage',value:'100%'},{label:'Supplier Reach',value:'3× wider'}],
+    tiers: modules.at.tiers, unit: 'Tender events / yr' },
+  ae: { title:'Agentic Evaluation', subtitle:'Evaluation', color:'amber', icon:'⚖️',
+    desc: modules.ae.desc,
+    features: modules.ae.features,
+    metrics: [{label:'Bid Analysis Time',value:'-95%'},{label:'Decision Quality',value:'+30%'},{label:'Bias Reduction',value:'objective'}],
+    tiers: modules.ae.tiers, unit: 'Evaluations / yr' },
+  ada: { title:'Agentic Data Analytics', subtitle:'Analytics', color:'indigo', icon:'📈',
+    desc: modules.ada.desc,
+    features: modules.ada.features,
+    metrics: [{label:'Savings Identified',value:'3–7% spend'},{label:'Maverick Spend',value:'-60%'},{label:'Decision Speed',value:'10× faster'}],
+    tiers: modules.ada.tiers, unit: 'Users' },
+  asc: { title:'Agentic Strategy Creation', subtitle:'Strategy', color:'violet', icon:'🧭',
+    desc: modules.asc.desc,
+    features: modules.asc.features,
+    metrics: [{label:'Strategy Coverage',value:'100% categories'},{label:'Refresh Cycle',value:'continuous'},{label:'Time to Strategy',value:'-80%'}],
+    tiers: modules.asc.tiers, unit: 'Categories / yr' },
+  oba: { title:'Order Bundling Agent', subtitle:'Bundling', color:'lime', icon:'🧩',
+    desc: modules.oba.desc,
+    features: modules.oba.features,
+    metrics: [{label:'Spend Consolidated',value:'+45%'},{label:'Negotiation ROI',value:'5–12%'},{label:'PO Reduction',value:'-30%'}],
+    tiers: modules.oba.tiers, unit: 'Orders analyzed / yr' },
+  csa: { title:'Contract Surveillance Agent', subtitle:'Surveillance', color:'red', icon:'🔭',
+    desc: modules.csa.desc,
+    features: modules.csa.features,
+    metrics: [{label:'Leakage Recovered',value:'2–5% spend'},{label:'Renewal Capture',value:'99%'},{label:'Compliance',value:'real-time'}],
+    tiers: modules.csa.tiers, unit: 'Contracts monitored / yr' }
 };
 
 function showModulePage(modKey) {
@@ -3736,7 +3979,7 @@ function hideModulePage() {
 // CALCULATOR
 // ============================
 function calcUpdate() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'];
   let totalSaas = 0;
   let count = 0;
   let lineItems = '';
@@ -4911,7 +5154,7 @@ function openQuoteModal() {
   // Populate additional agents (modules not in the quote)
   const additionalContainer = document.getElementById('quote-additional-agents');
   if (additionalContainer) {
-    const allModKeys = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa'];
+    const allModKeys = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'];
     const selectedKeys = [];
     allModKeys.forEach(m => {
       const cb = document.getElementById('check-' + m);
@@ -4950,7 +5193,7 @@ function closeQuoteModal() {
 function selectBundle(index) {
   const bundle = bundleDefs[index];
   if (!bundle) return;
-  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa'];
+  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'];
   allMods.forEach(m => { document.getElementById('check-' + m).checked = false; });
   bundle.modules.forEach(m => { const cb = document.getElementById('check-' + m); if (cb) cb.checked = true; });
   calcUpdate();
@@ -4965,7 +5208,7 @@ const bundleDefs = [
   { name: 'Intelligence Suite', discount: 6, modules: ['liox','pia','npa'] },
   { name: 'Source to Pay', discount: 8, modules: ['sm','sa','npa','cna'] },
   { name: 'P2P Complete', discount: 10, modules: ['gb2po','ntpo','aa','oc','gr','inv'] },
-  { name: 'Enterprise – Total Procurement AI', discount: 15, modules: ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa'] }
+  { name: 'Enterprise – Total Procurement AI', discount: 15, modules: ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'] }
 ];
 
 function detectBundle(selectedKeys) {
@@ -5226,7 +5469,7 @@ function _tierPriceInCurrency(tier, cur) {
 }
 
 function populateQuotePricing() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'];
   const tbody = document.getElementById('quote-pricing-lines');
   // First pass — collect modules currently in the quote so the per-row module
   // dropdown can hide options that are already in another row (no duplicates).
@@ -5600,7 +5843,7 @@ function resetGlobalDiscount() {
 
 
 function updateQuotePricing() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'];
   const selectedKeys = mods.filter(m => document.getElementById('check-' + m)?.checked);
   const bundle = detectBundle(selectedKeys);
   const bundleApply = document.getElementById('quote-bundle-apply')?.checked && bundle;
@@ -5695,7 +5938,7 @@ function updateQuotePricing() {
 // PDF QUOTE DOWNLOAD
 // ============================
 function generateQuoteData() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'];
   const selectedMods = [];
   let totalSaas = 0;
   let hasSM = false;
@@ -6574,7 +6817,7 @@ function loadQuote(id) {
   if (entry.currency && typeof setCurrency === 'function') setCurrency(entry.currency);
 
   // Select modules in calculator
-  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa'];
+  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'];
   allMods.forEach(m => {
     const cb = document.getElementById('check-' + m);
     if (cb) cb.checked = fs.selectedModules.includes(m);
@@ -6763,7 +7006,7 @@ function lioPhasesEnabled() { return !!document.getElementById('quote-phases-ena
 
 // Snapshot of selected modules + custom positions ready for phase grouping.
 function lioGetActiveSelections() {
-  const STD = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
+  const STD = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'];
   const out = [];
   STD.forEach(k => {
     if (!document.getElementById('check-' + k)?.checked) return;
@@ -7214,12 +7457,12 @@ function lioResetModuleOverride(k) {
 }
 
 // Module-icons map for the per-module editor card headers.
-const _DARK_MOD_ICONS = { gb2po: '🛒', ntpo: '✅', na: '🤝', sa: '🔍', oc: '📋', liox: '🧠', sm: '🏢', aa: '🔐', gr: '📦', inv: '🧾', pia: '📊', npa: '🎯', cna: '📄', aop: '🔧', clm: '📑', sh: '🏗️', ca: '📜', soa: '🪪' };
+const _DARK_MOD_ICONS = { gb2po: '🛒', ntpo: '✅', na: '🤝', sa: '🔍', oc: '📋', liox: '🧠', sm: '🏢', aa: '🔐', gr: '📦', inv: '🧾', pia: '📊', npa: '🎯', cna: '📄', aop: '🔧', clm: '📑', sh: '🏗️', ca: '📜', soa: '🪪', at: '🏛️', ae: '⚖️', ada: '📈', asc: '🧭', oba: '🧩', csa: '🔭' };
 
 function renderModuleOverridesEditorDark() {
   const host = document.getElementById('lio-modedit-host-dark');
   if (!host) return;
-  const STD = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
+  const STD = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'];
   const selectedKeys = STD.filter(k => document.getElementById('check-' + k)?.checked);
   if (selectedKeys.length === 0) {
     host.innerHTML = '<div class="text-[11px] text-slate-500 italic py-2">Pick at least one module in the calculator behind this modal to edit its PDF copy.</div>';
@@ -7815,7 +8058,7 @@ function lioPkgSeedFromStandard() {
   // Replace each package's items with whatever is currently checked in the
   // standard view, using the qf-{mod} price in the active currency as the
   // per-cell price.
-  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
+  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'];
   const includedKeys = std.filter(k => document.getElementById('check-' + k)?.checked && !excludedModules[k]);
   window._packageConfig.packages.forEach((pkg, idx) => {
     pkg.items = {};
@@ -7889,6 +8132,7 @@ function lioRenderPackageView() {
   lioRenderPackageAgentTable();
   lioRenderPackageFooterRows();
   lioRebuildAddAgentDropdown();
+  if (typeof lioPkgRefreshSuiteTargetDropdown === 'function') lioPkgRefreshSuiteTargetDropdown();
 }
 
 // Returns the set of module keys currently included in at least one package,
@@ -7906,7 +8150,7 @@ function lioRenderPackageView() {
 // This eliminates the "× gap in the middle" pattern the user wanted to avoid.
 // Tie-broken by the original std module order so the result is stable.
 function _pkgActiveAgentKeys() {
-  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
+  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'];
   const cfg = window._packageConfig;
   const active = std.filter(k => cfg.packages.some(pkg => pkg.items && pkg.items[k] && pkg.items[k].included));
   function _ladderScore(k) {
@@ -7943,7 +8187,7 @@ function _pkgPackageListTotal(pkg) {
 function lioRebuildAddAgentDropdown() {
   const sel = document.getElementById('pkg-add-agent');
   if (!sel) return;
-  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa'];
+  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'];
   const active = new Set(_pkgActiveAgentKeys());
   const available = std.filter(k => !active.has(k));
   sel.innerHTML = '<option value="">+ Add agent to overview…</option>' +
@@ -7957,6 +8201,95 @@ function lioPkgAddAgent(modKey) {
   const pkg = window._packageConfig.packages[0];
   if (!pkg.items[modKey]) pkg.items[modKey] = { included: true, tierIdx: 0, customLabel: '' };
   else pkg.items[modKey].included = true;
+  lioRenderPackageView();
+}
+
+// ── Suite definitions + Quick-Add ─────────────────────────────────────────
+// Suite keys must match the values in the #pkg-suite-picker dropdown.
+const LIO_SUITES = {
+  p2p:          { name: 'P2P Suite',          agents: ['gb2po','ntpo','aa','oc','gr','inv'] },
+  s2c:          { name: 'S2C Suite',          agents: ['sa','at','ae','na','npa','cna'] },
+  p2s:          { name: 'P2S Suite',          agents: ['ada','asc','oba','csa'] },
+  srm:          { name: 'SRM Suite',          agents: ['sm','soa'] },
+  contract:     { name: 'Contract Management',agents: ['ca','clm'] },
+  intelligence: { name: 'Intelligence & Assistants', agents: ['liox','pia'] }
+};
+
+// Sync the target-package dropdown with the current package set.
+function lioPkgRefreshSuiteTargetDropdown() {
+  const sel = document.getElementById('pkg-suite-target');
+  if (!sel) return;
+  const cfg = window._packageConfig;
+  sel.innerHTML = cfg.packages.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+}
+
+// Apply a suite to ONE selected target package — adds every agent in the
+// suite, included by default at tier 0. Existing items are preserved.
+function lioPkgApplySuite() {
+  // Read the dropdown FIRST so we preserve a user-chosen target. Only fall
+  // back to refreshing + first-package when the dropdown was never populated.
+  const suiteKey = document.getElementById('pkg-suite-picker')?.value;
+  let targetId = document.getElementById('pkg-suite-target')?.value;
+  if (!targetId) {
+    if (typeof lioPkgRefreshSuiteTargetDropdown === 'function') lioPkgRefreshSuiteTargetDropdown();
+    targetId = document.getElementById('pkg-suite-target')?.value;
+  }
+  if (!targetId && window._packageConfig.packages.length > 0) {
+    targetId = window._packageConfig.packages[0].id;
+  }
+  const suite = LIO_SUITES[suiteKey];
+  const pkg = window._packageConfig.packages.find(p => p.id === targetId);
+  if (!suite || !pkg) return;
+  let added = 0;
+  suite.agents.forEach(k => {
+    if (!modules[k]) return;
+    if (!pkg.items[k]) {
+      pkg.items[k] = { included: true, tierIdx: 0, customLabel: '' };
+      added++;
+    } else if (!pkg.items[k].included) {
+      pkg.items[k].included = true;
+      added++;
+    }
+  });
+  const statusEl = document.getElementById('pkg-suite-status');
+  if (statusEl) {
+    statusEl.textContent = '✓ ' + suite.name + ' → ' + pkg.name + ' (' + added + ' agents added)';
+    setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 4000);
+  }
+  lioRenderPackageView();
+}
+
+// Apply suite as a LADDER across all packages — the first package gets the
+// first third of agents, the next gets the first two-thirds, the last gets
+// the full suite. Builds the Basic → Premium → Diamond progression the user
+// wants out of the box.
+function lioPkgApplySuiteBuildUp() {
+  const suiteKey = document.getElementById('pkg-suite-picker')?.value;
+  const suite = LIO_SUITES[suiteKey];
+  const cfg = window._packageConfig;
+  if (!suite || cfg.packages.length === 0) return;
+  const n = cfg.packages.length;
+  const agents = suite.agents.filter(k => !!modules[k]);
+  // Each package i gets the FIRST ceil((i+1)/n * total) agents.
+  let added = 0;
+  cfg.packages.forEach((pkg, idx) => {
+    const sliceLen = Math.max(1, Math.ceil(agents.length * (idx + 1) / n));
+    const subset = agents.slice(0, sliceLen);
+    subset.forEach(k => {
+      if (!pkg.items[k]) {
+        pkg.items[k] = { included: true, tierIdx: 0, customLabel: '' };
+        added++;
+      } else if (!pkg.items[k].included) {
+        pkg.items[k].included = true;
+        added++;
+      }
+    });
+  });
+  const statusEl = document.getElementById('pkg-suite-status');
+  if (statusEl) {
+    statusEl.textContent = '✓ ' + suite.name + ' ladder applied across ' + n + ' packages (' + added + ' total inclusions)';
+    setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 4500);
+  }
   lioRenderPackageView();
 }
 
