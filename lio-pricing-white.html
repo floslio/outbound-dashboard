@@ -371,7 +371,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
       <div class="space-y-1">
         <div class="lio-summary-row"><span>SaaS Subtotal</span><span class="v" id="lio-sum-subtotal">—</span></div>
         <div class="lio-summary-row" id="lio-sum-bundlerow" style="display:none;"><span class="text-emerald-600">Bundle discount</span><span class="v text-emerald-600" id="lio-sum-bundle">—</span></div>
-        <div class="lio-summary-row"><span>Customer Success (10%)</span><span class="v" id="lio-sum-cs">—</span></div>
+        <div class="lio-summary-row"><span>Customer Success & Support (10%)</span><span class="v" id="lio-sum-cs">—</span></div>
         <div class="lio-summary-row"><span>Implementation (15%)</span><span class="v" id="lio-sum-impl">—</span></div>
       </div>
       <div class="lio-summary-divider"></div>
@@ -935,7 +935,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
                 <div class="flex justify-between text-sm"><span class="text-emerald-600" id="c-bundle-name">Bundle: —</span><span class="text-emerald-600" id="c-bundle-savings">-$0</span></div>
                 <div class="flex justify-between text-sm"><span class="text-slate-500">Net SaaS Fee</span><span class="font-semibold text-slate-900" id="c-net-saas">$0</span></div>
               </div>
-              <div class="flex justify-between text-sm"><span class="text-slate-500">Customer Success (10%/yr)</span><span id="c-cs">$0</span></div>
+              <div class="flex justify-between text-sm"><span class="text-slate-500">Customer Success & Support (10%/yr)</span><span id="c-cs">$0</span></div>
             </div>
             <div class="border-t-2 border-slate-300 pt-3">
               <div class="flex justify-between items-center">
@@ -1090,7 +1090,13 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
         </div>
       </div>
       <div class="mt-4">
-        <label class="text-xs text-slate-500 block mb-2">Additional Agents to Showcase (not included in pricing)</label>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs text-slate-500">Additional Agents to Showcase (not included in pricing)</label>
+          <div class="flex items-center gap-1">
+            <button type="button" onclick="toggleAdditionalAgents(true)" class="text-[10px] px-2 py-0.5 rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700">Select all</button>
+            <button type="button" onclick="toggleAdditionalAgents(false)" class="text-[10px] px-2 py-0.5 rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700">Deselect all</button>
+          </div>
+        </div>
         <div class="grid grid-cols-2 gap-2" id="quote-additional-agents">
         </div>
       </div>
@@ -1203,7 +1209,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
             <span class="font-semibold">Hide "Additional Agents to Showcase" section on PDF</span>
           </label>
           <div id="quote-phase-rates" class="mt-3 mb-2 hidden">
-            <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-2">Per-Phase Customer Success & Implementation Rates <span class="normal-case tracking-normal text-slate-500">(empty = use defaults 10% / 15%)</span></div>
+            <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-2">Per-Phase Customer Success & Support / Implementation Rates <span class="normal-case tracking-normal text-slate-500">(empty = use defaults 10% / 15%)</span></div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <div class="flex items-center justify-between gap-2 text-[11px] bg-white border border-slate-200 rounded-lg px-2.5 py-1.5">
                 <span class="text-slate-700 font-semibold">Phase 1</span>
@@ -1305,11 +1311,12 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
                   <option value="fixed">$</option>
                 </select>
               </div>
+              <input type="text" id="quote-impl-text-override" placeholder="e.g. TBD" onchange="updateQuotePricing()" oninput="updateQuotePricing()" title="Optional: replace the amount with custom text on PDF (e.g. TBD)" class="w-16 border border-amber-300 rounded p-1 text-xs text-amber-700 text-right outline-none placeholder:text-slate-400">
               <span id="quote-final-impl" class="w-20 text-right">$0</span>
             </div>
           </div>
           <div class="flex justify-between items-center text-sm mt-1">
-            <span class="text-slate-500">Customer Success (10%/yr)</span>
+            <span class="text-slate-500">Customer Success & Support (10%/yr)</span>
             <div class="flex items-center gap-2">
               <div class="flex items-center gap-1">
                 <input type="number" id="quote-cs-disc" value="0" min="0" step="1" onchange="updateQuotePricing()" oninput="updateQuotePricing()" class="w-12 border border-slate-200 rounded p-1 text-xs text-right outline-none">
@@ -1318,6 +1325,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
                   <option value="fixed">$</option>
                 </select>
               </div>
+              <input type="text" id="quote-cs-text-override" placeholder="e.g. TBD" onchange="updateQuotePricing()" oninput="updateQuotePricing()" title="Optional: replace the amount with custom text on PDF (e.g. TBD)" class="w-16 border border-amber-300 rounded p-1 text-xs text-amber-700 text-right outline-none placeholder:text-slate-400">
               <span id="quote-final-cs" class="w-20 text-right">$0</span>
             </div>
           </div>
@@ -1614,7 +1622,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
         </div>
       </div>
       <div class="card p-8 bg-white">
-        <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2">Customer Success · 10%</div>
+        <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2">Customer Success & Support · 10%</div>
         <h3 class="text-xl font-bold text-slate-900 mb-4">Ongoing Partnership</h3>
         <div class="space-y-2 text-sm text-slate-600">
           <div class="check">Dedicated CSM</div>
@@ -2697,7 +2705,7 @@ function showModule(key) {
       <div><h3 class="font-bold text-slate-900 mb-3">Features</h3><div class="space-y-2">${featsHtml}</div></div>
       <div><h3 class="font-bold text-slate-900 mb-3">Pricing Tiers</h3>
         <table class="w-full"><thead><tr class="border-b border-slate-200"><th class="text-left p-2.5 text-xs text-slate-500 font-medium">${m.unit}</th><th class="text-right p-2.5 text-xs text-slate-500 font-medium">Annual Fee</th></tr></thead><tbody>${tiersHtml}</tbody></table>
-        <div class="mt-3 p-2.5 bg-slate-50 rounded-lg text-xs text-slate-500">+ 15% Implementation + 10% Customer Success</div>
+        <div class="mt-3 p-2.5 bg-slate-50 rounded-lg text-xs text-slate-500">+ 15% Implementation + 10% Customer Success & Support</div>
       </div>
     </div>`;
   document.getElementById('module-overlay').classList.remove('hidden');
@@ -4355,6 +4363,9 @@ function resetGlobalDiscount() {
   updateQuotePricing();
 }
 
+function toggleAdditionalAgents(checked) {
+  document.querySelectorAll('.additional-agent-cb').forEach(cb => { cb.checked = !!checked; });
+}
 
 function updateQuotePricing() {
   const mods = LIO_ALL_MODKEYS.slice();
@@ -4517,22 +4528,26 @@ function generateQuoteData() {
   // Implementation on NET SaaS
   const implDiscVal = parseFloat(document.getElementById('quote-impl-disc')?.value) || 0;
   const implDiscType = document.getElementById('quote-impl-disc-type')?.value || 'pct';
-  let impl = Math.round(finalSaas * 0.15);
+  const implList = Math.round(finalSaas * 0.15);
+  let impl = implList;
   let implDisc = 0;
   if (implDiscVal > 0) {
-    implDisc = implDiscType === 'pct' ? Math.round(Math.round(finalSaas * 0.15) * implDiscVal / 100) : implDiscVal;
-    impl = Math.max(0, Math.round(finalSaas * 0.15) - implDisc);
+    implDisc = implDiscType === 'pct' ? Math.round(implList * implDiscVal / 100) : implDiscVal;
+    impl = Math.max(0, implList - implDisc);
   }
+  const implTextOverride = (document.getElementById('quote-impl-text-override')?.value || '').trim();
 
   // CS on NET SaaS
   const csDiscVal = parseFloat(document.getElementById('quote-cs-disc')?.value) || 0;
   const csDiscType = document.getElementById('quote-cs-disc-type')?.value || 'pct';
-  let cs = Math.round(finalSaas * 0.10);
+  const csList = Math.round(finalSaas * 0.10);
+  let cs = csList;
   let csDisc = 0;
   if (csDiscVal > 0) {
-    csDisc = csDiscType === 'pct' ? Math.round(Math.round(finalSaas * 0.10) * csDiscVal / 100) : csDiscVal;
-    cs = Math.max(0, Math.round(finalSaas * 0.10) - csDisc);
+    csDisc = csDiscType === 'pct' ? Math.round(csList * csDiscVal / 100) : csDiscVal;
+    cs = Math.max(0, csList - csDisc);
   }
+  const csTextOverride = (document.getElementById('quote-cs-text-override')?.value || '').trim();
 
   const recurringAnnual = finalSaas + cs;
   const grand = recurringAnnual + impl;
@@ -4752,10 +4767,10 @@ function generateQuoteData() {
     <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">SaaS Subtotal</td><td style="padding:8px 16px;text-align:right;font-weight:600;">${fmtRaw(totalSaas)}</td></tr>
     ${bundle ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Bundle: ' + bundleName + ' (' + bundlePct + '%)</td><td style="padding:8px 16px;text-align:right;color:#10b981;font-weight:600;">-' + fmtRaw(bundleSavings) + '</td></tr>' : ''}
     <tr style="border-top:1px solid #cbd5e1;border-bottom:1px solid #e5e7eb;background:#f8fafc;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;font-weight:700;" colspan="2">Net SaaS Fee (annual)</td><td style="padding:8px 16px;text-align:right;font-size:13px;font-weight:700;">${fmtRaw(finalSaas)}</td></tr>
-    <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Customer Success (10%/yr)${!hideDiscounts && csDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (csDiscType === 'pct' ? csDiscVal + '%' : fmtRaw(csDisc)) + ' discount</span>' : ''}</td><td style="padding:8px 16px;text-align:right;font-size:12px;">${fmtRaw(cs)}</td></tr>
+    ${csTextOverride ? `<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Customer Success & Support (10%/yr)</td><td style="padding:8px 16px;text-align:right;font-size:12px;font-style:italic;color:#475569;">${csTextOverride}</td></tr>` : (!hideDiscounts && csDisc > 0 ? `<tr><td style="padding:6px 16px;color:#64748b;font-size:11px;" colspan="2">Customer Success & Support (10%/yr) — list</td><td style="padding:6px 16px;text-align:right;font-size:11px;color:#64748b;text-decoration:line-through;">${fmtRaw(csList)}</td></tr><tr><td style="padding:6px 16px;color:#10b981;font-size:11px;font-weight:600;" colspan="2">CS & Support Discount (${csDiscType === 'pct' ? csDiscVal + '%' : fmtRaw(csDisc)})</td><td style="padding:6px 16px;text-align:right;color:#10b981;font-size:12px;font-weight:600;">-${fmtRaw(csDisc)}</td></tr><tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;font-weight:600;" colspan="2">Customer Success & Support (net)</td><td style="padding:8px 16px;text-align:right;font-size:12px;font-weight:600;">${fmtRaw(cs)}</td></tr>` : `<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Customer Success & Support (10%/yr)</td><td style="padding:8px 16px;text-align:right;font-size:12px;">${fmtRaw(cs)}</td></tr>`)}
     <tr style="border-top:2px solid #1e293b;"><td style="padding:14px 16px;font-size:16px;font-weight:800;color:#1e293b;" colspan="2">Recurring Annual (SaaS + CS)</td><td style="padding:14px 16px;text-align:right;font-size:18px;font-weight:800;color:#1e293b;">${fmtRaw(recurringAnnual)}</td></tr>
     <tr><td style="padding:6px 16px;font-size:13px;font-weight:700;color:#1e293b;" colspan="2">Monthly equivalent</td><td style="padding:6px 16px;text-align:right;font-size:13px;font-weight:700;color:#1e293b;">${fmtRaw(monthly)}/mo</td></tr>
-    <tr style="border-top:1px solid #e2e8f0;"><td style="padding:8px 16px;font-size:12px;color:#1e293b;" colspan="2">Implementation Fee (15%) — one-time${!hideDiscounts && implDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (implDiscType === 'pct' ? implDiscVal + '%' : fmtRaw(implDisc)) + ' discount</span>' : ''}</td><td style="padding:8px 16px;text-align:right;font-size:12px;color:#1e293b;">${fmtRaw(impl)}</td></tr>
+    ${implTextOverride ? `<tr style="border-top:1px solid #e2e8f0;"><td style="padding:8px 16px;font-size:12px;color:#1e293b;" colspan="2">Implementation Fee (15%) — one-time</td><td style="padding:8px 16px;text-align:right;font-size:12px;font-style:italic;color:#475569;">${implTextOverride}</td></tr>` : (!hideDiscounts && implDisc > 0 ? `<tr style="border-top:1px solid #e2e8f0;"><td style="padding:6px 16px;font-size:11px;color:#64748b;" colspan="2">Implementation Fee (15%) — list, one-time</td><td style="padding:6px 16px;text-align:right;font-size:11px;color:#64748b;text-decoration:line-through;">${fmtRaw(implList)}</td></tr><tr><td style="padding:6px 16px;font-size:11px;color:#10b981;font-weight:600;" colspan="2">Implementation Discount (${implDiscType === 'pct' ? implDiscVal + '%' : fmtRaw(implDisc)})</td><td style="padding:6px 16px;text-align:right;font-size:12px;color:#10b981;font-weight:600;">-${fmtRaw(implDisc)}</td></tr><tr><td style="padding:8px 16px;font-size:12px;color:#1e293b;font-weight:600;" colspan="2">Implementation Fee (net) — one-time</td><td style="padding:8px 16px;text-align:right;font-size:12px;font-weight:600;color:#1e293b;">${fmtRaw(impl)}</td></tr>` : `<tr style="border-top:1px solid #e2e8f0;"><td style="padding:8px 16px;font-size:12px;color:#1e293b;" colspan="2">Implementation Fee (15%) — one-time</td><td style="padding:8px 16px;text-align:right;font-size:12px;color:#1e293b;">${fmtRaw(impl)}</td></tr>`)}
     <tr style="border-top:1px dashed #e2e8f0;"><td style="padding:8px 16px;font-size:12px;color:#1e293b;" colspan="2">Total First Year (incl. one-time fees)</td><td style="padding:8px 16px;text-align:right;font-size:12px;color:#1e293b;">${fmtRaw(grand)}</td></tr>
   </table>
   </div>
@@ -4765,8 +4780,8 @@ function generateQuoteData() {
   ${advRoiSection}
   ${pricingRefSection}
   ${customNotes ? `<div style="margin-top:28px;page-break-inside:avoid;"><h2 style="font-size:16px;font-weight:700;margin-bottom:10px;">Notes</h2><div style="background:#f8f8f8;border-radius:8px;padding:16px;font-size:12px;line-height:1.7;white-space:pre-wrap;">${customNotes}</div></div>` : ''}
-  ${includeService ? `<div style="background:#f8fafc;border-radius:10px;padding:20px;margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;page-break-inside:avoid;"><div><div style="font-size:11px;font-weight:600;color:#1e293b;text-transform:uppercase;margin-bottom:6px;">Implementation (15%)</div><div style="font-size:11px;color:#1e293b;line-height:1.8;">&#10003; Web Interface & Teams<br>&#10003; ERP & P2P System integration<br>&#10003; System configuration<br>&#10003; Up to 50 punchout catalogs<br>&#10003; Training</div></div><div><div style="font-size:11px;font-weight:600;color:#1e293b;text-transform:uppercase;margin-bottom:6px;">Customer Success (10%)</div><div style="font-size:11px;color:#1e293b;line-height:1.8;">&#10003; Dedicated CSM<br>&#10003; SLA-backed response<br>&#10003; Escalation management<br>&#10003; Monthly strategy sessions</div></div></div>` : ''}
-  ${includeTerms ? `<div style="margin-top:28px;padding:16px;border:1px solid #e2e8f0;border-radius:10px;font-size:11px;color:#1e293b;line-height:1.7;page-break-inside:avoid;"><div style="font-weight:600;color:#1e293b;margin-bottom:6px;">Terms & Conditions</div><div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>Prices are based on annual licensing, with customized terms possible upon mutual agreement.</span></div><div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>This quotation is non-binding and does not constitute a contract. A legally binding agreement shall only come into effect upon execution of a formal Contract Agreement by both parties.</span></div><div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>Implementation and Customer Success fees are calculated as a percentage of the combined annual SaaS fee.</span></div><div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>Minimum contract term: 24 months.</span></div><div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>Prices scale with usage volume. Contact your Account Manager for higher volume tiers.</span></div></div>` : ''}
+  ${includeService ? `<div style="background:#f8fafc;border-radius:10px;padding:20px;margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;page-break-inside:avoid;"><div><div style="font-size:11px;font-weight:600;color:#1e293b;text-transform:uppercase;margin-bottom:6px;">Implementation (15%)</div><div style="font-size:11px;color:#1e293b;line-height:1.8;">&#10003; Web Interface & Teams<br>&#10003; ERP & P2P System integration<br>&#10003; System configuration<br>&#10003; Up to 50 punchout catalogs<br>&#10003; Training</div></div><div><div style="font-size:11px;font-weight:600;color:#1e293b;text-transform:uppercase;margin-bottom:6px;">Customer Success & Support (10%)</div><div style="font-size:11px;color:#1e293b;line-height:1.8;">&#10003; Dedicated CSM<br>&#10003; SLA-backed response<br>&#10003; Escalation management<br>&#10003; Monthly strategy sessions</div></div></div>` : ''}
+  ${includeTerms ? `<div style="margin-top:28px;padding:16px;border:1px solid #e2e8f0;border-radius:10px;font-size:11px;color:#1e293b;line-height:1.7;page-break-inside:avoid;"><div style="font-weight:600;color:#1e293b;margin-bottom:6px;">Terms & Conditions</div><div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>Prices are based on annual licensing, with customized terms possible upon mutual agreement.</span></div><div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>This quotation is non-binding and does not constitute a contract. A legally binding agreement shall only come into effect upon execution of a formal Contract Agreement by both parties.</span></div><div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>Implementation and Customer Success & Support fees are calculated as a percentage of the combined annual SaaS fee.</span></div><div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>Minimum contract term: 24 months.</span></div><div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>Prices scale with usage volume. Contact your Account Manager for higher volume tiers.</span></div></div>` : ''}
   <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:flex-start;"><div><div style="font-size:12px;font-weight:600;">Lio Technologies GmbH</div><div style="font-size:10px;color:#64748b;line-height:1.6;">Munich, Germany<br>VAT ID: DE 364047844<br>Register number: HRB 286659 | Munich<br>Managing directors: Lukas Heinzmann, Vladimir Keil</div></div><div style="text-align:right;"><div style="font-size:12px;font-weight:600;">${lioContact.name}</div><div style="font-size:11px;color:#1e293b;">${lioContact.email}</div></div></div>
   </div></body></html>`;
 
@@ -4816,6 +4831,8 @@ function saveQuoteToHistory(data) {
       exclusiveDiscount: { value: parseFloat(document.getElementById('quote-exc-value')?.value) || 0, type: 'pct' },
       implDisc: { value: parseFloat(document.getElementById('quote-impl-disc')?.value) || 0, type: document.getElementById('quote-impl-disc-type')?.value || 'pct' },
       csDisc: { value: parseFloat(document.getElementById('quote-cs-disc')?.value) || 0, type: document.getElementById('quote-cs-disc-type')?.value || 'pct' },
+      implTextOverride: document.getElementById('quote-impl-text-override')?.value || '',
+      csTextOverride: document.getElementById('quote-cs-text-override')?.value || '',
       discountModes: Object.assign({}, discountMode),
       discountPcts: (() => { const r = {}; selectedMods.forEach(s => { const el = document.getElementById('qd-' + s.key); if (el) r[s.key] = parseFloat(el.value) || 0; }); return r; })(),
       includeDetails: includeDetails,
@@ -5144,6 +5161,8 @@ function loadQuote(id) {
     setVal('quote-impl-disc-type', fs.implDisc?.type || 'pct');
     setVal('quote-cs-disc', fs.csDisc?.value || 0);
     setVal('quote-cs-disc-type', fs.csDisc?.type || 'pct');
+    setVal('quote-impl-text-override', fs.implTextOverride || '');
+    setVal('quote-cs-text-override', fs.csTextOverride || '');
 
     // Custom prices
     Object.entries(fs.customPrices || {}).forEach(([key, price]) => {
@@ -5423,7 +5442,7 @@ function lioBuildPhaseBreakdownContent() {
           '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#475569;" colspan="2">SaaS Subtotal</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(subtotal) + '</td></tr>' +
           bundleRowHtml +
           '<tr style="border-top:1px solid #cbd5e1;border-bottom:1px solid #f1f5f9;background:#f8fafc;"><td style="padding:8px 14px;font-size:11px;color:#1e293b;font-weight:700;" colspan="2">Net SaaS Fee (annual)</td><td style="padding:8px 14px;text-align:right;font-size:13px;color:#1e293b;font-weight:700;">' + fmtRaw(phaseNet) + '</td></tr>' +
-          '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#475569;" colspan="2">Customer Success (' + csPct + '%/yr)</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(cs) + '</td></tr>' +
+          '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#475569;" colspan="2">Customer Success & Support (' + csPct + '%/yr)</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(cs) + '</td></tr>' +
           '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#475569;" colspan="2">Implementation (' + implPct + '%) · one-time</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(impl) + '</td></tr>' +
           '<tr><td style="padding:6px 14px 10px;font-size:11px;color:#475569;font-style:italic;" colspan="2">Monthly equivalent (SaaS + CS)</td><td style="padding:6px 14px 10px;text-align:right;font-size:11px;color:#475569;font-style:italic;">' + fmtRaw(phaseMonthly) + ' /mo</td></tr>' +
           '<tr style="border-top:1.5px solid #1e293b;"><td style="padding:9px 14px;font-size:11px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;" colspan="2">Phase ' + p + ' Total</td><td style="padding:9px 14px;text-align:right;font-size:14px;color:#1e293b;font-weight:800;">' + fmtRaw(phaseTotal) + '</td></tr>' +
@@ -5442,7 +5461,7 @@ function lioBuildPhaseBreakdownContent() {
         '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">SaaS Total</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandSubtotal) + '</td></tr>' +
         (grandBundle > 0 ? '<tr><td style="padding:5px 0;font-size:11px;color:#10b981;font-weight:600;">Bundle (' + (globalBundle ? globalBundle.name : '') + ')</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#10b981;font-weight:600;">-' + fmtRaw(grandBundle) + '</td></tr>' : '') +
         '<tr style="border-top:1px solid #cbd5e1;background:#f8fafc;"><td style="padding:8px 0;font-size:11px;color:#1e293b;font-weight:700;">Net SaaS Fee (annual)</td><td style="padding:8px 0;text-align:right;font-size:13px;color:#1e293b;font-weight:700;">' + fmtRaw(grandNet) + '</td></tr>' +
-        '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">Customer Success</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandCs) + '</td></tr>' +
+        '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">Customer Success & Support</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandCs) + '</td></tr>' +
         '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">Implementation · one-time</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandImpl) + '</td></tr>' +
         '<tr><td style="padding:5px 0 9px;font-size:11px;color:#475569;font-style:italic;">Monthly equivalent (SaaS + CS)</td><td style="padding:5px 0 9px;text-align:right;font-size:11px;color:#475569;font-style:italic;">' + fmtRaw(totalMonthlyAll) + ' /mo</td></tr>' +
         '<tr style="border-top:1px solid #cbd5e1;"><td style="padding:9px 0 4px;font-size:13px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Total</td><td style="padding:9px 0 4px;text-align:right;font-size:17px;color:#1e293b;font-weight:800;">' + fmtRaw(grandTotal) + '</td></tr>' +
@@ -6532,7 +6551,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
     pane.innerHTML =
       '<div class="mb-6">' +
         '<h1 class="text-2xl font-extrabold text-slate-900">Services &amp; fees</h1>' +
-        '<p class="text-sm text-slate-500 mt-1">Implementation and Customer Success scale with the modules you picked. Add bespoke services as custom positions below.</p>' +
+        '<p class="text-sm text-slate-500 mt-1">Implementation and Customer Success & Support scale with the modules you picked. Add bespoke services as custom positions below.</p>' +
       '</div>' +
       '<div class="grid md:grid-cols-2 gap-4 mb-6">' +
         '<div class="lio-card p-5">' +
@@ -6559,7 +6578,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
         '<div class="lio-card p-5">' +
           '<div class="flex items-start justify-between mb-2">' +
             '<div>' +
-              '<div class="font-semibold text-slate-900">Customer Success</div>' +
+              '<div class="font-semibold text-slate-900">Customer Success & Support</div>' +
               '<div class="text-xs text-slate-400 mt-0.5">10% of net SaaS, recurring annually</div>' +
             '</div>' +
             '<span class="lio-pill lio-pill-green">Included</span>' +

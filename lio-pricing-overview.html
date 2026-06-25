@@ -1543,7 +1543,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
                 </div>
               </div>
               <div class="flex justify-between text-sm mt-1">
-                <span class="text-slate-400">Customer Success (10%/yr)</span>
+                <span class="text-slate-400">Customer Success & Support (10%/yr)</span>
                 <span id="calc-cs-fee">$0</span>
               </div>
             </div>
@@ -1746,7 +1746,13 @@ input[type="checkbox"] { accent-color: #6366f1; }
         </div>
       </div>
       <div class="mt-4">
-        <label class="text-xs text-slate-400 block mb-2">Additional Agents to Showcase (not included in pricing)</label>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs text-slate-400">Additional Agents to Showcase (not included in pricing)</label>
+          <div class="flex items-center gap-1">
+            <button type="button" onclick="toggleAdditionalAgents(true)" class="text-[10px] px-2 py-0.5 rounded bg-slate-800/60 hover:bg-slate-700/60 border border-slate-600 text-slate-300">Select all</button>
+            <button type="button" onclick="toggleAdditionalAgents(false)" class="text-[10px] px-2 py-0.5 rounded bg-slate-800/60 hover:bg-slate-700/60 border border-slate-600 text-slate-300">Deselect all</button>
+          </div>
+        </div>
         <div class="grid grid-cols-2 gap-2" id="quote-additional-agents">
         </div>
       </div>
@@ -1849,7 +1855,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
             <span class="font-semibold">Hide "Additional Agents to Showcase" section on PDF</span>
           </label>
           <div id="quote-phase-rates" class="mt-3 mb-2 hidden">
-            <div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-2">Per-Phase Customer Success & Implementation Rates <span class="normal-case tracking-normal text-slate-600">(empty = use defaults 10% / 15%)</span></div>
+            <div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-2">Per-Phase Customer Success & Support / Implementation Rates <span class="normal-case tracking-normal text-slate-600">(empty = use defaults 10% / 15%)</span></div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <div class="flex items-center justify-between gap-2 text-[11px] bg-slate-900/40 border border-slate-700/50 rounded-lg px-2.5 py-1.5">
                 <span class="text-slate-300 font-semibold">Phase 1</span>
@@ -1984,11 +1990,12 @@ input[type="checkbox"] { accent-color: #6366f1; }
                   <option value="fixed">$</option>
                 </select>
               </div>
+              <input type="text" id="quote-impl-text-override" placeholder="e.g. TBD" onchange="updateQuotePricing()" oninput="updateQuotePricing()" title="Optional: replace the amount with custom text on PDF (e.g. TBD)" class="w-16 bg-slate-800/50 border border-amber-700/50 rounded p-1 text-xs text-amber-300 text-right outline-none placeholder:text-slate-600">
               <span id="quote-final-impl" class="w-20 text-right">$0</span>
             </div>
           </div>
           <div class="flex justify-between items-center text-sm mt-1">
-            <span class="text-slate-400">Customer Success (10%/yr)</span>
+            <span class="text-slate-400">Customer Success & Support (10%/yr)</span>
             <div class="flex items-center gap-2">
               <div class="flex items-center gap-1">
                 <input type="number" id="quote-cs-disc" value="0" min="0" step="1" onchange="updateQuotePricing()" oninput="updateQuotePricing()" class="w-12 bg-slate-800/50 border border-slate-600 rounded p-1 text-xs text-white text-right outline-none">
@@ -1997,6 +2004,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
                   <option value="fixed">$</option>
                 </select>
               </div>
+              <input type="text" id="quote-cs-text-override" placeholder="e.g. TBD" onchange="updateQuotePricing()" oninput="updateQuotePricing()" title="Optional: replace the amount with custom text on PDF (e.g. TBD)" class="w-16 bg-slate-800/50 border border-amber-700/50 rounded p-1 text-xs text-amber-300 text-right outline-none placeholder:text-slate-600">
               <span id="quote-final-cs" class="w-20 text-right">$0</span>
             </div>
           </div>
@@ -2113,7 +2121,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
           <div class="flex items-center gap-3 flex-wrap">
             <label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
               <input type="checkbox" id="pkg-show-cs" checked class="w-4 h-4 rounded" onchange="lioRenderPackageView()">
-              <span>Show <strong>Customer Success Fee</strong></span>
+              <span>Show <strong>Customer Success & Support Fee</strong></span>
             </label>
             <span class="text-slate-500 text-xs">at</span>
             <input type="number" id="pkg-cs-pct" value="10" min="0" max="100" step="1" class="w-14 bg-slate-800/50 border border-slate-600 rounded px-2 py-1 text-xs text-white text-right outline-none" onchange="lioRenderPackageView()" oninput="lioRenderPackageView()">
@@ -2542,7 +2550,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
         <p class="text-xs text-slate-500 mt-4">*Additional catalogs at $200/hr. Custom shops scoped individually.</p>
       </div>
       <div class="glass rounded-2xl p-8">
-        <div class="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2">Customer Success · 10% of SaaS</div>
+        <div class="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2">Customer Success & Support · 10% of SaaS</div>
         <h3 class="text-xl font-bold mb-4">Ongoing Partnership</h3>
         <div class="space-y-3 text-sm text-slate-300">
           <div class="check-icon">Dedicated Customer Success Manager</div>
@@ -3959,7 +3967,7 @@ function showModulePage(modKey) {
             <tbody>${tiersHtml}</tbody>
           </table>
           <div class="mt-4 p-3 rounded-lg bg-slate-800/50 text-xs text-slate-500">
-            + 15% Implementation Fee + 10% Customer Success Fee
+            + 15% Implementation Fee + 10% Customer Success & Support Fee
           </div>
         </div>
       </div>
@@ -5841,6 +5849,9 @@ function resetGlobalDiscount() {
   updateQuotePricing();
 }
 
+function toggleAdditionalAgents(checked) {
+  document.querySelectorAll('.additional-agent-cb').forEach(cb => { cb.checked = !!checked; });
+}
 
 function updateQuotePricing() {
   const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa'];
@@ -6035,22 +6046,26 @@ function generateQuoteData() {
   // Implementation on NET SaaS
   const implDiscVal = parseFloat(document.getElementById('quote-impl-disc')?.value) || 0;
   const implDiscType = document.getElementById('quote-impl-disc-type')?.value || 'pct';
-  let impl = Math.round(finalSaas * 0.15);
+  const implList = Math.round(finalSaas * 0.15);
+  let impl = implList;
   let implDisc = 0;
   if (implDiscVal > 0) {
-    implDisc = implDiscType === 'pct' ? Math.round(Math.round(finalSaas * 0.15) * implDiscVal / 100) : implDiscVal;
-    impl = Math.max(0, Math.round(finalSaas * 0.15) - implDisc);
+    implDisc = implDiscType === 'pct' ? Math.round(implList * implDiscVal / 100) : implDiscVal;
+    impl = Math.max(0, implList - implDisc);
   }
+  const implTextOverride = (document.getElementById('quote-impl-text-override')?.value || '').trim();
 
   // CS on NET SaaS
   const csDiscVal = parseFloat(document.getElementById('quote-cs-disc')?.value) || 0;
   const csDiscType = document.getElementById('quote-cs-disc-type')?.value || 'pct';
-  let cs = Math.round(finalSaas * 0.10);
+  const csList = Math.round(finalSaas * 0.10);
+  let cs = csList;
   let csDisc = 0;
   if (csDiscVal > 0) {
-    csDisc = csDiscType === 'pct' ? Math.round(Math.round(finalSaas * 0.10) * csDiscVal / 100) : csDiscVal;
-    cs = Math.max(0, Math.round(finalSaas * 0.10) - csDisc);
+    csDisc = csDiscType === 'pct' ? Math.round(csList * csDiscVal / 100) : csDiscVal;
+    cs = Math.max(0, csList - csDisc);
   }
+  const csTextOverride = (document.getElementById('quote-cs-text-override')?.value || '').trim();
 
   const recurringAnnual = finalSaas + cs;
   const grandTotal = recurringAnnual + impl;
@@ -6338,10 +6353,7 @@ function generateQuoteData() {
       <td style="padding:8px 16px;color:#1e293b;font-size:12px;font-weight:700;" colspan="2">Net SaaS Fee (annual)</td>
       <td style="padding:8px 16px;text-align:right;font-size:13px;font-weight:700;">${fmtRaw(finalSaas)}</td>
     </tr>
-    <tr style="border-bottom:1px solid #e5e7eb;">
-      <td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Customer Success (10%/yr)${!hideDiscounts && csDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (csDiscType === 'pct' ? csDiscVal + '%' : fmtRaw(csDisc)) + ' discount</span>' : ''}</td>
-      <td style="padding:8px 16px;text-align:right;font-size:12px;">${fmtRaw(cs)}</td>
-    </tr>
+    ${csTextOverride ? `<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Customer Success & Support (10%/yr)</td><td style="padding:8px 16px;text-align:right;font-size:12px;font-style:italic;color:#475569;">${csTextOverride}</td></tr>` : (!hideDiscounts && csDisc > 0 ? `<tr><td style="padding:6px 16px;color:#64748b;font-size:11px;" colspan="2">Customer Success & Support (10%/yr) — list</td><td style="padding:6px 16px;text-align:right;font-size:11px;color:#64748b;text-decoration:line-through;">${fmtRaw(csList)}</td></tr><tr><td style="padding:6px 16px;color:#10b981;font-size:11px;font-weight:600;" colspan="2">CS & Support Discount (${csDiscType === 'pct' ? csDiscVal + '%' : fmtRaw(csDisc)})</td><td style="padding:6px 16px;text-align:right;color:#10b981;font-size:12px;font-weight:600;">-${fmtRaw(csDisc)}</td></tr><tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;font-weight:600;" colspan="2">Customer Success & Support (net)</td><td style="padding:8px 16px;text-align:right;font-size:12px;font-weight:600;">${fmtRaw(cs)}</td></tr>` : `<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">Customer Success & Support (10%/yr)</td><td style="padding:8px 16px;text-align:right;font-size:12px;">${fmtRaw(cs)}</td></tr>`)}
     <tr style="border-top:2px solid #1e293b;">
       <td style="padding:14px 16px;font-size:16px;font-weight:800;color:#1e293b;" colspan="2">Recurring Annual (SaaS + CS)</td>
       <td style="padding:14px 16px;text-align:right;font-size:18px;font-weight:800;color:#1e293b;">${fmtRaw(recurringAnnual)}</td>
@@ -6350,10 +6362,7 @@ function generateQuoteData() {
       <td style="padding:6px 16px;font-size:13px;font-weight:700;color:#1e293b;" colspan="2">Monthly equivalent</td>
       <td style="padding:6px 16px;text-align:right;font-size:13px;font-weight:700;color:#1e293b;">${fmtRaw(monthly)}/mo</td>
     </tr>
-    <tr style="border-top:1px solid #e2e8f0;">
-      <td style="padding:8px 16px;font-size:12px;color:#1e293b;" colspan="2">Implementation Fee (15%) — one-time${!hideDiscounts && implDisc > 0 ? ' <span style="font-size:10px;">incl. ' + (implDiscType === 'pct' ? implDiscVal + '%' : fmtRaw(implDisc)) + ' discount</span>' : ''}</td>
-      <td style="padding:8px 16px;text-align:right;font-size:12px;color:#1e293b;">${fmtRaw(impl)}</td>
-    </tr>
+    ${implTextOverride ? `<tr style="border-top:1px solid #e2e8f0;"><td style="padding:8px 16px;font-size:12px;color:#1e293b;" colspan="2">Implementation Fee (15%) — one-time</td><td style="padding:8px 16px;text-align:right;font-size:12px;font-style:italic;color:#475569;">${implTextOverride}</td></tr>` : (!hideDiscounts && implDisc > 0 ? `<tr style="border-top:1px solid #e2e8f0;"><td style="padding:6px 16px;font-size:11px;color:#64748b;" colspan="2">Implementation Fee (15%) — list, one-time</td><td style="padding:6px 16px;text-align:right;font-size:11px;color:#64748b;text-decoration:line-through;">${fmtRaw(implList)}</td></tr><tr><td style="padding:6px 16px;font-size:11px;color:#10b981;font-weight:600;" colspan="2">Implementation Discount (${implDiscType === 'pct' ? implDiscVal + '%' : fmtRaw(implDisc)})</td><td style="padding:6px 16px;text-align:right;font-size:12px;color:#10b981;font-weight:600;">-${fmtRaw(implDisc)}</td></tr><tr><td style="padding:8px 16px;font-size:12px;color:#1e293b;font-weight:600;" colspan="2">Implementation Fee (net) — one-time</td><td style="padding:8px 16px;text-align:right;font-size:12px;font-weight:600;color:#1e293b;">${fmtRaw(impl)}</td></tr>` : `<tr style="border-top:1px solid #e2e8f0;"><td style="padding:8px 16px;font-size:12px;color:#1e293b;" colspan="2">Implementation Fee (15%) — one-time</td><td style="padding:8px 16px;text-align:right;font-size:12px;color:#1e293b;">${fmtRaw(impl)}</td></tr>`)}
     <tr style="border-top:1px dashed #e2e8f0;">
       <td style="padding:8px 16px;font-size:12px;color:#1e293b;" colspan="2">Total First Year (incl. one-time fees)</td>
       <td style="padding:8px 16px;text-align:right;font-size:12px;color:#1e293b;">${fmtRaw(grandTotal)}</td>
@@ -6398,7 +6407,7 @@ function generateQuoteData() {
         </div>
       </div>
       <div>
-        <div style="font-size:12px;font-weight:600;color:#1e293b;text-transform:uppercase;margin-bottom:8px;">Customer Success (10%)</div>
+        <div style="font-size:12px;font-weight:600;color:#1e293b;text-transform:uppercase;margin-bottom:8px;">Customer Success & Support (10%)</div>
         <div style="font-size:12px;color:#1e293b;line-height:1.8;">
           &#10003; Dedicated CSM<br>
           &#10003; SLA-backed response times<br>
@@ -6414,7 +6423,7 @@ function generateQuoteData() {
     <div style="font-weight:600;color:#1e293b;margin-bottom:8px;">Terms & Conditions</div>
     <div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>Prices are based on annual licensing, with customized terms possible upon mutual agreement.</span></div>
     <div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>This quotation is non-binding and does not constitute a contract. A legally binding agreement shall only come into effect upon execution of a formal Contract Agreement by both parties.</span></div>
-    <div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>Implementation and Customer Success fees are calculated as a percentage of the combined annual SaaS fee.</span></div>
+    <div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>Implementation and Customer Success & Support fees are calculated as a percentage of the combined annual SaaS fee.</span></div>
     <div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>Minimum contract term: 24 months.</span></div>
     <div style="display:flex;gap:8px;"><span style="flex-shrink:0;">&bull;</span><span>Prices scale with usage volume. Contact your Account Manager for higher volume tiers.</span></div>
   </div>` : ''}
@@ -6479,6 +6488,8 @@ function saveQuoteToHistory(data) {
       exclusiveDiscount: { value: parseFloat(document.getElementById('quote-exc-value')?.value) || 0, type: 'pct' },
       implDisc: { value: parseFloat(document.getElementById('quote-impl-disc')?.value) || 0, type: document.getElementById('quote-impl-disc-type')?.value || 'pct' },
       csDisc: { value: parseFloat(document.getElementById('quote-cs-disc')?.value) || 0, type: document.getElementById('quote-cs-disc-type')?.value || 'pct' },
+      implTextOverride: document.getElementById('quote-impl-text-override')?.value || '',
+      csTextOverride: document.getElementById('quote-cs-text-override')?.value || '',
       discountModes: Object.assign({}, discountMode),
       discountPcts: (() => { const r = {}; selectedMods.forEach(s => { const el = document.getElementById('qd-' + s.key); if (el) r[s.key] = parseFloat(el.value) || 0; }); return r; })(),
       includeDetails: includeDetails,
@@ -6884,6 +6895,8 @@ function loadQuote(id) {
     setVal('quote-impl-disc-type', fs.implDisc?.type || 'pct');
     setVal('quote-cs-disc', fs.csDisc?.value || 0);
     setVal('quote-cs-disc-type', fs.csDisc?.type || 'pct');
+    setVal('quote-impl-text-override', fs.implTextOverride || '');
+    setVal('quote-cs-text-override', fs.csTextOverride || '');
 
     // Custom prices
     Object.entries(fs.customPrices || {}).forEach(([key, price]) => {
@@ -7148,7 +7161,7 @@ function lioBuildPhaseBreakdownContent() {
           '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#475569;" colspan="2">SaaS Subtotal</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(subtotal) + '</td></tr>' +
           bundleRowHtml +
           '<tr style="border-top:1px solid #cbd5e1;border-bottom:1px solid #f1f5f9;background:#f8fafc;"><td style="padding:8px 14px;font-size:11px;color:#1e293b;font-weight:700;" colspan="2">Net SaaS Fee (annual)</td><td style="padding:8px 14px;text-align:right;font-size:13px;color:#1e293b;font-weight:700;">' + fmtRaw(phaseNet) + '</td></tr>' +
-          '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#475569;" colspan="2">Customer Success (' + csPct + '%/yr)</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(cs) + '</td></tr>' +
+          '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#475569;" colspan="2">Customer Success & Support (' + csPct + '%/yr)</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(cs) + '</td></tr>' +
           '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px 14px;font-size:11px;color:#475569;" colspan="2">Implementation (' + implPct + '%) · one-time</td><td style="padding:6px 14px;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(impl) + '</td></tr>' +
           '<tr><td style="padding:6px 14px 10px;font-size:11px;color:#475569;font-style:italic;" colspan="2">Monthly equivalent (SaaS + CS)</td><td style="padding:6px 14px 10px;text-align:right;font-size:11px;color:#475569;font-style:italic;">' + fmtRaw(phaseMonthly) + ' /mo</td></tr>' +
           '<tr style="border-top:1.5px solid #1e293b;"><td style="padding:9px 14px;font-size:11px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;" colspan="2">Phase ' + p + ' Total</td><td style="padding:9px 14px;text-align:right;font-size:14px;color:#1e293b;font-weight:800;">' + fmtRaw(phaseTotal) + '</td></tr>' +
@@ -7167,7 +7180,7 @@ function lioBuildPhaseBreakdownContent() {
         '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">SaaS Total</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandSubtotal) + '</td></tr>' +
         (grandBundle > 0 ? '<tr><td style="padding:5px 0;font-size:11px;color:#10b981;font-weight:600;">Bundle (' + (globalBundle ? globalBundle.name : '') + ')</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#10b981;font-weight:600;">-' + fmtRaw(grandBundle) + '</td></tr>' : '') +
         '<tr style="border-top:1px solid #cbd5e1;background:#f8fafc;"><td style="padding:8px 0;font-size:11px;color:#1e293b;font-weight:700;">Net SaaS Fee (annual)</td><td style="padding:8px 0;text-align:right;font-size:13px;color:#1e293b;font-weight:700;">' + fmtRaw(grandNet) + '</td></tr>' +
-        '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">Customer Success</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandCs) + '</td></tr>' +
+        '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">Customer Success & Support</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandCs) + '</td></tr>' +
         '<tr><td style="padding:5px 0;font-size:11px;color:#475569;">Implementation · one-time</td><td style="padding:5px 0;text-align:right;font-size:12px;color:#1e293b;font-weight:500;">' + fmtRaw(grandImpl) + '</td></tr>' +
         '<tr><td style="padding:5px 0 9px;font-size:11px;color:#475569;font-style:italic;">Monthly equivalent (SaaS + CS)</td><td style="padding:5px 0 9px;text-align:right;font-size:11px;color:#475569;font-style:italic;">' + fmtRaw(totalMonthlyAll) + ' /mo</td></tr>' +
         '<tr style="border-top:1px solid #cbd5e1;"><td style="padding:9px 0 4px;font-size:13px;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Total</td><td style="padding:9px 0 4px;text-align:right;font-size:17px;color:#1e293b;font-weight:800;">' + fmtRaw(grandTotal) + '</td></tr>' +
@@ -8396,7 +8409,7 @@ function _pkgCardHtmlC(pkg) {
         ${discountLineHtml}
         <div class="flex justify-between"><span class="text-slate-400 text-xs">SaaS subscription / yr</span><span class="font-semibold text-white text-xs">${fmtRaw(annualForBreakdown)}</span></div>
         ${cfg.showImpl ? `<div class="flex justify-between"><span class="text-slate-500 text-[11px]">Implementation (${cfg.implPct}% one-time)</span><span class="text-slate-300 text-[11px]">${fmtRaw(impl)}</span></div>` : ''}
-        ${cfg.showCs   ? `<div class="flex justify-between"><span class="text-slate-500 text-[11px]">Customer Success (${cfg.csPct}% / yr)</span><span class="text-slate-300 text-[11px]">${fmtRaw(cs)}</span></div>` : ''}
+        ${cfg.showCs   ? `<div class="flex justify-between"><span class="text-slate-500 text-[11px]">Customer Success & Support (${cfg.csPct}% / yr)</span><span class="text-slate-300 text-[11px]">${fmtRaw(cs)}</span></div>` : ''}
         <div class="pkg-dashed-divider my-1.5"></div>
         <div class="flex items-baseline justify-between"><span class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Total Year 1</span><span class="text-xl font-bold ${pkg.isBest ? 'pkg-gradient-text' : 'text-white'}">${fmtRaw(yr1Total)}</span></div>
       </div>
@@ -8614,7 +8627,7 @@ function lioRenderPackageFooterRows() {
     });
   }
   if (cfg.showCs) {
-    html += `<div class="p-3 bg-lio-600/10 border-t border-slate-700/40 flex items-center text-xs text-lio-200 font-semibold">Customer Success Fee <span class="ml-2 text-[10px] text-slate-400 font-normal">(${cfg.csPct}% / year)</span></div>`;
+    html += `<div class="p-3 bg-lio-600/10 border-t border-slate-700/40 flex items-center text-xs text-lio-200 font-semibold">Customer Success & Support Fee <span class="ml-2 text-[10px] text-slate-400 font-normal">(${cfg.csPct}% / year)</span></div>`;
     cfg.packages.forEach(pkg => {
       const annualBase = cfg.yearMode ? _pkgPackageTotal(pkg, 'yr1') : _pkgPackageTotal(pkg, null);
       const cs = Math.round(annualBase * (cfg.csPct/100));
@@ -8817,7 +8830,7 @@ function lioBuildPackageOverviewHtml(quoteData, opts) {
       ${discountRowsHtml}
       <tr><td style="padding:1px 0;color:#64748b;">SaaS subscription / yr</td><td style="padding:1px 0;text-align:right;font-weight:700;">${fmtRaw(ab)}</td></tr>
       ${cfg.showImpl ? `<tr><td style="padding:1px 0;color:#94a3b8;font-size:${veryDense ? 9 : 9.5}px;">Implementation (${cfg.implPct}% one-time)</td><td style="padding:1px 0;text-align:right;color:#475569;font-size:${veryDense ? 9 : 9.5}px;">${fmtRaw(impl)}</td></tr>` : ''}
-      ${cfg.showCs   ? `<tr><td style="padding:1px 0;color:#94a3b8;font-size:${veryDense ? 9 : 9.5}px;">Customer Success (${cfg.csPct}% / yr)</td><td style="padding:1px 0;text-align:right;color:#475569;font-size:${veryDense ? 9 : 9.5}px;">${fmtRaw(cs)}</td></tr>` : ''}
+      ${cfg.showCs   ? `<tr><td style="padding:1px 0;color:#94a3b8;font-size:${veryDense ? 9 : 9.5}px;">Customer Success & Support (${cfg.csPct}% / yr)</td><td style="padding:1px 0;text-align:right;color:#475569;font-size:${veryDense ? 9 : 9.5}px;">${fmtRaw(cs)}</td></tr>` : ''}
     </table>`;
     return `<td style="${bestCellBg}padding:${cardPad};vertical-align:top;border-bottom:1px solid #e2e8f0;">
       <table style="width:100%;border-collapse:collapse;margin-bottom:4px;">
@@ -8913,7 +8926,7 @@ function lioBuildPackageOverviewHtml(quoteData, opts) {
   }
   if (cfg.showCs) {
     const label = `
-      <div style="font-size:${agentNameFs}px;font-weight:700;color:#4338ca;line-height:1.2;">Customer Success fee</div>
+      <div style="font-size:${agentNameFs}px;font-weight:700;color:#4338ca;line-height:1.2;">Customer Success & Support fee</div>
       <div style="font-size:${tierFs}px;color:#6366f1;font-weight:500;line-height:1.2;">${cfg.csPct}% / year</div>`;
     footerRowsTr += _feeRow(label, (pkg) => {
       const ab = cfg.yearMode ? _pkgPackageTotal(pkg, 'yr1') : _pkgPackageTotal(pkg, null);
@@ -9050,7 +9063,7 @@ function _pkgPdfCardC(pkg) {
     <div style="font-size:11px;color:#1e293b;">
       <div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#64748b;">SaaS subscription / yr</span><span style="font-weight:700;">${fmtRaw(ab)}</span></div>
       ${cfg.showImpl ? `<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#94a3b8;font-size:10px;">Implementation (${cfg.implPct}% one-time)</span><span style="color:#475569;font-size:10px;">${fmtRaw(impl)}</span></div>` : ''}
-      ${cfg.showCs   ? `<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#94a3b8;font-size:10px;">Customer Success (${cfg.csPct}% / yr)</span><span style="color:#475569;font-size:10px;">${fmtRaw(cs)}</span></div>` : ''}
+      ${cfg.showCs   ? `<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#94a3b8;font-size:10px;">Customer Success & Support (${cfg.csPct}% / yr)</span><span style="color:#475569;font-size:10px;">${fmtRaw(cs)}</span></div>` : ''}
       <div class="pkg-dashed-divider" style="margin:8px 0;"></div>
       <div style="display:flex;justify-content:space-between;align-items:baseline;">
         <span style="font-size:9px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Total Year 1</span>
