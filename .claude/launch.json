@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "pricing", "runtimeExecutable": "python3", "runtimeArgs": ["-m", "http.server", "8104", "--directory", "/Users/florianwanzeck/Documents/Claude Cowork/Claude Code"], "port": 8104, "autoPort": true }
+  ]
+}

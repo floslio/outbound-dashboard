@@ -1533,6 +1533,206 @@ input[type="checkbox"] { accent-color: #6366f1; }
           </div>
         </div>
 
+        <!-- PR Review Agent -->
+        <div class="glass rounded-xl p-5 transition-all duration-300" id="calc-pra">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="check-pra" class="w-5 h-5 rounded" onchange="calcUpdate()">
+              <label for="check-pra" class="font-semibold cursor-pointer">📝 PR Review Agent</label>
+            </div>
+            <span class="text-sm text-sky-400 font-semibold" id="calc-pra-price">$0</span>
+          </div>
+          <div class="ml-8 hidden" id="calc-pra-opts">
+            <label class="text-xs text-slate-500">Purchase Requisitions / yr</label>
+            <select id="calc-pra-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="29000">Up to 5,000 — $29,000/yr</option>
+              <option value="58000">Up to 25,000 — $58,000/yr</option>
+              <option value="287000">Up to 100,000 — $287,000/yr</option>
+              <option value="431000">Up to 250,000 — $431,000/yr</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tracking Agent -->
+        <div class="glass rounded-xl p-5 transition-all duration-300" id="calc-ta">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="check-ta" class="w-5 h-5 rounded" onchange="calcUpdate()">
+              <label for="check-ta" class="font-semibold cursor-pointer">🚚 Tracking Agent</label>
+            </div>
+            <span class="text-sm text-teal-400 font-semibold" id="calc-ta-price">$0</span>
+          </div>
+          <div class="ml-8 hidden" id="calc-ta-opts">
+            <label class="text-xs text-slate-500">Tracked orders / yr</label>
+            <select id="calc-ta-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="14000">Up to 5,000 — $14,000/yr</option>
+              <option value="29000">Up to 25,000 — $29,000/yr</option>
+              <option value="115000">Up to 100,000 — $115,000/yr</option>
+              <option value="172000">Up to 250,000 — $172,000/yr</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- BPO Agent -->
+        <div class="glass rounded-xl p-5 transition-all duration-300" id="calc-bpo">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="check-bpo" class="w-5 h-5 rounded" onchange="calcUpdate()">
+              <label for="check-bpo" class="font-semibold cursor-pointer">🏭 BPO Agent</label>
+            </div>
+            <span class="text-sm text-orange-400 font-semibold" id="calc-bpo-price">$0</span>
+          </div>
+          <div class="ml-8 hidden" id="calc-bpo-opts">
+            <label class="text-xs text-slate-500">BPO partners connected</label>
+            <select id="calc-bpo-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="29000">Up to 5 — $29,000/yr</option>
+              <option value="58000">Up to 15 — $58,000/yr</option>
+              <option value="172000">Up to 30 — $172,000/yr</option>
+              <option value="259000">Up to 50 — $259,000/yr</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tailspend Sourcing Agent -->
+        <div class="glass rounded-xl p-5 transition-all duration-300" id="calc-tsa">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="check-tsa" class="w-5 h-5 rounded" onchange="calcUpdate()">
+              <label for="check-tsa" class="font-semibold cursor-pointer">🎣 Tailspend Sourcing Agent</label>
+            </div>
+            <span class="text-sm text-emerald-400 font-semibold" id="calc-tsa-price">$0</span>
+          </div>
+          <div class="ml-8 hidden" id="calc-tsa-opts">
+            <label class="text-xs text-slate-500">Tailspend events / yr</label>
+            <select id="calc-tsa-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="11500">Up to 1,000 — $11,500/yr</option>
+              <option value="23000">Up to 5,000 — $23,000/yr</option>
+              <option value="115000">Up to 25,000 — $115,000/yr</option>
+              <option value="172000">Up to 100,000 — $172,000/yr</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tailspend Negotiation Agent -->
+        <div class="glass rounded-xl p-5 transition-all duration-300" id="calc-tna">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="check-tna" class="w-5 h-5 rounded" onchange="calcUpdate()">
+              <label for="check-tna" class="font-semibold cursor-pointer">💬 Tailspend Negotiation Agent</label>
+            </div>
+            <span class="text-sm text-pink-400 font-semibold" id="calc-tna-price">$0</span>
+          </div>
+          <div class="ml-8 hidden" id="calc-tna-opts">
+            <label class="text-xs text-slate-500">Negotiations / yr</label>
+            <select id="calc-tna-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="23000">Up to 500 — $23,000/yr</option>
+              <option value="46000">Up to 2,500 — $46,000/yr</option>
+              <option value="172000">Up to 10,000 — $172,000/yr</option>
+              <option value="259000">Up to 50,000 — $259,000/yr</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- RfX Creation Agent -->
+        <div class="glass rounded-xl p-5 transition-all duration-300" id="calc-rfx">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="check-rfx" class="w-5 h-5 rounded" onchange="calcUpdate()">
+              <label for="check-rfx" class="font-semibold cursor-pointer">📮 RfX Creation Agent</label>
+            </div>
+            <span class="text-sm text-blue-400 font-semibold" id="calc-rfx-price">$0</span>
+          </div>
+          <div class="ml-8 hidden" id="calc-rfx-opts">
+            <label class="text-xs text-slate-500">RfX events / yr</label>
+            <select id="calc-rfx-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="23000">Up to 50 — $23,000/yr</option>
+              <option value="46000">Up to 250 — $46,000/yr</option>
+              <option value="115000">Up to 1,000 — $115,000/yr</option>
+              <option value="172000">Up to 5,000 — $172,000/yr</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Supplier Selection Agent -->
+        <div class="glass rounded-xl p-5 transition-all duration-300" id="calc-ssa">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="check-ssa" class="w-5 h-5 rounded" onchange="calcUpdate()">
+              <label for="check-ssa" class="font-semibold cursor-pointer">🏆 Supplier Selection Agent</label>
+            </div>
+            <span class="text-sm text-yellow-400 font-semibold" id="calc-ssa-price">$0</span>
+          </div>
+          <div class="ml-8 hidden" id="calc-ssa-opts">
+            <label class="text-xs text-slate-500">Selections / yr</label>
+            <select id="calc-ssa-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="34500">Up to 50 — $34,500/yr</option>
+              <option value="69000">Up to 250 — $69,000/yr</option>
+              <option value="172000">Up to 1,000 — $172,000/yr</option>
+              <option value="259000">Up to 5,000 — $259,000/yr</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Scenario Building Agent -->
+        <div class="glass rounded-xl p-5 transition-all duration-300" id="calc-sbg">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="check-sbg" class="w-5 h-5 rounded" onchange="calcUpdate()">
+              <label for="check-sbg" class="font-semibold cursor-pointer">🎬 Scenario Building Agent</label>
+            </div>
+            <span class="text-sm text-purple-400 font-semibold" id="calc-sbg-price">$0</span>
+          </div>
+          <div class="ml-8 hidden" id="calc-sbg-opts">
+            <label class="text-xs text-slate-500">Scenarios / yr</label>
+            <select id="calc-sbg-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="23000">Up to 100 — $23,000/yr</option>
+              <option value="46000">Up to 500 — $46,000/yr</option>
+              <option value="115000">Up to 2,000 — $115,000/yr</option>
+              <option value="172000">Up to 10,000 — $172,000/yr</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Spend-to-Contract Agent -->
+        <div class="glass rounded-xl p-5 transition-all duration-300" id="calc-stc">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="check-stc" class="w-5 h-5 rounded" onchange="calcUpdate()">
+              <label for="check-stc" class="font-semibold cursor-pointer">🔗 Spend-to-Contract Agent</label>
+            </div>
+            <span class="text-sm text-fuchsia-400 font-semibold" id="calc-stc-price">$0</span>
+          </div>
+          <div class="ml-8 hidden" id="calc-stc-opts">
+            <label class="text-xs text-slate-500">Analyzed spend / yr</label>
+            <select id="calc-stc-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="29000">Up to €50M — $29,000/yr</option>
+              <option value="58000">Up to €200M — $58,000/yr</option>
+              <option value="144000">Up to €500M — $144,000/yr</option>
+              <option value="218000">Up to €1.5B — $218,000/yr</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Agent Builder & Agentic Forms -->
+        <div class="glass rounded-xl p-5 transition-all duration-300" id="calc-abf">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="check-abf" class="w-5 h-5 rounded" onchange="calcUpdate()">
+              <label for="check-abf" class="font-semibold cursor-pointer">🛠️ Agent Builder & Agentic Forms</label>
+            </div>
+            <span class="text-sm text-indigo-400 font-semibold" id="calc-abf-price">$0</span>
+          </div>
+          <div class="ml-8 hidden" id="calc-abf-opts">
+            <label class="text-xs text-slate-500">Users</label>
+            <select id="calc-abf-tier" class="w-full mt-1 bg-dark-700 border border-slate-700 rounded-lg p-2 text-sm" onchange="calcUpdate()">
+              <option value="57000">Up to 25 — $57,000/yr</option>
+              <option value="115000">Up to 100 — $115,000/yr</option>
+              <option value="287000">Up to 500 — $287,000/yr</option>
+              <option value="431000">Up to 2,500 — $431,000/yr</option>
+            </select>
+          </div>
+        </div>
+
       </div>
 
       <!-- Right: Pricing Summary -->
@@ -3395,6 +3595,116 @@ const modules = {
       { vol: 'Up to €1.5B', price: 103000, eur: 90000, gbp: 78000 }
     ],
     unit: 'Annual spend analyzed'
+  },
+  pra: { name: 'PR Review Agent', color: 'sky', icon: '📝',
+    desc: 'Reviews purchase requisitions automatically — validates data quality, flags policy violations, and routes to the right approver. Turns manual PR triage into an intelligent, auditable flow.',
+    features: ['Automatic PR data validation','Policy compliance checks','Smart approver routing','Duplicate detection','Audit trail','ERP-native integration'],
+    tiers: [
+      { vol: 'Up to 5,000 PRs', price: 29000, eur: 25000, gbp: 21000 },
+      { vol: 'Up to 25,000', price: 58000, eur: 50000, gbp: 42500 },
+      { vol: 'Up to 100,000', price: 287000, eur: 250000, gbp: 212500 },
+      { vol: 'Up to 250,000', price: 431000, eur: 375000, gbp: 319000 }
+    ],
+    unit: 'Purchase Requisitions / yr'
+  },
+  ta: { name: 'Tracking Agent', color: 'teal', icon: '🚚',
+    desc: 'Tracks purchase orders end-to-end — proactively surfaces delays, discrepancies and expected delivery dates by talking to suppliers and consulting shipment data. Reduces expediting overhead and stock-out risk.',
+    features: ['End-to-end PO tracking','Proactive delay detection','Automated supplier inquiries','ETA prediction','Escalation workflows','Dashboard visibility'],
+    tiers: [
+      { vol: 'Up to 5,000 orders', price: 14000, eur: 12500, gbp: 10500 },
+      { vol: 'Up to 25,000', price: 29000, eur: 25000, gbp: 21000 },
+      { vol: 'Up to 100,000', price: 115000, eur: 100000, gbp: 85000 },
+      { vol: 'Up to 250,000', price: 172000, eur: 150000, gbp: 127500 }
+    ],
+    unit: 'Tracked orders / yr'
+  },
+  bpo: { name: 'BPO Agent', color: 'orange', icon: '🏭',
+    desc: 'Business Process Outsourcing companion — connects Lio agents to external service providers and standard-operating-procedures. Enables BPO partners to work inside the Lio ecosystem without breaking process ownership.',
+    features: ['BPO partner enablement','Standard operating procedures','Multi-tenant workflow','Vendor accountability tracking','Audit-ready logs','Configurable SLAs'],
+    tiers: [
+      { vol: 'Up to 5 BPO partners', price: 29000, eur: 25000, gbp: 21000 },
+      { vol: 'Up to 15', price: 58000, eur: 50000, gbp: 42500 },
+      { vol: 'Up to 30', price: 172000, eur: 150000, gbp: 127500 },
+      { vol: 'Up to 50', price: 259000, eur: 225000, gbp: 191000 }
+    ],
+    unit: 'BPO partners connected'
+  },
+  tsa: { name: 'Tailspend Sourcing Agent', color: 'emerald', icon: '🎣',
+    desc: 'Automates sourcing for the long tail of low-value, high-volume purchases. Finds suppliers, requests offers and consolidates fragmented tail spend into structured procurement — without manual buyer effort.',
+    features: ['Auto-supplier discovery','Automated RFQ dispatch','Tailspend consolidation','Buyer-free workflow','Compliance guardrails','Ongoing tail monitoring'],
+    tiers: [
+      { vol: 'Up to 1,000 events', price: 11500, eur: 10000, gbp: 8500 },
+      { vol: 'Up to 5,000', price: 23000, eur: 20000, gbp: 17000 },
+      { vol: 'Up to 25,000', price: 115000, eur: 100000, gbp: 85000 },
+      { vol: 'Up to 100,000', price: 172000, eur: 150000, gbp: 127500 }
+    ],
+    unit: 'Tailspend events / yr'
+  },
+  tna: { name: 'Tailspend Negotiation Agent', color: 'pink', icon: '💬',
+    desc: 'Autonomously negotiates prices and terms for tail-spend suppliers at scale — turning micro-negotiations that were never touched into a systematic savings stream. Runs 24/7 without human intervention.',
+    features: ['Autonomous negotiation dialogs','Micro-savings at scale','Supplier response tracking','Configurable negotiation strategies','Human handoff for high-value','ROI reporting'],
+    tiers: [
+      { vol: 'Up to 500 negotiations', price: 23000, eur: 20000, gbp: 17000 },
+      { vol: 'Up to 2,500', price: 46000, eur: 40000, gbp: 34000 },
+      { vol: 'Up to 10,000', price: 172000, eur: 150000, gbp: 127500 },
+      { vol: 'Up to 50,000', price: 259000, eur: 225000, gbp: 191000 }
+    ],
+    unit: 'Negotiations / yr'
+  },
+  rfx: { name: 'RfX Creation Agent', color: 'blue', icon: '📮',
+    desc: 'Generates RfI/RfP/RfQ packages from a short brief. Drafts scope, evaluation criteria, timelines and supplier questions — cutting the time from need to launched RfX from weeks to hours.',
+    features: ['Auto-generated RfX packages','Evaluation criteria drafting','Supplier question banks','Timeline planning','Multi-format export (Word/PDF/portal)','Template library'],
+    tiers: [
+      { vol: 'Up to 50 RfX / yr', price: 23000, eur: 20000, gbp: 17000 },
+      { vol: 'Up to 250', price: 46000, eur: 40000, gbp: 34000 },
+      { vol: 'Up to 1,000', price: 115000, eur: 100000, gbp: 85000 },
+      { vol: 'Up to 5,000', price: 172000, eur: 150000, gbp: 127500 }
+    ],
+    unit: 'RfX events / yr'
+  },
+  ssa: { name: 'Supplier Selection Agent', color: 'yellow', icon: '🏆',
+    desc: 'Ranks offers, scenarios and shortlist candidates — scores suppliers against weighted criteria, surfaces trade-offs, and recommends a preferred supplier with defensible reasoning.',
+    features: ['Multi-criteria scoring','Weighted decision matrix','Trade-off visualization','Recommendation rationale','Committee-ready reports','Bias detection'],
+    tiers: [
+      { vol: 'Up to 50 selections', price: 34500, eur: 30000, gbp: 25500 },
+      { vol: 'Up to 250', price: 69000, eur: 60000, gbp: 51000 },
+      { vol: 'Up to 1,000', price: 172000, eur: 150000, gbp: 127500 },
+      { vol: 'Up to 5,000', price: 259000, eur: 225000, gbp: 191000 }
+    ],
+    unit: 'Selections / yr'
+  },
+  sbg: { name: 'Scenario Building Agent', color: 'purple', icon: '🎬',
+    desc: 'Builds what-if scenarios across pricing, volume, supplier mix and terms. Lets buyers stress-test outcomes before locking in a deal, and surfaces the best-defensible option under uncertainty.',
+    features: ['What-if scenario modeling','Cost/risk trade-off simulation','Supplier mix optimization','Sensitivity analysis','Executive-ready visuals','Scenario library'],
+    tiers: [
+      { vol: 'Up to 100 scenarios', price: 23000, eur: 20000, gbp: 17000 },
+      { vol: 'Up to 500', price: 46000, eur: 40000, gbp: 34000 },
+      { vol: 'Up to 2,000', price: 115000, eur: 100000, gbp: 85000 },
+      { vol: 'Up to 10,000', price: 172000, eur: 150000, gbp: 127500 }
+    ],
+    unit: 'Scenarios / yr'
+  },
+  stc: { name: 'Spend-to-Contract Agent', color: 'fuchsia', icon: '🔗',
+    desc: 'Connects spend data directly to sourcing pipelines — identifies uncovered spend, prioritizes what to contract next, and drafts the sourcing brief. Closes the loop between analytics and executable procurement action.',
+    features: ['Uncovered-spend detection','Sourcing pipeline prioritization','Auto-drafted sourcing briefs','Contract-coverage tracking','KPI-linked outcomes','Cross-agent handoff'],
+    tiers: [
+      { vol: 'Up to €50M spend', price: 29000, eur: 25000, gbp: 21000 },
+      { vol: 'Up to €200M', price: 58000, eur: 50000, gbp: 42500 },
+      { vol: 'Up to €500M', price: 144000, eur: 125000, gbp: 106000 },
+      { vol: 'Up to €1.5B', price: 218000, eur: 190000, gbp: 161000 }
+    ],
+    unit: 'Analyzed spend / yr'
+  },
+  abf: { name: 'Agent Builder & Agentic Forms', color: 'indigo', icon: '🛠️',
+    desc: 'Low-code toolkit to build custom Lio agents and interactive procurement forms. Turns bespoke process needs into deployable agents without heavy engineering — governed inside the Lio platform.',
+    features: ['Low-code agent authoring','Interactive form designer','Reusable skill library','Deployment governance','Version control','Testing sandbox'],
+    tiers: [
+      { vol: 'Up to 25 users', price: 57000, eur: 50000, gbp: 42500 },
+      { vol: 'Up to 100', price: 115000, eur: 100000, gbp: 85000 },
+      { vol: 'Up to 500', price: 287000, eur: 250000, gbp: 212500 },
+      { vol: 'Up to 2,500', price: 431000, eur: 375000, gbp: 319000 }
+    ],
+    unit: 'Users'
   }
 };
 
@@ -3965,7 +4275,47 @@ const moduleDetails = {
     desc: modules.sba.desc,
     features: modules.sba.features,
     metrics: [{label:'Bundling Potential',value:'8–15% spend'},{label:'Maverick Reduction',value:'-70%'},{label:'Supplier Consolidation',value:'-30%'}],
-    tiers: modules.sba.tiers, unit: 'Annual spend analyzed' }
+    tiers: modules.sba.tiers, unit: 'Annual spend analyzed' },
+  pra: { title:'PR Review Agent', subtitle:'PR Triage', color:'sky', icon:'📝',
+    desc: modules.pra.desc, features: modules.pra.features,
+    metrics: [{label:'PR Cycle Time',value:'-70%'},{label:'Policy Compliance',value:'99%'},{label:'Duplicate PRs',value:'-90%'}],
+    tiers: modules.pra.tiers, unit: 'Purchase Requisitions / yr' },
+  ta: { title:'Tracking Agent', subtitle:'Order Tracking', color:'teal', icon:'🚚',
+    desc: modules.ta.desc, features: modules.ta.features,
+    metrics: [{label:'Expediting Effort',value:'-60%'},{label:'On-time Rate',value:'+25%'},{label:'Stock-out Risk',value:'-40%'}],
+    tiers: modules.ta.tiers, unit: 'Tracked orders / yr' },
+  bpo: { title:'BPO Agent', subtitle:'BPO Enablement', color:'orange', icon:'🏭',
+    desc: modules.bpo.desc, features: modules.bpo.features,
+    metrics: [{label:'BPO Onboarding',value:'-50%'},{label:'Process Consistency',value:'99%'},{label:'Vendor Ownership',value:'100% audit'}],
+    tiers: modules.bpo.tiers, unit: 'BPO partners connected' },
+  tsa: { title:'Tailspend Sourcing Agent', subtitle:'Tail Sourcing', color:'emerald', icon:'🎣',
+    desc: modules.tsa.desc, features: modules.tsa.features,
+    metrics: [{label:'Tail Coverage',value:'+80%'},{label:'Sourcing Cost',value:'-90%'},{label:'Savings',value:'5–12%'}],
+    tiers: modules.tsa.tiers, unit: 'Tailspend events / yr' },
+  tna: { title:'Tailspend Negotiation Agent', subtitle:'Tail Negotiation', color:'pink', icon:'💬',
+    desc: modules.tna.desc, features: modules.tna.features,
+    metrics: [{label:'Coverage',value:'24/7'},{label:'Avg. Savings',value:'3–7%'},{label:'Buyer Effort',value:'~zero'}],
+    tiers: modules.tna.tiers, unit: 'Negotiations / yr' },
+  rfx: { title:'RfX Creation Agent', subtitle:'RfX Drafting', color:'blue', icon:'📮',
+    desc: modules.rfx.desc, features: modules.rfx.features,
+    metrics: [{label:'Time-to-launch',value:'-85%'},{label:'Template Reuse',value:'90%'},{label:'Quality Consistency',value:'high'}],
+    tiers: modules.rfx.tiers, unit: 'RfX events / yr' },
+  ssa: { title:'Supplier Selection Agent', subtitle:'Selection & Ranking', color:'yellow', icon:'🏆',
+    desc: modules.ssa.desc, features: modules.ssa.features,
+    metrics: [{label:'Decision Time',value:'-70%'},{label:'Defensibility',value:'audit-ready'},{label:'Bias Signals',value:'flagged'}],
+    tiers: modules.ssa.tiers, unit: 'Selections / yr' },
+  sbg: { title:'Scenario Building Agent', subtitle:'What-if Modeling', color:'purple', icon:'🎬',
+    desc: modules.sbg.desc, features: modules.sbg.features,
+    metrics: [{label:'Scenarios/deal',value:'5–10×'},{label:'Confidence',value:'quantified'},{label:'Stakeholder Buy-in',value:'faster'}],
+    tiers: modules.sbg.tiers, unit: 'Scenarios / yr' },
+  stc: { title:'Spend-to-Contract Agent', subtitle:'Coverage Bridge', color:'fuchsia', icon:'🔗',
+    desc: modules.stc.desc, features: modules.stc.features,
+    metrics: [{label:'Uncovered Spend',value:'surfaced'},{label:'Pipeline Priority',value:'auto'},{label:'Coverage Growth',value:'+30%'}],
+    tiers: modules.stc.tiers, unit: 'Analyzed spend / yr' },
+  abf: { title:'Agent Builder & Agentic Forms', subtitle:'Build & Extend', color:'indigo', icon:'🛠️',
+    desc: modules.abf.desc, features: modules.abf.features,
+    metrics: [{label:'Build Time',value:'days not months'},{label:'Governance',value:'built-in'},{label:'Reuse',value:'skill library'}],
+    tiers: modules.abf.tiers, unit: 'Users' }
 };
 
 function showModulePage(modKey) {
@@ -4034,7 +4384,7 @@ function hideModulePage() {
 // CALCULATOR
 // ============================
 function calcUpdate() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba','pra','ta','bpo','tsa','tna','rfx','ssa','sbg','stc','abf'];
   let totalSaas = 0;
   let count = 0;
   let lineItems = '';
@@ -5209,7 +5559,7 @@ function openQuoteModal() {
   // Populate additional agents (modules not in the quote)
   const additionalContainer = document.getElementById('quote-additional-agents');
   if (additionalContainer) {
-    const allModKeys = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba'];
+    const allModKeys = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba','pra','ta','bpo','tsa','tna','rfx','ssa','sbg','stc','abf'];
     const selectedKeys = [];
     allModKeys.forEach(m => {
       const cb = document.getElementById('check-' + m);
@@ -5248,7 +5598,7 @@ function closeQuoteModal() {
 function selectBundle(index) {
   const bundle = bundleDefs[index];
   if (!bundle) return;
-  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba'];
+  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba','pra','ta','bpo','tsa','tna','rfx','ssa','sbg','stc','abf'];
   allMods.forEach(m => { document.getElementById('check-' + m).checked = false; });
   bundle.modules.forEach(m => { const cb = document.getElementById('check-' + m); if (cb) cb.checked = true; });
   calcUpdate();
@@ -5263,7 +5613,7 @@ const bundleDefs = [
   { name: 'Intelligence Suite', discount: 6, modules: ['liox','pia','npa'] },
   { name: 'Source to Pay', discount: 8, modules: ['sm','sa','npa','cna'] },
   { name: 'P2P Complete', discount: 10, modules: ['gb2po','ntpo','aa','oc','gr','inv'] },
-  { name: 'Enterprise – Total Procurement AI', discount: 15, modules: ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba'] }
+  { name: 'Enterprise – Total Procurement AI', discount: 15, modules: ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba','pra','ta','bpo','tsa','tna','rfx','ssa','sbg','stc','abf'] }
 ];
 
 function detectBundle(selectedKeys) {
@@ -5524,7 +5874,7 @@ function _tierPriceInCurrency(tier, cur) {
 }
 
 function populateQuotePricing() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba','pra','ta','bpo','tsa','tna','rfx','ssa','sbg','stc','abf'];
   const tbody = document.getElementById('quote-pricing-lines');
   // First pass — collect modules currently in the quote so the per-row module
   // dropdown can hide options that are already in another row (no duplicates).
@@ -5901,7 +6251,7 @@ function toggleAdditionalAgents(checked) {
 }
 
 function updateQuotePricing() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba','pra','ta','bpo','tsa','tna','rfx','ssa','sbg','stc','abf'];
   const selectedKeys = mods.filter(m => document.getElementById('check-' + m)?.checked);
   const bundle = detectBundle(selectedKeys);
   const bundleApply = document.getElementById('quote-bundle-apply')?.checked && bundle;
@@ -6007,7 +6357,7 @@ function updateQuotePricing() {
 // PDF QUOTE DOWNLOAD
 // ============================
 function generateQuoteData() {
-  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba'];
+  const mods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba','pra','ta','bpo','tsa','tna','rfx','ssa','sbg','stc','abf'];
   const selectedMods = [];
   let totalSaas = 0;
   let hasSM = false;
@@ -6896,7 +7246,7 @@ function loadQuote(id) {
   if (entry.currency && typeof setCurrency === 'function') setCurrency(entry.currency);
 
   // Select modules in calculator
-  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba'];
+  const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba','pra','ta','bpo','tsa','tna','rfx','ssa','sbg','stc','abf'];
   allMods.forEach(m => {
     const cb = document.getElementById('check-' + m);
     if (cb) cb.checked = fs.selectedModules.includes(m);
@@ -7089,7 +7439,7 @@ function lioPhasesEnabled() { return !!document.getElementById('quote-phases-ena
 
 // Snapshot of selected modules + custom positions ready for phase grouping.
 function lioGetActiveSelections() {
-  const STD = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba'];
+  const STD = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba','pra','ta','bpo','tsa','tna','rfx','ssa','sbg','stc','abf'];
   const out = [];
   STD.forEach(k => {
     if (!document.getElementById('check-' + k)?.checked) return;
@@ -7540,12 +7890,12 @@ function lioResetModuleOverride(k) {
 }
 
 // Module-icons map for the per-module editor card headers.
-const _DARK_MOD_ICONS = { gb2po: '🛒', ntpo: '✅', na: '🤝', sa: '🔍', oc: '📋', liox: '🧠', sm: '🏢', aa: '🔐', gr: '📦', inv: '🧾', pia: '📊', npa: '🎯', cna: '📄', aop: '🔧', clm: '📑', sh: '🏗️', ca: '📜', soa: '🪪', at: '🏛️', ae: '⚖️', ada: '📈', asc: '🧭', oba: '🧩', csa: '🔭', sba: '💎' };
+const _DARK_MOD_ICONS = { gb2po: '🛒', ntpo: '✅', na: '🤝', sa: '🔍', oc: '📋', liox: '🧠', sm: '🏢', aa: '🔐', gr: '📦', inv: '🧾', pia: '📊', npa: '🎯', cna: '📄', aop: '🔧', clm: '📑', sh: '🏗️', ca: '📜', soa: '🪪', at: '🏛️', ae: '⚖️', ada: '📈', asc: '🧭', oba: '🧩', csa: '🔭', sba: '💎', pra: '📝', ta: '🚚', bpo: '🏭', tsa: '🎣', tna: '💬', rfx: '📮', ssa: '🏆', sbg: '🎬', stc: '🔗', abf: '🛠️' };
 
 function renderModuleOverridesEditorDark() {
   const host = document.getElementById('lio-modedit-host-dark');
   if (!host) return;
-  const STD = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba'];
+  const STD = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba','pra','ta','bpo','tsa','tna','rfx','ssa','sbg','stc','abf'];
   const selectedKeys = STD.filter(k => document.getElementById('check-' + k)?.checked);
   if (selectedKeys.length === 0) {
     host.innerHTML = '<div class="text-[11px] text-slate-500 italic py-2">Pick at least one module in the calculator behind this modal to edit its PDF copy.</div>';
@@ -8141,7 +8491,7 @@ function lioPkgSeedFromStandard() {
   // Replace each package's items with whatever is currently checked in the
   // standard view, using the qf-{mod} price in the active currency as the
   // per-cell price.
-  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba'];
+  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba','pra','ta','bpo','tsa','tna','rfx','ssa','sbg','stc','abf'];
   const includedKeys = std.filter(k => document.getElementById('check-' + k)?.checked && !excludedModules[k]);
   window._packageConfig.packages.forEach((pkg, idx) => {
     pkg.items = {};
@@ -8233,7 +8583,7 @@ function lioRenderPackageView() {
 // This eliminates the "× gap in the middle" pattern the user wanted to avoid.
 // Tie-broken by the original std module order so the result is stable.
 function _pkgActiveAgentKeys() {
-  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba'];
+  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba','pra','ta','bpo','tsa','tna','rfx','ssa','sbg','stc','abf'];
   const cfg = window._packageConfig;
   const active = std.filter(k => cfg.packages.some(pkg => pkg.items && pkg.items[k] && pkg.items[k].included));
   function _ladderScore(k) {
@@ -8270,7 +8620,7 @@ function _pkgPackageListTotal(pkg) {
 function lioRebuildAddAgentDropdown() {
   const sel = document.getElementById('pkg-add-agent');
   if (!sel) return;
-  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba'];
+  const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba','pra','ta','bpo','tsa','tna','rfx','ssa','sbg','stc','abf'];
   const active = new Set(_pkgActiveAgentKeys());
   const available = std.filter(k => !active.has(k));
   sel.innerHTML = '<option value="">+ Add agent to overview…</option>' +
@@ -8290,12 +8640,12 @@ function lioPkgAddAgent(modKey) {
 // ── Suite definitions + Quick-Add ─────────────────────────────────────────
 // Suite keys must match the values in the #pkg-suite-picker dropdown.
 const LIO_SUITES = {
-  p2p:          { name: 'P2P Suite',          agents: ['gb2po','ntpo','aa','oc','gr','inv'] },
-  s2c:          { name: 'S2C Suite',          agents: ['sa','at','ae','na','npa','cna'] },
-  p2s:          { name: 'P2S Suite',          agents: ['ada','asc','oba','csa','sba'] },
+  p2p:          { name: 'P2P Suite',          agents: ['gb2po','ntpo','aa','oc','gr','inv','pra','ta','bpo'] },
+  s2c:          { name: 'S2C Suite',          agents: ['sa','at','ae','na','npa','cna','tsa','tna','rfx','ssa','sbg'] },
+  p2s:          { name: 'P2S Suite',          agents: ['ada','asc','oba','csa','sba','stc'] },
   srm:          { name: 'SRM Suite',          agents: ['sm','soa'] },
   contract:     { name: 'Contract Management',agents: ['ca','clm'] },
-  intelligence: { name: 'Intelligence & Assistants', agents: ['liox','pia'] }
+  intelligence: { name: 'Intelligence & Assistants', agents: ['liox','pia','abf'] }
 };
 
 // Sync the target-package dropdown with the current package set.
