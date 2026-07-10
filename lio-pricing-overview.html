@@ -2173,10 +2173,16 @@ input[type="checkbox"] { accent-color: #6366f1; }
               <label class="text-xs text-slate-300 font-semibold">PDF customization per module</label>
               <div class="text-[10px] text-slate-500">Tweak description, features and tier-ladder for any selected agent. Per-quote only — library defaults are not touched.</div>
             </div>
-            <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
-              <input type="checkbox" id="quote-hide-all-tier-ladders" class="w-4 h-4 rounded" onchange="window._hideTierLadder = this.checked;">
-              Hide every tier ladder on PDF
-            </label>
+            <div class="flex flex-col gap-1.5">
+              <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                <input type="checkbox" id="quote-hide-all-tier-ladders" class="w-4 h-4 rounded" onchange="window._hideTierLadder = this.checked;">
+                Hide every tier ladder on PDF
+              </label>
+              <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                <input type="checkbox" id="quote-hide-tier-column" class="w-4 h-4 rounded" onchange="window._hideTierColumn = this.checked;">
+                Hide "Tier" column on PDF
+              </label>
+            </div>
           </div>
           <div id="lio-modedit-host-dark" class="space-y-2"></div>
         </div>
@@ -6598,6 +6604,10 @@ function generateQuoteData() {
   const totalSavingsAll = totalListPrice - finalSaas;
   const lineDiscTotal = totalListPrice - totalSaas;
 
+  // "Hide Tier column" — drops the Tier header + tier cells from the pricing
+  // table entirely (set via the quote-hide-tier-column checkbox).
+  const hideTierCol = !!window._hideTierColumn;
+
   const moduleRows = selectedMods.map(m => {
     // When the user has NOT chosen "Hide all discounts", surface line-level
     // discounts directly on each row: list price struck through, the final
@@ -6615,7 +6625,7 @@ function generateQuoteData() {
       : `<span style="font-weight:600;color:#1e293b;font-size:12px;">${fmtRaw(m.price)}</span>`;
     return `<tr style="border-bottom:1px solid #e5e7eb;">
       <td style="padding:10px 16px;font-weight:600;color:#1e293b;font-size:12px;">${m.name}</td>
-      <td style="padding:10px 16px;color:#1e293b;font-size:11px;">${m.tier}</td>
+      ${hideTierCol ? '' : `<td style="padding:10px 16px;color:#1e293b;font-size:11px;">${m.tier}</td>`}
       <td style="padding:10px 16px;text-align:right;">${priceCell}</td>
     </tr>`;
   }).join('');
@@ -6742,7 +6752,7 @@ function generateQuoteData() {
   });
 
   const additionalAgentsPdf = additionalAgents.length > 0 ? `
-  <div data-additional-agents="1" style="margin-top:32px;page-break-before:auto;">
+  <div data-additional-agents="1" style="margin-top:32px;page-break-before:always;">
     <div style="margin-bottom:16px;">
       <h2 style="font-size:20px;font-weight:700;color:#1e293b;margin:0;">More Ways Agents Can Automate Your Procurement</h2>
     </div>
@@ -6759,7 +6769,7 @@ function generateQuoteData() {
         '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">' +
         a.features.slice(0, 4).map(f => '<span style="display:inline-block;background:#f0f0f0;color:#1e293b;padding:4px 10px;border-radius:6px;font-size:11px;">&#10003; ' + f + '</span>').join('') +
         '</div>' +
-        (a.tiers.length > 0 ? '<div style="margin-top:8px;"><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers (' + a.unit + ')</div>' +
+        (a.tiers.length > 0 ? '<div data-tier-ladder="1" data-modkey="' + (a.key || '') + '" style="margin-top:8px;"><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers (' + a.unit + ')</div>' +
         '<table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;"><thead><tr style="background:#f8fafc;"><th style="padding:4px 8px;text-align:left;font-size:10px;color:#64748b;text-transform:uppercase;">Volume</th><th style="padding:4px 8px;text-align:right;font-size:10px;color:#64748b;text-transform:uppercase;">Price</th></tr></thead><tbody>' + tierRows + '</tbody></table></div>' : '') +
         '</div>';
     }).join('')}
@@ -6806,7 +6816,7 @@ function generateQuoteData() {
     <thead>
       <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;">
         <th style="padding:12px 16px;text-align:left;font-size:12px;color:#1e293b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Module</th>
-        <th style="padding:12px 16px;text-align:left;font-size:12px;color:#1e293b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Tier</th>
+        ${hideTierCol ? '' : '<th style="padding:12px 16px;text-align:left;font-size:12px;color:#1e293b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Tier</th>'}
         <th style="padding:12px 16px;text-align:right;font-size:12px;color:#1e293b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Annual Fee</th>
       </tr>
     </thead>
@@ -7842,6 +7852,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
 // =========================================================
 window._moduleOverrides = window._moduleOverrides || {};
 window._hideTierLadder = window._hideTierLadder || false;
+window._hideTierColumn = window._hideTierColumn || false;
 
 if (typeof window.generateQuoteData === 'function' && !window._origGenerateQuoteData) {
   window._origGenerateQuoteData = window.generateQuoteData;
@@ -9958,6 +9969,8 @@ if (typeof _origOpenQuoteModal === 'function') {
     renderModuleOverridesEditorDark();
     const hideTiersCb = document.getElementById('quote-hide-all-tier-ladders');
     if (hideTiersCb) hideTiersCb.checked = !!window._hideTierLadder;
+    const hideTierColCb = document.getElementById('quote-hide-tier-column');
+    if (hideTierColCb) hideTierColCb.checked = !!window._hideTierColumn;
     // Default the view to Standard each time the modal opens (state preserved).
     if (typeof lioSetQuoteView === 'function') lioSetQuoteView(window._quoteView || 'standard');
   };
@@ -9979,6 +9992,7 @@ if (typeof _origSaveQuoteToHistory === 'function') {
           top.formState.moduleOverrides = JSON.parse(JSON.stringify(window._moduleOverrides));
         } else { delete top.formState.moduleOverrides; }
         top.formState.hideTierLadder = !!window._hideTierLadder;
+        top.formState.hideTierColumn = !!window._hideTierColumn;
         localStorage.setItem('lio-quote-history', JSON.stringify(hist));
         if (typeof sbUpdateQuote === 'function' && top.ref) sbUpdateQuote(top.ref, top);
       } catch (e) { /* non-fatal */ }
@@ -9999,11 +10013,14 @@ if (typeof _origLoadQuote === 'function') {
         const fs = entry?.formState || {};
         window._moduleOverrides = (fs.moduleOverrides && typeof fs.moduleOverrides === 'object') ? JSON.parse(JSON.stringify(fs.moduleOverrides)) : {};
         window._hideTierLadder = !!fs.hideTierLadder;
+        window._hideTierColumn = !!fs.hideTierColumn;
         if (fs.segmentKey) applySegmentPricing(fs.segmentKey);
         renderSegmentPicker();
         renderModuleOverridesEditorDark();
         const hideTiersCb = document.getElementById('quote-hide-all-tier-ladders');
         if (hideTiersCb) hideTiersCb.checked = !!window._hideTierLadder;
+        const hideTierColCb2 = document.getElementById('quote-hide-tier-column');
+        if (hideTierColCb2) hideTierColCb2.checked = !!window._hideTierColumn;
       } catch (e) { /* non-fatal */ }
     }, 400);
   };
@@ -10076,6 +10093,7 @@ function lioInstallSaveHookForPhases() {
         // tier-ladder visibility, currency, segment and excluded modules.
         try { top.formState.moduleOverrides = JSON.parse(JSON.stringify(window._moduleOverrides || {})); } catch (e) { top.formState.moduleOverrides = {}; }
         top.formState.hideTierLadderAll = !!window._hideTierLadder;
+        top.formState.hideTierColumn = !!window._hideTierColumn;
         top.formState.currency = (typeof currentCurrency !== 'undefined') ? currentCurrency : 'usd';
         top.formState.segmentKey = window._currentSegmentKey || null;
         // excludedModules is a const at script scope, not on window — read it back
@@ -10142,6 +10160,9 @@ function lioInstallLoadHookForPhases() {
         window._hideTierLadder = !!fs.hideTierLadderAll;
         const hideTierCb = document.getElementById('quote-hide-all-tier-ladders');
         if (hideTierCb) hideTierCb.checked = !!fs.hideTierLadderAll;
+        window._hideTierColumn = !!fs.hideTierColumn;
+        const hideTierColCb3 = document.getElementById('quote-hide-tier-column');
+        if (hideTierColCb3) hideTierColCb3.checked = !!fs.hideTierColumn;
         if (fs.currency && typeof setCurrency === 'function' && fs.currency !== currentCurrency) {
           try { setCurrency(fs.currency); } catch (e) { /* non-fatal */ }
         }

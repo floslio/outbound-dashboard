@@ -4645,6 +4645,9 @@ function generateQuoteData() {
   const totalSavingsAll = totalListPrice - finalSaas;
   const lineDiscTotal = totalListPrice - totalSaas;
 
+  // "Hide Tier column" — drops the Tier header + tier cells entirely.
+  const hideTierCol = !!window._hideTierColumn;
+
   const rows = sel.map(m => {
     // When "Hide all discounts" is OFF, surface the line-level discount on
     // each row: strikethrough list price + final Your Price + (-X%) badge.
@@ -4658,7 +4661,7 @@ function generateQuoteData() {
         + (pct > 0 ? ' <span style="color:#10b981;font-size:10px;font-weight:600;">(-' + pct + '%)</span>' : '')
         + '</div>'
       : '<span style="font-weight:600;color:#1e293b;font-size:12px;">' + fmtRaw(m.price) + '</span>';
-    return '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;font-weight:600;font-size:12px;">' + m.name + '</td><td style="padding:8px 16px;color:#1e293b;font-size:11px;">' + m.tier + '</td><td style="padding:8px 16px;text-align:right;">' + priceHtml + '</td></tr>';
+    return '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;font-weight:600;font-size:12px;">' + m.name + '</td>' + (hideTierCol ? '' : '<td style="padding:8px 16px;color:#1e293b;font-size:11px;">' + m.tier + '</td>') + '<td style="padding:8px 16px;text-align:right;">' + priceHtml + '</td></tr>';
   }).join('');
   const showLineDiscSummary = !hideDiscounts && lineDiscTotal > 0;
   const details = sel.filter(m => !m.isCustom).map(m => {
@@ -4767,7 +4770,7 @@ function generateQuoteData() {
   });
 
   const additionalAgentsPdf = additionalAgents.length > 0 ? `
-  <div data-additional-agents="1" style="margin-top:32px;page-break-before:auto;">
+  <div data-additional-agents="1" style="margin-top:32px;page-break-before:always;">
     <div style="margin-bottom:16px;">
       <h2 style="font-size:20px;font-weight:700;color:#1e293b;margin:0;">More Ways Agents Can Automate Your Procurement</h2>
     </div>
@@ -4782,7 +4785,7 @@ function generateQuoteData() {
         '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">' +
         a.features.slice(0, 4).map(f => '<span style="display:inline-block;background:#f0f0f0;color:#1e293b;padding:4px 10px;border-radius:6px;font-size:11px;">&#10003; ' + f + '</span>').join('') +
         '</div>' +
-        (a.tiers.length > 0 ? '<div style="margin-top:8px;"><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers (' + a.unit + ')</div>' +
+        (a.tiers.length > 0 ? '<div data-tier-ladder="1" data-modkey="' + (a.key || '') + '" style="margin-top:8px;"><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers (' + a.unit + ')</div>' +
         '<table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;"><thead><tr style="background:#f8fafc;"><th style="padding:4px 8px;text-align:left;font-size:10px;color:#64748b;text-transform:uppercase;">Volume</th><th style="padding:4px 8px;text-align:right;font-size:10px;color:#64748b;text-transform:uppercase;">Price</th></tr></thead><tbody>' + tierRows + '</tbody></table></div>' : '') +
         '</div>';
     }).join('')}
@@ -4800,7 +4803,7 @@ function generateQuoteData() {
   ${recipientCompany ? `<div style="margin-bottom:28px;padding:0;"><div style="font-size:11px;color:#1e293b;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Prepared for</div><div style="font-size:16px;font-weight:700;">${recipientCompany}</div>${recipientContact ? `<div style="font-size:13px;color:#1e293b;margin-top:2px;">Attn: ${recipientContact}</div>` : ''}${recipientAddress ? `<div style="font-size:12px;color:#1e293b;margin-top:4px;white-space:pre-line;">${recipientAddress}</div>` : ''}</div>` : ''}
   <div data-pricing-breakdown="1">
   <h2 style="font-size:16px;font-weight:700;margin-bottom:12px;">Pricing Breakdown</h2>
-  <table style="width:100%;border-collapse:collapse;margin-bottom:6px;"><thead><tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;"><th style="padding:10px 16px;text-align:left;font-size:11px;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;">Module</th><th style="padding:10px 16px;text-align:left;font-size:11px;color:#1e293b;text-transform:uppercase;">Tier</th><th style="padding:10px 16px;text-align:right;font-size:11px;color:#1e293b;text-transform:uppercase;">Annual Fee</th></tr></thead><tbody>${rows}</tbody></table>
+  <table style="width:100%;border-collapse:collapse;margin-bottom:6px;"><thead><tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;"><th style="padding:10px 16px;text-align:left;font-size:11px;color:#1e293b;text-transform:uppercase;letter-spacing:0.5px;">Module</th>${hideTierCol ? '' : '<th style="padding:10px 16px;text-align:left;font-size:11px;color:#1e293b;text-transform:uppercase;">Tier</th>'}<th style="padding:10px 16px;text-align:right;font-size:11px;color:#1e293b;text-transform:uppercase;">Annual Fee</th></tr></thead><tbody>${rows}</tbody></table>
   <table style="width:100%;border-collapse:collapse;margin-bottom:28px;">
     ${showLineDiscSummary ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#1e293b;font-size:12px;" colspan="2">SaaS List Price</td><td style="padding:8px 16px;text-align:right;font-size:12px;color:#1e293b;">' + fmtRaw(totalListPrice) + '</td></tr>' : ''}
     ${showLineDiscSummary ? '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;color:#10b981;font-size:12px;font-weight:600;" colspan="2">' + discLabel + '</td><td style="padding:8px 16px;text-align:right;color:#10b981;font-weight:600;">-' + fmtRaw(lineDiscTotal) + '</td></tr>' : ''}
@@ -6268,6 +6271,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
     // reset PDF overrides, tier-ladder visibility, and tier-label overrides for a fresh quote
     window._moduleOverrides = {};
     window._hideTierLadder = false;
+    window._hideTierColumn = false;
     window._tierLabelOverrides = {};
     // reset editing-quote pointer
     window._editingQuoteId = null;
@@ -6725,6 +6729,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
           '<div class="space-y-2 text-sm text-slate-700">' +
             '<label class="flex items-center gap-2"><input type="checkbox" id="lio-sec-details" class="w-4 h-4" checked>Module details page</label>' +
             '<label class="flex items-center gap-2 ml-6 text-slate-600"><input type="checkbox" id="lio-sec-hidetiers" class="w-4 h-4">Hide tier price ladder per module <span class="text-xs text-slate-400">(keep description)</span></label>' +
+            '<label class="flex items-center gap-2 ml-6 text-slate-600"><input type="checkbox" id="lio-sec-hidetiercol" class="w-4 h-4">Hide "Tier" column on PDF <span class="text-xs text-slate-400">(pricing table shows Module + Fee only)</span></label>' +
             '<label class="flex items-center gap-2"><input type="checkbox" id="lio-sec-roi" class="w-4 h-4">Impact summary (Simple ROI)</label>' +
             '<label class="flex items-center gap-2"><input type="checkbox" id="lio-sec-advroi" class="w-4 h-4">Advanced ROI analysis</label>' +
             '<label class="flex items-center gap-2"><input type="checkbox" id="lio-sec-pricingref" class="w-4 h-4">Pricing range reference</label>' +
@@ -6760,6 +6765,12 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
     if (hideTiers) {
       hideTiers.checked = !!window._hideTierLadder;
       hideTiers.addEventListener('change', () => { window._hideTierLadder = hideTiers.checked; });
+    }
+    // Hide-Tier-column toggle
+    const hideTierCol = document.getElementById('lio-sec-hidetiercol');
+    if (hideTierCol) {
+      hideTierCol.checked = !!window._hideTierColumn;
+      hideTierCol.addEventListener('change', () => { window._hideTierColumn = hideTierCol.checked; });
     }
     // Render the per-module description + features editor
     renderModuleOverridesEditor();
@@ -7186,6 +7197,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
           delete top.formState.moduleOverrides;
         }
         top.formState.hideTierLadder = !!window._hideTierLadder;
+        top.formState.hideTierColumn = !!window._hideTierColumn;
         if (window._tierLabelOverrides && Object.keys(window._tierLabelOverrides).length > 0) {
           top.formState.tierLabelOverrides = Object.assign({}, window._tierLabelOverrides);
         } else {
@@ -7421,6 +7433,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
       // and the tier-ladder toggle reflect what was saved.
       window._moduleOverrides = (fs.moduleOverrides && typeof fs.moduleOverrides === 'object') ? JSON.parse(JSON.stringify(fs.moduleOverrides)) : {};
       window._hideTierLadder = !!fs.hideTierLadder;
+      window._hideTierColumn = !!fs.hideTierColumn;
       window._tierLabelOverrides = (fs.tierLabelOverrides && typeof fs.tierLabelOverrides === 'object') ? Object.assign({}, fs.tierLabelOverrides) : {};
 
       // Show the wizard
@@ -7675,6 +7688,7 @@ function lioInstallSaveHookForPhases() {
         // tier-ladder visibility, currency, segment and excluded modules.
         try { top.formState.moduleOverrides = JSON.parse(JSON.stringify(window._moduleOverrides || {})); } catch (e) { top.formState.moduleOverrides = {}; }
         top.formState.hideTierLadderAll = !!window._hideTierLadder;
+        top.formState.hideTierColumn = !!window._hideTierColumn;
         top.formState.currency = (typeof currentCurrency !== 'undefined') ? currentCurrency : 'usd';
         top.formState.segmentKey = window._currentSegmentKey || null;
         // excludedModules is script-scope; read it back from DOM strike-through state.
@@ -7740,6 +7754,9 @@ function lioInstallLoadHookForPhases() {
         window._hideTierLadder = !!fs.hideTierLadderAll;
         const hideTierCb = document.getElementById('quote-hide-all-tier-ladders');
         if (hideTierCb) hideTierCb.checked = !!fs.hideTierLadderAll;
+        window._hideTierColumn = !!fs.hideTierColumn;
+        const hideTierColCbW = document.getElementById('lio-sec-hidetiercol');
+        if (hideTierColCbW) hideTierColCbW.checked = !!fs.hideTierColumn;
         if (fs.currency && typeof setCurrency === 'function' && fs.currency !== currentCurrency) {
           try { setCurrency(fs.currency); } catch (e) { /* non-fatal */ }
         }
