@@ -1061,6 +1061,8 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
           <option value="niklas">Niklas Marxer</option>
           <option value="joachim">Joachim Strauss</option>
           <option value="temoc">Temoc Chavero</option>
+          <option value="sophia">Sophia Heussen</option>
+          <option value="dominik">Dominik Hiebl</option>
         </select>
       </div>
       <div>
@@ -1445,6 +1447,8 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
                 <option value="niklas">Niklas Marxer</option>
                 <option value="joachim">Joachim Strauss</option>
           <option value="temoc">Temoc Chavero</option>
+          <option value="sophia">Sophia Heussen</option>
+          <option value="dominik">Dominik Hiebl</option>
               </select>
             </div>
           </div>
@@ -2950,7 +2954,9 @@ function buildROIPdfHtml() {
     lasse: { name: 'Lasse Fehl', email: 'lasse.fehl@lio.ai', phone: '' },
     niklas: { name: 'Niklas Marxer', email: 'niklas.marxer@lio.ai', phone: '' },
     joachim: { name: 'Joachim Strauss', email: 'joachim.strauss@lio.ai', phone: '' },
-    temoc: { name: 'Temoc Chavero', email: 'temoc.chavero@lio.ai', phone: '' }
+    temoc: { name: 'Temoc Chavero', email: 'temoc.chavero@lio.ai', phone: '' },
+    sophia: { name: 'Sophia Heussen', email: 'sophia.heussen@lio.ai', phone: '' },
+    dominik: { name: 'Dominik Hiebl', email: 'dominik.hiebel@lio.ai', phone: '' }
   };
   const lioSender = lioContactsMap[lioContactKey] || lioContactsMap.florian;
 
@@ -3706,7 +3712,9 @@ async function downloadAdvancedRoiPDF() {
     lasse: { name: 'Lasse Fehl', email: 'lasse.fehl@lio.ai' },
     niklas: { name: 'Niklas Marxer', email: 'niklas.marxer@lio.ai' },
     joachim: { name: 'Joachim Strauss', email: 'joachim.strauss@lio.ai' },
-    temoc: { name: 'Temoc Chavero', email: 'temoc.chavero@lio.ai' }
+    temoc: { name: 'Temoc Chavero', email: 'temoc.chavero@lio.ai' },
+    sophia: { name: 'Sophia Heussen', email: 'sophia.heussen@lio.ai' },
+    dominik: { name: 'Dominik Hiebl', email: 'dominik.hiebel@lio.ai' }
   };
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const inner = buildAdvancedRoiHtml(data, {
@@ -4089,18 +4097,18 @@ function populateQuotePricing() {
     };
     tbody.innerHTML += `<tr class="border-t border-slate-100" data-mod="${mod}" id="qrow-${mod}" data-list-usd="${listUsd}" data-list-eur="${listEur}" data-list-gbp="${listGbp}" data-list-chf="${listChf}">
       <td class="p-2 pl-3 align-top"><select onchange="swapModuleInRow('${mod}', this.value)" class="w-full border border-slate-200 rounded p-1 text-xs outline-none cursor-pointer hover:bg-slate-50 text-slate-700" title="Click to swap with a different agent">${modOptions}</select></td>
-      <td class="p-2 align-top"><select id="qt-${mod}" onchange="changeQuoteTier('${mod}'); syncTierLabelPlaceholder('${mod}')" class="w-full border border-slate-200 rounded p-1 text-xs outline-none">${tierOpts}</select><input type="text" id="qt-label-${mod}" placeholder="Custom label (optional)" class="w-full mt-1 border border-slate-200 rounded p-1 text-[11px] text-slate-700 outline-none placeholder-slate-400" oninput="updateTierLabelOverride('${mod}', this.value)" title="Override the tier label that prints on the quote (leave empty to use the volume from the dropdown)."></td>
+      <td class="p-2 align-top"><select id="qt-${mod}" onchange="changeQuoteTier('${mod}'); syncTierLabelPlaceholder('${mod}')" class="w-full border border-slate-200 rounded p-1 text-xs outline-none">${tierOpts}</select><input type="text" id="qt-label-${mod}" placeholder="Custom label (optional)" class="w-full mt-1 border border-slate-200 rounded p-1 text-[11px] text-slate-700 outline-none placeholder-slate-400" oninput="updateTierLabelOverride('${mod}', this.value)" title="Override the tier label that prints on the quote (leave empty to use the volume from the dropdown)."><input type="number" id="qb-${mod}" min="0" step="500" placeholder="+ Base fee (optional)" class="w-full mt-1 border border-cyan-300 rounded p-1 text-[11px] text-cyan-700 outline-none placeholder-slate-400" oninput="onBaseFee('${mod}', this.value)" title="Optional annual base fee charged ON TOP of the selected tier. Effective price = base + tier. Prints as a Base Fee row above the tier ladder on the PDF."></td>
       <td class="p-2 text-right text-slate-500 align-top" data-list-price="${rawPrice}">${fmtRaw(rawPrice)}</td>
       <td class="p-2 text-center align-top">
         <input type="number" id="qd-${mod}" value="" min="0" max="100" step="1" placeholder="%" onchange="applyDiscountPct('${mod}')" oninput="applyDiscountPct('${mod}')" class="w-16 border border-slate-200 rounded p-1 text-sm text-center outline-none">
       </td>
       <td class="p-2 pr-3 text-right">
         <div class="inline-flex flex-col gap-0.5 items-end">
-          ${curRow('usd', '$', listUsd)}
-          ${curRow('eur', '€', listEur)}
-          ${curRow('gbp', '£', listGbp)}
-          ${curRow('chf', 'CHF', listChf)}
-          <input type="hidden" id="qf-${mod}" value="${rawPrice}">
+          ${curRow('usd', '$', listUsd + lioGetBaseFee(mod))}
+          ${curRow('eur', '€', listEur + lioGetBaseFee(mod))}
+          ${curRow('gbp', '£', listGbp + lioGetBaseFee(mod))}
+          ${curRow('chf', 'CHF', listChf + lioGetBaseFee(mod))}
+          <input type="hidden" id="qf-${mod}" value="${rawPrice + lioGetBaseFee(mod)}">
         </div>
       </td>
       <td class="p-2 text-center align-top"><button onclick="toggleExcludeModule('${mod}')" id="qx-${mod}" class="text-slate-400 hover:text-red-500 text-lg transition" title="Exclude from quote">&times;</button></td>
@@ -4125,6 +4133,11 @@ function populateQuotePricing() {
     inp.value = (window._tierLabelOverrides && window._tierLabelOverrides[mod]) || '';
     syncTierLabelPlaceholder(mod);
   });
+  // Hydrate base-fee inputs from window._baseFees
+  selectedKeys.forEach(mod => {
+    const b = document.getElementById('qb-' + mod);
+    if (b) b.value = lioGetBaseFee(mod) || '';
+  });
   updateQuotePricing();
 }
 
@@ -4141,10 +4154,12 @@ function applyDiscountPct(key) {
   const pct = parseFloat(rawVal);
   if (isFinite(pct) && pct > 0 && (listUsd > 0 || listEur > 0 || listGbp > 0 || listChf > 0)) {
     const mul = 1 - Math.min(100, pct) / 100;
-    const dUsd = Math.max(0, Math.round(listUsd * mul));
-    const dEur = Math.max(0, Math.round(listEur * mul / 500) * 500);
-    const dGbp = Math.max(0, Math.round(listGbp * mul / 500) * 500);
-    const dChf = Math.max(0, Math.round(listChf * mul / 500) * 500);
+    // The per-agent base fee (if set) is NOT discounted; it rides on top.
+    const baseAdd = (typeof lioGetBaseFee === 'function') ? lioGetBaseFee(key) : 0;
+    const dUsd = Math.max(0, Math.round(listUsd * mul)) + baseAdd;
+    const dEur = Math.max(0, Math.round(listEur * mul / 500) * 500) + baseAdd;
+    const dGbp = Math.max(0, Math.round(listGbp * mul / 500) * 500) + baseAdd;
+    const dChf = Math.max(0, Math.round(listChf * mul / 500) * 500) + baseAdd;
     const u = document.getElementById('qfu-' + key); if (u) u.value = dUsd;
     const e = document.getElementById('qfe-' + key); if (e) e.value = dEur;
     const g = document.getElementById('qfg-' + key); if (g) g.value = dGbp;
@@ -4197,6 +4212,43 @@ function updateTierLabelOverride(key, value) {
   if (v) window._tierLabelOverrides[key] = v;
   else delete window._tierLabelOverrides[key];
 }
+
+// ---------------------------------------------------------------
+// Per-agent Base Fee — optional annual base amount charged ON TOP
+// of the selected volume tier. Effective agent price = base + tier.
+// Prints on the PDF as an "incl. Base" note in the Tier column and
+// as a highlighted "Base Fee" row above the tier ladder.
+// ---------------------------------------------------------------
+window._baseFees = window._baseFees || {};
+function lioGetBaseFee(key) {
+  const v = parseFloat(window._baseFees[key]);
+  return isFinite(v) && v > 0 ? v : 0;
+}
+function onBaseFee(key, value) {
+  const v = parseFloat(value);
+  if (isFinite(v) && v > 0) window._baseFees[key] = v;
+  else delete window._baseFees[key];
+  const row = document.querySelector('tr[data-mod="' + key + '"]');
+  const base = lioGetBaseFee(key);
+  const listUsd = parseFloat(row?.getAttribute('data-list-usd')) || 0;
+  const listEur = parseFloat(row?.getAttribute('data-list-eur')) || 0;
+  const listGbp = parseFloat(row?.getAttribute('data-list-gbp')) || 0;
+  const listChf = parseFloat(row?.getAttribute('data-list-chf')) || 0;
+  const pct = (discountMode[key] === 'pct') ? (parseFloat(document.getElementById('qd-' + key)?.value) || 0) : 0;
+  const mul = 1 - Math.min(100, Math.max(0, pct)) / 100;
+  const u = document.getElementById('qfu-' + key); if (u) u.value = Math.max(0, Math.round(listUsd * mul)) + base;
+  const e = document.getElementById('qfe-' + key); if (e) e.value = Math.max(0, Math.round(listEur * mul / 500) * 500) + base;
+  const g = document.getElementById('qfg-' + key); if (g) g.value = Math.max(0, Math.round(listGbp * mul / 500) * 500) + base;
+  const c = document.getElementById('qfc-' + key); if (c) c.value = Math.max(0, Math.round(listChf * mul / 500) * 500) + base;
+  const qf = document.getElementById('qf-' + key);
+  if (qf) {
+    const act = currentCurrency === 'usd' ? u : (currentCurrency === 'eur' ? e : (currentCurrency === 'gbp' ? g : c));
+    if (act) qf.value = act.value;
+  }
+  if (typeof calcUpdate === 'function') calcUpdate();
+  updateQuotePricing();
+}
+
 function syncTierLabelPlaceholder(key) {
   const inp = document.getElementById('qt-label-' + key);
   const sel = document.getElementById('qt-' + key);
@@ -4229,12 +4281,14 @@ function changeQuoteTier(key) {
   }
   const listCell = row?.querySelector('td[data-list-price]');
   if (listCell) { listCell.setAttribute('data-list-price', newPrice); listCell.textContent = fmtRaw(newPrice); }
-  const u = document.getElementById('qfu-' + key); if (u) u.value = newUsd;
-  const e = document.getElementById('qfe-' + key); if (e) e.value = newEur;
-  const g = document.getElementById('qfg-' + key); if (g) g.value = newGbp;
-  const c = document.getElementById('qfc-' + key); if (c) c.value = newChf;
+  // A per-agent base fee (if set) rides on top of every tier price.
+  const baseAdd = (typeof lioGetBaseFee === 'function') ? lioGetBaseFee(key) : 0;
+  const u = document.getElementById('qfu-' + key); if (u) u.value = newUsd + baseAdd;
+  const e = document.getElementById('qfe-' + key); if (e) e.value = newEur + baseAdd;
+  const g = document.getElementById('qfg-' + key); if (g) g.value = newGbp + baseAdd;
+  const c = document.getElementById('qfc-' + key); if (c) c.value = newChf + baseAdd;
   const qf = document.getElementById('qf-' + key);
-  if (qf) qf.value = newPrice;
+  if (qf) qf.value = newPrice + baseAdd;
   const qd = document.getElementById('qd-' + key);
   if (qd) qd.value = '';
   discountMode[key] = 'manual';
@@ -4501,7 +4555,10 @@ function generateQuoteData() {
     const tierText = (window._tierLabelOverrides && window._tierLabelOverrides[k]) || tierEl.selectedOptions[0]?.text?.split(' \u2014 ')[0] || '';
     const tierPrice = parseInt(tierEl.value);
     const tierObj = modules[k]?.tiers?.find(t => t.price === tierPrice) || { price: tierPrice };
-    const listPrice = getTierPriceRaw(tierObj); // Correct current-currency price
+    // Per-agent base fee rides on top of the tier price \u2014 include it in the
+    // list price so base alone never registers as a manual override.
+    const baseFee = (typeof lioGetBaseFee === 'function') ? lioGetBaseFee(k) : 0;
+    const listPrice = getTierPriceRaw(tierObj) + baseFee; // Correct current-currency price
 
     // Check if user manually adjusted the price
     const qfEl = document.getElementById('qf-' + k);
@@ -4516,7 +4573,7 @@ function generateQuoteData() {
     totalSaas += customPrice;
     if (k === 'sm') hasSM = true;
     const discPct = (discountMode[k] === 'pct') ? (parseFloat(document.getElementById('qd-' + k)?.value) || 0) : 0;
-    sel.push({ key: k, name: k === 'sm' ? 'Supplier Relationship Management (SRM)' : modules[k].name, price: customPrice, listPrice: listPrice, tierUsdPrice: tierPrice, discountPct: discPct, discountMode: discountMode[k] || 'manual', tier: tierText, desc: modules[k].desc, features: modules[k].features });
+    sel.push({ key: k, name: k === 'sm' ? 'Supplier Relationship Management (SRM)' : modules[k].name, price: customPrice, listPrice: listPrice, tierUsdPrice: tierPrice, discountPct: discPct, discountMode: discountMode[k] || 'manual', tier: tierText, baseFee: baseFee, desc: modules[k].desc, features: modules[k].features });
   });
 
   // Append custom positions as additional line items so they show in the PDF
@@ -4626,7 +4683,9 @@ function generateQuoteData() {
     lasse: { name: 'Lasse Fehl', email: 'lasse.fehl@lio.ai' },
     niklas: { name: 'Niklas Marxer', email: 'niklas.marxer@lio.ai' },
     joachim: { name: 'Joachim Strauss', email: 'joachim.strauss@lio.ai' },
-    temoc: { name: 'Temoc Chavero', email: 'temoc.chavero@lio.ai' }
+    temoc: { name: 'Temoc Chavero', email: 'temoc.chavero@lio.ai' },
+    sophia: { name: 'Sophia Heussen', email: 'sophia.heussen@lio.ai' },
+    dominik: { name: 'Dominik Hiebl', email: 'dominik.hiebel@lio.ai' }
   };
   const lioContactKey = document.getElementById('quote-lio-contact')?.value || 'florian';
   const lioContact = lioContacts[lioContactKey] || lioContacts.florian;
@@ -4661,14 +4720,19 @@ function generateQuoteData() {
         + (pct > 0 ? ' <span style="color:#10b981;font-size:10px;font-weight:600;">(-' + pct + '%)</span>' : '')
         + '</div>'
       : '<span style="font-weight:600;color:#1e293b;font-size:12px;">' + fmtRaw(m.price) + '</span>';
-    return '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;font-weight:600;font-size:12px;">' + m.name + '</td>' + (hideTierCol ? '' : '<td style="padding:8px 16px;color:#1e293b;font-size:11px;">' + m.tier + '</td>') + '<td style="padding:8px 16px;text-align:right;">' + priceHtml + '</td></tr>';
+    const tierCellContent = m.tier + ((m.baseFee || 0) > 0 ? '<div style="font-size:9px;color:#64748b;margin-top:2px;">incl. Base ' + fmtRaw(m.baseFee) + '/yr</div>' : '');
+    return '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;font-weight:600;font-size:12px;">' + m.name + '</td>' + (hideTierCol ? '' : '<td style="padding:8px 16px;color:#1e293b;font-size:11px;">' + tierCellContent + '</td>') + '<td style="padding:8px 16px;text-align:right;">' + priceHtml + '</td></tr>';
   }).join('');
   const showLineDiscSummary = !hideDiscounts && lineDiscTotal > 0;
   const details = sel.filter(m => !m.isCustom).map(m => {
     const allTiers = modules[m.key]?.tiers || [];
+    // Base fee (if any) is subtracted before the factor computation — base
+    // rides on top and must NOT scale the tier ladder.
+    const mBase = m.baseFee || 0;
+    const tierOnlyPrice = Math.max(0, m.price - mBase);
     const selectedTierObj = allTiers.find(t => t.price === m.tierUsdPrice);
-    const standardPrice = selectedTierObj ? getTierPriceRaw(selectedTierObj) : m.listPrice;
-    const priceFactor = (standardPrice > 0 && m.price !== standardPrice) ? m.price / standardPrice : 1;
+    const standardPrice = selectedTierObj ? getTierPriceRaw(selectedTierObj) : Math.max(0, m.listPrice - mBase);
+    const priceFactor = (standardPrice > 0 && tierOnlyPrice !== standardPrice) ? tierOnlyPrice / standardPrice : 1;
     const tierRows = allTiers.map(t => {
       const isSelected = t.price === m.tierUsdPrice;
       const basePrice = getTierPriceRaw(t);
@@ -4682,7 +4746,7 @@ function generateQuoteData() {
     // populated from per-quote overrides in window._moduleOverrides if set
     // (the wizard's wrapper around generateQuoteData applies them just
     // before this block runs).
-    return `<div style="margin-bottom:24px;page-break-inside:avoid;"><h3 style="font-size:14px;font-weight:700;margin:0 0 4px;">${m.name}</h3>${m.desc ? `<p style="font-size:11px;color:#1e293b;margin:0 0 8px;line-height:1.5;white-space:pre-line;">${m.desc}</p>` : ''}${(m.features && m.features.length > 0) ? `<div style="margin-bottom:10px;">${m.features.map(f=>`<span style="display:inline-block;background:#f1f5f9;padding:3px 8px;border-radius:4px;font-size:10px;margin:2px 2px 2px 0;">&#10003; ${f}</span>`).join('')}</div>` : ''}<div data-tier-ladder="1" data-modkey="${m.key || ''}" style="margin-top:8px;"><div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers</div><table style="width:100%;max-width:400px;border-collapse:collapse;border:1px solid #e2e8f0;font-size:10px;"><thead><tr style="background:#f8fafc;"><th style="padding:3px 8px;text-align:left;font-size:9px;color:#64748b;text-transform:uppercase;">Volume</th><th style="padding:3px 8px;text-align:right;font-size:9px;color:#64748b;text-transform:uppercase;">Price</th></tr></thead><tbody>${tierRows}</tbody></table></div></div>`;
+    return `<div style="margin-bottom:24px;page-break-inside:avoid;"><h3 style="font-size:14px;font-weight:700;margin:0 0 4px;">${m.name}</h3>${m.desc ? `<p style="font-size:11px;color:#1e293b;margin:0 0 8px;line-height:1.5;white-space:pre-line;">${m.desc}</p>` : ''}${(m.features && m.features.length > 0) ? `<div style="margin-bottom:10px;">${m.features.map(f=>`<span style="display:inline-block;background:#f1f5f9;padding:3px 8px;border-radius:4px;font-size:10px;margin:2px 2px 2px 0;">&#10003; ${f}</span>`).join('')}</div>` : ''}<div data-tier-ladder="1" data-modkey="${m.key || ''}" style="margin-top:8px;"><div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers</div><table style="width:100%;max-width:400px;border-collapse:collapse;border:1px solid #e2e8f0;font-size:10px;"><thead><tr style="background:#f8fafc;"><th style="padding:3px 8px;text-align:left;font-size:9px;color:#64748b;text-transform:uppercase;">Volume</th><th style="padding:3px 8px;text-align:right;font-size:9px;color:#64748b;text-transform:uppercase;">Price</th></tr></thead><tbody>${mBase > 0 ? `<tr style="background:#eef2ff;border-bottom:1px solid #e2e8f0;font-weight:700;"><td style="padding:3px 8px;font-size:10px;color:#4338ca;">Base Fee</td><td style="padding:3px 8px;font-size:10px;text-align:right;color:#4338ca;">${fmtRaw(mBase)}/yr</td></tr>` : ''}${tierRows}</tbody></table></div></div>`;
   }).join('');
 
   // ROI section (conditional) - calculate fresh from current inputs
@@ -4888,6 +4952,7 @@ function saveQuoteToHistory(data) {
       additionalAgents: Array.from(document.querySelectorAll('.additional-agent-cb:checked')).map(cb => cb.value),
       customPositions: (window._customPositions || []).map(p => ({ name: p.name || '', tier: p.tier || '', price: parseFloat(p.price) || 0 })),
       tierLabelOverrides: Object.assign({}, window._tierLabelOverrides || {}),
+      baseFees: Object.assign({}, window._baseFees || {}),
       includeAdvROI: document.getElementById('quote-inc-adv-roi')?.checked ?? false,
       includePricingRef: document.getElementById('quote-inc-pricing-ref')?.checked ?? false,
       pricingRefTitle: document.getElementById('pricing-ref-title')?.value || '',
@@ -5060,7 +5125,7 @@ async function renderQuoteHistory(forceCloud = false) {
     patricia: 'Patricia Hoelscher', olivia: 'Olivia Pavoni', julius: 'Julius Kaiser',
     vladimir: 'Vladimir Keil', till: 'Till Wagner', lukas: 'Lukas Heinzmann',
     moritz: 'Moritz Medinger', stefan: 'Stefan Schweiger', lasse: 'Lasse Fehl',
-    niklas: 'Niklas Marxer', temoc: 'Temoc Chavero'
+    niklas: 'Niklas Marxer', temoc: 'Temoc Chavero', sophia: 'Sophia Heussen', dominik: 'Dominik Hiebl'
   };
   list.innerHTML = errorBanner + `<div class="overflow-x-auto"><table class="w-full text-sm min-w-[600px]">
     <thead>
@@ -5721,7 +5786,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
       patricia: 'Patricia Hoelscher', olivia: 'Olivia Pavoni', julius: 'Julius Kaiser',
       vladimir: 'Vladimir Keil', till: 'Till Wagner', lukas: 'Lukas Heinzmann',
       moritz: 'Moritz Medinger', stefan: 'Stefan Schweiger', lasse: 'Lasse Fehl',
-      niklas: 'Niklas Marxer', temoc: 'Temoc Chavero'
+      niklas: 'Niklas Marxer', temoc: 'Temoc Chavero', sophia: 'Sophia Heussen', dominik: 'Dominik Hiebl'
     };
   }
   try { if (typeof DEFAULT_PRICING_REF !== 'undefined' && !window.DEFAULT_PRICING_REF) window.DEFAULT_PRICING_REF = DEFAULT_PRICING_REF; } catch (e) {}
@@ -6892,6 +6957,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
             '<div class="flex items-center gap-2">' +
               '<button type="button" class="lio-btn lio-btn-ghost text-xs" data-act="resetTiers" data-key="' + k + '">Reset tiers</button>' +
               '<button type="button" class="lio-btn lio-btn-ghost text-xs" data-act="addTier" data-key="' + k + '">+ Add tier</button>' +
+              '<button type="button" class="lio-btn lio-btn-ghost text-xs" data-act="tshirt" data-key="' + k + '" title="Rename the tier volume labels to T-shirt sizes (S, M, L, XL, …). Labels stay editable afterwards.">👕 T-shirt sizes</button>' +
             '</div>' +
           '</div>' +
           '<div class="text-[10px] text-slate-400 mb-2">Edit any tier just for this quote — the per-tier table in the PDF will reflect your changes for this agent only. Empty currencies fall back to USD via the conversion rate.</div>' +
@@ -6962,6 +7028,15 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
       card.querySelector('button[data-act="addTier"]').addEventListener('click', () => {
         const current = lioGetModuleTiers(k);
         current.push({ vol: 'New tier', price: 0 });
+        lioSetModuleTiers(k, current);
+        renderModuleOverridesEditor();
+      });
+      // T-shirt sizing: rename the volume labels to S, M, L, XL, … — stays
+      // freely editable and flows into the PDF ladder like any tier edit.
+      card.querySelector('button[data-act="tshirt"]').addEventListener('click', () => {
+        const SIZES = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL', '4XL', '5XL'];
+        const current = lioGetModuleTiers(k);
+        current.forEach((t, i) => { t.vol = SIZES[i] || 'Size ' + (i + 1); });
         lioSetModuleTiers(k, current);
         renderModuleOverridesEditor();
       });
@@ -7435,6 +7510,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
       window._hideTierLadder = !!fs.hideTierLadder;
       window._hideTierColumn = !!fs.hideTierColumn;
       window._tierLabelOverrides = (fs.tierLabelOverrides && typeof fs.tierLabelOverrides === 'object') ? Object.assign({}, fs.tierLabelOverrides) : {};
+      window._baseFees = (fs.baseFees && typeof fs.baseFees === 'object') ? Object.assign({}, fs.baseFees) : {};
 
       // Show the wizard
       document.getElementById('lio-dashboard')?.classList.add('hidden');
