@@ -4104,11 +4104,11 @@ function populateQuotePricing() {
       </td>
       <td class="p-2 pr-3 text-right">
         <div class="inline-flex flex-col gap-0.5 items-end">
-          ${curRow('usd', '$', listUsd + lioGetBaseFee(mod))}
-          ${curRow('eur', '€', listEur + lioGetBaseFee(mod))}
-          ${curRow('gbp', '£', listGbp + lioGetBaseFee(mod))}
-          ${curRow('chf', 'CHF', listChf + lioGetBaseFee(mod))}
-          <input type="hidden" id="qf-${mod}" value="${rawPrice + lioGetBaseFee(mod)}">
+          ${curRow('usd', '$', listUsd)}
+          ${curRow('eur', '€', listEur)}
+          ${curRow('gbp', '£', listGbp)}
+          ${curRow('chf', 'CHF', listChf)}
+          <input type="hidden" id="qf-${mod}" value="${rawPrice}">
         </div>
       </td>
       <td class="p-2 text-center align-top"><button onclick="toggleExcludeModule('${mod}')" id="qx-${mod}" class="text-slate-400 hover:text-red-500 text-lg transition" title="Exclude from quote">&times;</button></td>
@@ -4154,12 +4154,11 @@ function applyDiscountPct(key) {
   const pct = parseFloat(rawVal);
   if (isFinite(pct) && pct > 0 && (listUsd > 0 || listEur > 0 || listGbp > 0 || listChf > 0)) {
     const mul = 1 - Math.min(100, pct) / 100;
-    // The per-agent base fee (if set) is NOT discounted; it rides on top.
-    const baseAdd = (typeof lioGetBaseFee === 'function') ? lioGetBaseFee(key) : 0;
-    const dUsd = Math.max(0, Math.round(listUsd * mul)) + baseAdd;
-    const dEur = Math.max(0, Math.round(listEur * mul / 500) * 500) + baseAdd;
-    const dGbp = Math.max(0, Math.round(listGbp * mul / 500) * 500) + baseAdd;
-    const dChf = Math.max(0, Math.round(listChf * mul / 500) * 500) + baseAdd;
+    // These are TIER prices only; the base fee is a separate addend on top.
+    const dUsd = Math.max(0, Math.round(listUsd * mul));
+    const dEur = Math.max(0, Math.round(listEur * mul / 500) * 500);
+    const dGbp = Math.max(0, Math.round(listGbp * mul / 500) * 500);
+    const dChf = Math.max(0, Math.round(listChf * mul / 500) * 500);
     const u = document.getElementById('qfu-' + key); if (u) u.value = dUsd;
     const e = document.getElementById('qfe-' + key); if (e) e.value = dEur;
     const g = document.getElementById('qfg-' + key); if (g) g.value = dGbp;
@@ -4228,23 +4227,9 @@ function onBaseFee(key, value) {
   const v = parseFloat(value);
   if (isFinite(v) && v > 0) window._baseFees[key] = v;
   else delete window._baseFees[key];
-  const row = document.querySelector('tr[data-mod="' + key + '"]');
-  const base = lioGetBaseFee(key);
-  const listUsd = parseFloat(row?.getAttribute('data-list-usd')) || 0;
-  const listEur = parseFloat(row?.getAttribute('data-list-eur')) || 0;
-  const listGbp = parseFloat(row?.getAttribute('data-list-gbp')) || 0;
-  const listChf = parseFloat(row?.getAttribute('data-list-chf')) || 0;
-  const pct = (discountMode[key] === 'pct') ? (parseFloat(document.getElementById('qd-' + key)?.value) || 0) : 0;
-  const mul = 1 - Math.min(100, Math.max(0, pct)) / 100;
-  const u = document.getElementById('qfu-' + key); if (u) u.value = Math.max(0, Math.round(listUsd * mul)) + base;
-  const e = document.getElementById('qfe-' + key); if (e) e.value = Math.max(0, Math.round(listEur * mul / 500) * 500) + base;
-  const g = document.getElementById('qfg-' + key); if (g) g.value = Math.max(0, Math.round(listGbp * mul / 500) * 500) + base;
-  const c = document.getElementById('qfc-' + key); if (c) c.value = Math.max(0, Math.round(listChf * mul / 500) * 500) + base;
-  const qf = document.getElementById('qf-' + key);
-  if (qf) {
-    const act = currentCurrency === 'usd' ? u : (currentCurrency === 'eur' ? e : (currentCurrency === 'gbp' ? g : c));
-    if (act) qf.value = act.value;
-  }
+  // Base is a SEPARATE addend — never baked into the qf/currency price inputs
+  // (those stay tier-only). The subtotal + PDF add it on top, so a manual
+  // price / discount on the tier never drops the base fee.
   if (typeof calcUpdate === 'function') calcUpdate();
   updateQuotePricing();
 }
@@ -4281,14 +4266,13 @@ function changeQuoteTier(key) {
   }
   const listCell = row?.querySelector('td[data-list-price]');
   if (listCell) { listCell.setAttribute('data-list-price', newPrice); listCell.textContent = fmtRaw(newPrice); }
-  // A per-agent base fee (if set) rides on top of every tier price.
-  const baseAdd = (typeof lioGetBaseFee === 'function') ? lioGetBaseFee(key) : 0;
-  const u = document.getElementById('qfu-' + key); if (u) u.value = newUsd + baseAdd;
-  const e = document.getElementById('qfe-' + key); if (e) e.value = newEur + baseAdd;
-  const g = document.getElementById('qfg-' + key); if (g) g.value = newGbp + baseAdd;
-  const c = document.getElementById('qfc-' + key); if (c) c.value = newChf + baseAdd;
+  // These hold the TIER price only — the base fee is a separate addend.
+  const u = document.getElementById('qfu-' + key); if (u) u.value = newUsd;
+  const e = document.getElementById('qfe-' + key); if (e) e.value = newEur;
+  const g = document.getElementById('qfg-' + key); if (g) g.value = newGbp;
+  const c = document.getElementById('qfc-' + key); if (c) c.value = newChf;
   const qf = document.getElementById('qf-' + key);
-  if (qf) qf.value = newPrice + baseAdd;
+  if (qf) qf.value = newPrice;
   const qd = document.getElementById('qd-' + key);
   if (qd) qd.value = '';
   discountMode[key] = 'manual';
@@ -4450,12 +4434,14 @@ function updateQuotePricing() {
   const bundleApply = document.getElementById('quote-bundle-apply')?.checked && bundle;
   const bundlePct = bundleApply ? bundle.discount : 0;
 
-  // Sum Your Prices (from qf-{key} inputs) - skip excluded modules
+  // Sum Your Prices (from qf-{key} inputs) - skip excluded modules.
+  // qf holds the TIER price only; the per-agent base fee is added on top.
   let saasSubtotal = 0;
   selectedKeys.forEach(mod => {
     if (excludedModules[mod]) return;
     const el = document.getElementById('qf-' + mod);
     if (el) saasSubtotal += Math.max(0, parseFloat(el.value) || 0);
+    saasSubtotal += (typeof lioGetBaseFee === 'function') ? lioGetBaseFee(mod) : 0;
   });
   // Add custom positions to the subtotal so they roll into bundle/CS/Impl/Total.
   saasSubtotal += customPositionsTotal();
@@ -4553,27 +4539,27 @@ function generateQuoteData() {
     if (!tierEl) return;
     // Tier label can be overridden per-quote via the Custom-label input next to qt-{k}.
     const tierText = (window._tierLabelOverrides && window._tierLabelOverrides[k]) || tierEl.selectedOptions[0]?.text?.split(' \u2014 ')[0] || '';
-    const tierPrice = parseInt(tierEl.value);
-    const tierObj = modules[k]?.tiers?.find(t => t.price === tierPrice) || { price: tierPrice };
-    // Per-agent base fee rides on top of the tier price \u2014 include it in the
-    // list price so base alone never registers as a manual override.
+    const tierUsd = parseInt(tierEl.value);
+    const tierObj = modules[k]?.tiers?.find(t => t.price === tierUsd) || { price: tierUsd };
+    // Base fee is a SEPARATE addend, never part of the tier price. The tier
+    // price (list + manual/discount) lives in qf; base rides on top so
+    // Annual = tier + base always holds.
     const baseFee = (typeof lioGetBaseFee === 'function') ? lioGetBaseFee(k) : 0;
-    const listPrice = getTierPriceRaw(tierObj) + baseFee; // Correct current-currency price
+    const tierList = getTierPriceRaw(tierObj); // tier list price (no base)
 
-    // Check if user manually adjusted the price
+    // Effective tier price: a manual override / discount in qf wins.
+    let tierNet = tierList;
     const qfEl = document.getElementById('qf-' + k);
-    let customPrice = listPrice;
     if (qfEl) {
       const qfVal = parseFloat(qfEl.value) || 0;
-      if (qfVal > 0 && qfVal !== listPrice) {
-        customPrice = qfVal; // User manually changed the price
-      }
+      if (qfVal > 0 && qfVal !== tierList) tierNet = qfVal;
     }
 
-    totalSaas += customPrice;
+    const annual = tierNet + baseFee; // Annual fee = tier price + base fee
+    totalSaas += annual;
     if (k === 'sm') hasSM = true;
     const discPct = (discountMode[k] === 'pct') ? (parseFloat(document.getElementById('qd-' + k)?.value) || 0) : 0;
-    sel.push({ key: k, name: k === 'sm' ? 'Supplier Relationship Management (SRM)' : modules[k].name, price: customPrice, listPrice: listPrice, tierUsdPrice: tierPrice, discountPct: discPct, discountMode: discountMode[k] || 'manual', tier: tierText, baseFee: baseFee, desc: modules[k].desc, features: modules[k].features });
+    sel.push({ key: k, name: k === 'sm' ? 'Supplier Relationship Management (SRM)' : modules[k].name, price: annual, listPrice: tierList + baseFee, tierUsdPrice: tierUsd, tierPrice: tierNet, discountPct: discPct, discountMode: discountMode[k] || 'manual', tier: tierText, baseFee: baseFee, desc: modules[k].desc, features: modules[k].features });
   });
 
   // Append custom positions as additional line items so they show in the PDF
@@ -4722,10 +4708,15 @@ function generateQuoteData() {
         + (pct > 0 ? ' <span style="color:#10b981;font-size:10px;font-weight:600;">(-' + pct + '%)</span>' : '')
         + '</div>'
       : '<span style="font-weight:600;color:#1e293b;font-size:12px;">' + fmtRaw(m.price) + '</span>';
+    // Base column: base fee as a plain number, or blank (white) when none.
     const baseCell = (m.baseFee || 0) > 0
       ? '<span style="font-weight:600;color:#1e293b;font-size:12px;">' + fmtRaw(m.baseFee) + '</span>'
-      : '<span style="color:#cbd5e1;font-size:11px;">—</span>';
-    return '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;font-weight:600;font-size:12px;">' + m.name + '</td>' + (showBaseCol ? '<td style="padding:8px 16px;color:#1e293b;font-size:11px;">' + baseCell + '</td>' : '') + (hideTierCol ? '' : '<td style="padding:8px 16px;color:#1e293b;font-size:11px;">' + m.tier + '</td>') + '<td style="padding:8px 16px;text-align:right;">' + priceHtml + '</td></tr>';
+      : '';
+    // Tier column: tier label (text) + the selected tier's price, or blank.
+    const tierCell = m.tier
+      ? m.tier + ((m.tierPrice != null) ? ' <span style="color:#64748b;">— ' + fmtRaw(m.tierPrice) + '</span>' : '')
+      : '';
+    return '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;font-weight:600;font-size:12px;">' + m.name + '</td>' + (showBaseCol ? '<td style="padding:8px 16px;color:#1e293b;font-size:11px;">' + baseCell + '</td>' : '') + (hideTierCol ? '' : '<td style="padding:8px 16px;color:#1e293b;font-size:11px;">' + tierCell + '</td>') + '<td style="padding:8px 16px;text-align:right;">' + priceHtml + '</td></tr>';
   }).join('');
   const showLineDiscSummary = !hideDiscounts && lineDiscTotal > 0;
   const details = sel.filter(m => !m.isCustom).map(m => {
