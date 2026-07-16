@@ -5969,6 +5969,7 @@ function populateQuotePricing() {
     const listChf = _tierPriceInCurrency(tierObj, 'chf');
     const rawPrice = currentCurrency === 'usd' ? listUsd : (currentCurrency === 'eur' ? listEur : (currentCurrency === 'gbp' ? listGbp : listChf));
     discountMode[mod] = discountMode[mod] || 'manual';
+    const tierOff = lioGetAgentTierOff(mod); // tier price removed → base only
     // Build tier options for this module
     const tierOpts = modules[mod].tiers.map(t => {
       const sel = t.price === price ? ' selected' : '';
@@ -5986,18 +5987,19 @@ function populateQuotePricing() {
       const isActive = currentCurrency === cur;
       const cls = isActive ? accent : dim;
       const labelCls = isActive ? 'text-lio-300 font-semibold' : 'text-slate-500';
-      return '<div class="flex items-center justify-end gap-1">'
+      return '<div class="flex items-center justify-end gap-1' + (tierOff ? ' opacity-40' : '') + '">'
         + '<span class="text-[9px] ' + labelCls + ' w-6 text-right tracking-tight">' + sym + '</span>'
-        + '<input type="number" id="qf' + cur[0] + '-' + mod + '" value="' + val + '" min="0" step="' + (cur === 'usd' ? '100' : '500') + '" oninput="onQfCur(\'' + mod + '\',\'' + cur + '\')" class="w-24 bg-slate-800/50 border ' + cls + ' rounded px-1.5 py-0.5 text-xs text-white text-right outline-none ' + (isActive ? 'font-semibold' : '') + '">'
+        + '<input type="number" id="qf' + cur[0] + '-' + mod + '" value="' + val + '" min="0" step="' + (cur === 'usd' ? '100' : '500') + '" oninput="onQfCur(\'' + mod + '\',\'' + cur + '\')"' + (tierOff ? ' disabled' : '') + ' class="w-24 bg-slate-800/50 border ' + cls + ' rounded px-1.5 py-0.5 text-xs text-white text-right outline-none ' + (isActive ? 'font-semibold' : '') + '">'
         + '</div>';
     };
     tbody.innerHTML += '<tr class="border-t border-slate-700/30" data-mod="' + mod + '" id="qrow-' + mod + '" data-list-usd="' + listUsd + '" data-list-eur="' + listEur + '" data-list-gbp="' + listGbp + '" data-list-chf="' + listChf + '">'
       + '<td class="p-2 pl-3 align-top"><select onchange="swapModuleInRow(\'' + mod + '\', this.value)" class="w-full bg-slate-800/50 border border-slate-600 rounded p-1 text-xs text-slate-200 outline-none cursor-pointer hover:bg-slate-800" title="Click to swap with a different agent">' + modOptions + '</select></td>'
       + '<td class="p-2 text-right align-top"><input type="number" id="qb-' + mod + '" min="0" step="500" placeholder="—" class="w-24 bg-slate-800/50 border border-cyan-700/50 rounded px-1.5 py-0.5 text-xs text-cyan-300 text-right outline-none placeholder-slate-600" oninput="onBaseFee(\'' + mod + '\', this.value)" title="Optional annual base fee, added ON TOP of the tier price. Your Price = Base + Tier. Prints as its own Base column on the PDF."></td>'
-      + '<td class="p-2 align-top"><select id="qt-' + mod + '" onchange="changeQuoteTier(\'' + mod + '\'); syncTierLabelPlaceholder(\'' + mod + '\')" class="w-full bg-slate-800/50 border border-slate-600 rounded p-1 text-xs text-white outline-none">' + tierOpts + '</select>'
-      + '<input type="text" id="qt-label-' + mod + '" placeholder="Custom label (optional)" class="w-full mt-1 bg-slate-800/50 border border-slate-600 rounded p-1 text-[11px] text-slate-300 outline-none placeholder-slate-500" oninput="updateTierLabelOverride(\'' + mod + '\', this.value)" title="Override the tier label that prints on the quote (leave empty to use the volume from the dropdown).">'
+      + '<td class="p-2 align-top"><select id="qt-' + mod + '" onchange="changeQuoteTier(\'' + mod + '\'); syncTierLabelPlaceholder(\'' + mod + '\')"' + (tierOff ? ' disabled' : '') + ' class="w-full bg-slate-800/50 border border-slate-600 rounded p-1 text-xs text-white outline-none' + (tierOff ? ' opacity-40' : '') + '">' + tierOpts + '</select>'
+      + '<input type="text" id="qt-label-' + mod + '" placeholder="Custom label (optional)"' + (tierOff ? ' disabled' : '') + ' class="w-full mt-1 bg-slate-800/50 border border-slate-600 rounded p-1 text-[11px] text-slate-300 outline-none placeholder-slate-500' + (tierOff ? ' opacity-40' : '') + '" oninput="updateTierLabelOverride(\'' + mod + '\', this.value)" title="Override the tier label that prints on the quote (leave empty to use the volume from the dropdown).">'
+      + '<label class="flex items-center gap-1 mt-1 text-[10px] cursor-pointer ' + (tierOff ? 'text-amber-400' : 'text-slate-400') + '"><input type="checkbox" ' + (tierOff ? '' : 'checked') + ' onchange="lioToggleAgentTier(\'' + mod + '\', this.checked)" class="w-3 h-3 rounded"> Show tier price</label>'
       + '</td>'
-      + '<td class="p-2 text-right text-slate-400 align-top" data-list-price="' + rawPrice + '">' + fmtRaw(rawPrice) + '</td>'
+      + '<td class="p-2 text-right ' + (tierOff ? 'text-slate-600' : 'text-slate-400') + ' align-top" data-list-price="' + rawPrice + '">' + (tierOff ? '—' : fmtRaw(rawPrice)) + '</td>'
       + '<td class="p-2 text-center align-top">'
       + '<input type="number" id="qd-' + mod + '" value="" min="0" max="100" step="1" placeholder="%" onchange="applyDiscountPct(\'' + mod + '\')" oninput="applyDiscountPct(\'' + mod + '\')" class="w-16 bg-slate-800/50 border border-slate-600 rounded p-1 text-sm text-white text-center outline-none">'
       + '</td>'
@@ -6159,6 +6161,17 @@ function onBaseFee(key, value) {
 // position (appended in the default order). Both the editing table
 // and the PDF respect this order.
 // ---------------------------------------------------------------
+// Per-agent "include tier price" toggle. When OFF, the agent contributes
+// ONLY its base fee: the tier price is dropped, the Annual = Base, and the
+// PDF Tier cell is left blank. Controlled per-row in the pricing table.
+window._agentTierOff = window._agentTierOff || {};
+function lioGetAgentTierOff(mod) { return !!window._agentTierOff[mod]; }
+function lioToggleAgentTier(mod, show) {
+  if (show) delete window._agentTierOff[mod];
+  else window._agentTierOff[mod] = true;
+  populateQuotePricing();
+}
+
 window._quoteAgentOrder = window._quoteAgentOrder || [];
 function lioOrderSelected(keys) {
   const ord = window._quoteAgentOrder || [];
@@ -6402,7 +6415,7 @@ function updateQuotePricing() {
   selectedKeys.forEach(mod => {
     if (excludedModules[mod]) return;
     const el = document.getElementById('qf-' + mod);
-    const tierActive = el ? Math.max(0, parseFloat(el.value) || 0) : 0;
+    const tierActive = (el && !lioGetAgentTierOff(mod)) ? Math.max(0, parseFloat(el.value) || 0) : 0;
     const base = (typeof lioGetBaseFee === 'function') ? lioGetBaseFee(mod) : 0;
     saasSubtotal += tierActive + base;
     // Annual Price column = Base + Tier (exactly what prints as Annual Fee).
@@ -6523,15 +6536,18 @@ function generateQuoteData() {
     // price (list, and any manual override / discount) lives in qf-{mod}; the
     // base rides on top so Annual = tier + base always holds.
     const baseFee = (typeof lioGetBaseFee === 'function') ? lioGetBaseFee(mod) : 0;
+    const tierOff = lioGetAgentTierOff(mod); // tier price removed → base only
     const tierList = getTierPriceRaw(tierObj); // tier list price (display currency, no base)
 
     // Effective tier price: a manual override / discount in qf-{mod} wins.
+    // When the tier is switched off for this agent, it contributes 0.
     let tierNet = tierList;
     const qfEl = document.getElementById('qf-' + mod);
     if (qfEl) {
       const qfVal = parseFloat(qfEl.value) || 0;
       if (qfVal > 0 && qfVal !== tierList) tierNet = qfVal;
     }
+    if (tierOff) tierNet = 0;
 
     const annual = tierNet + baseFee; // Annual fee = tier price + base fee
     totalSaas += annual;
@@ -6542,7 +6558,7 @@ function generateQuoteData() {
       key: mod,
       name: mod === 'sm' ? 'Supplier Relationship Management (SRM)' : (modules[mod]?.name || 'SRM'),
       price: annual,                  // annual = tier + base (feeds all totals)
-      listPrice: tierList + baseFee,  // list annual (for discount strikethrough)
+      listPrice: (tierOff ? 0 : tierList) + baseFee,  // list annual (for discount strikethrough)
       tierUsdPrice: tierUsd,
       tierPrice: tierNet,             // effective tier-only price (for the Tier column)
       discountPct: discPct,
@@ -6722,9 +6738,10 @@ function generateQuoteData() {
     const baseCell = (m.baseFee || 0) > 0
       ? `<span style="font-weight:600;color:#1e293b;font-size:12px;">${fmtRaw(m.baseFee)}</span>`
       : '';
-    // Tier column: tier label (text) + the selected tier's price, or blank.
-    const tierCell = m.tier
-      ? `${m.tier}${(m.tierPrice != null) ? ` <span style="color:#64748b;">— ${fmtRaw(m.tierPrice)}</span>` : ''}`
+    // Tier column: tier label (text) + the selected tier's price. Left blank
+    // when the tier price is removed / switched off for this agent (base-only).
+    const tierCell = (m.tier && m.tierPrice > 0)
+      ? `${m.tier} <span style="color:#64748b;">— ${fmtRaw(m.tierPrice)}</span>`
       : '';
     return `<tr style="border-bottom:1px solid #e5e7eb;">
       <td style="padding:10px 16px;font-weight:600;color:#1e293b;font-size:12px;">${m.name}</td>
@@ -7094,6 +7111,7 @@ function saveQuoteToHistory(data) {
       customPositions: (window._customPositions || []).map(p => ({ name: p.name || '', tier: p.tier || '', price: parseFloat(p.price) || 0 })),
       tierLabelOverrides: Object.assign({}, window._tierLabelOverrides || {}),
       baseFees: Object.assign({}, window._baseFees || {}),
+      agentTierOff: Object.assign({}, window._agentTierOff || {}),
       agentOrder: (window._quoteAgentOrder || []).slice(),
       includeAdvROI: document.getElementById('quote-inc-adv-roi')?.checked ?? false,
       includePricingRef: document.getElementById('quote-inc-pricing-ref')?.checked ?? false,
@@ -7453,6 +7471,7 @@ function loadQuote(id) {
   // Restore per-quote tier-label overrides
   window._tierLabelOverrides = (fs.tierLabelOverrides && typeof fs.tierLabelOverrides === 'object') ? Object.assign({}, fs.tierLabelOverrides) : {};
   window._baseFees = (fs.baseFees && typeof fs.baseFees === 'object') ? Object.assign({}, fs.baseFees) : {};
+  window._agentTierOff = (fs.agentTierOff && typeof fs.agentTierOff === 'object') ? Object.assign({}, fs.agentTierOff) : {};
   window._quoteAgentOrder = Array.isArray(fs.agentOrder) ? fs.agentOrder.slice() : [];
 
   // Open quote modal
