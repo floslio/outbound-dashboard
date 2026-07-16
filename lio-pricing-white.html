@@ -1146,19 +1146,21 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
             <thead>
               <tr class="bg-slate-50 text-slate-500 text-xs uppercase">
                 <th class="text-left p-2 pl-3">Module</th>
-                <th class="text-right p-2" style="width:110px" title="Optional annual base fee — added on top of the tier price">Base</th>
-                <th class="text-left p-2" style="width:130px">Tier</th>
+                <th class="text-right p-2" style="width:100px" title="Optional annual base fee — added on top of the tier price">Base</th>
+                <th class="text-left p-2" style="width:120px">Tier</th>
                 <th class="text-right p-2">List Price</th>
-                <th class="text-center p-2" style="width:70px">Disc %</th>
-                <th class="text-right p-2 pr-3" title="Annual = Base + Tier price">Your Price</th>
-                <th class="text-center p-2" style="width:30px"></th>
+                <th class="text-center p-2" style="width:60px">Disc %</th>
+                <th class="text-right p-2" title="Editable price of the selected tier (per currency)">Tier Price</th>
+                <th class="text-right p-2 pr-3" title="Annual Price = Base + Tier price (prints as Annual Fee on the PDF)">Annual Price</th>
+                <th class="text-center p-2" style="width:44px" title="Reorder / exclude"></th>
               </tr>
             </thead>
             <tbody id="quote-pricing-lines"></tbody>
             <tfoot>
               <tr class="border-t border-slate-200 bg-slate-50">
-                <td class="p-2 pl-3 text-slate-500 text-xs" colspan="4">SaaS Subtotal</td>
-                <td class="p-2 pr-3 text-right font-semibold" id="quote-saas-subtotal">$0</td>
+                <td class="p-2 pl-3 text-slate-500 text-xs" colspan="6">SaaS Subtotal</td>
+                <td class="p-2 text-right font-semibold" id="quote-saas-subtotal">$0</td>
+                <td></td>
               </tr>
             </tfoot>
           </table>
@@ -4065,7 +4067,8 @@ function populateQuotePricing() {
   const tbody = document.getElementById('quote-pricing-lines');
   // First pass — collect modules currently in the quote so the per-row module
   // dropdown can hide options that are already in another row (no duplicates).
-  const selectedKeys = mods.filter(m => document.getElementById('chk-' + m)?.checked);
+  // Respect the user's custom row order (▲▼ buttons).
+  const selectedKeys = lioOrderSelected(mods.filter(m => document.getElementById('chk-' + m)?.checked));
   tbody.innerHTML = '';
   selectedKeys.forEach(mod => {
     const tierEl = document.getElementById('ct-' + mod);
@@ -4104,17 +4107,23 @@ function populateQuotePricing() {
       <td class="p-2 text-center align-top">
         <input type="number" id="qd-${mod}" value="" min="0" max="100" step="1" placeholder="%" onchange="applyDiscountPct('${mod}')" oninput="applyDiscountPct('${mod}')" class="w-16 border border-slate-200 rounded p-1 text-sm text-center outline-none">
       </td>
-      <td class="p-2 pr-3 text-right align-top">
+      <td class="p-2 text-right align-top">
         <div class="inline-flex flex-col gap-0.5 items-end">
           ${curRow('usd', '$', listUsd)}
           ${curRow('eur', '€', listEur)}
           ${curRow('gbp', '£', listGbp)}
           ${curRow('chf', 'CHF', listChf)}
           <input type="hidden" id="qf-${mod}" value="${rawPrice}">
-          <div id="qann-${mod}" class="text-[10px] text-indigo-600 font-semibold mt-0.5"></div>
         </div>
       </td>
-      <td class="p-2 text-center align-top"><button onclick="toggleExcludeModule('${mod}')" id="qx-${mod}" class="text-slate-400 hover:text-red-500 text-lg transition" title="Exclude from quote">&times;</button></td>
+      <td class="p-2 pr-3 text-right align-top"><div id="qann-${mod}" class="text-sm font-bold text-slate-900 whitespace-nowrap">—</div></td>
+      <td class="p-2 text-center align-top">
+        <div class="flex flex-col items-center gap-1">
+          <button onclick="lioMoveAgent('${mod}', -1)" title="Move up" class="text-slate-400 hover:text-indigo-600 text-xs leading-none transition">&#9650;</button>
+          <button onclick="lioMoveAgent('${mod}', 1)" title="Move down" class="text-slate-400 hover:text-indigo-600 text-xs leading-none transition">&#9660;</button>
+          <button onclick="toggleExcludeModule('${mod}')" id="qx-${mod}" class="text-slate-400 hover:text-red-500 text-lg leading-none transition" title="Exclude from quote">&times;</button>
+        </div>
+      </td>
     </tr>`;
   });
   const bundle = detectBundle(selectedKeys);
@@ -4235,6 +4244,27 @@ function onBaseFee(key, value) {
   // price / discount on the tier never drops the base fee.
   if (typeof calcUpdate === 'function') calcUpdate();
   updateQuotePricing();
+}
+
+// ---------------------------------------------------------------
+// Per-quote agent ordering — reorder rows with the ▲▼ buttons.
+// ---------------------------------------------------------------
+window._quoteAgentOrder = window._quoteAgentOrder || [];
+function lioOrderSelected(keys) {
+  const ord = window._quoteAgentOrder || [];
+  const inOrder = ord.filter(k => keys.includes(k));
+  const rest = keys.filter(k => !inOrder.includes(k));
+  return inOrder.concat(rest);
+}
+function lioMoveAgent(mod, dir) {
+  const selected = LIO_ALL_MODKEYS.filter(m => document.getElementById('chk-' + m)?.checked);
+  const order = lioOrderSelected(selected);
+  const i = order.indexOf(mod);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= order.length) return;
+  const tmp = order[i]; order[i] = order[j]; order[j] = tmp;
+  window._quoteAgentOrder = order;
+  populateQuotePricing();
 }
 
 function syncTierLabelPlaceholder(key) {
@@ -4446,9 +4476,9 @@ function updateQuotePricing() {
     const tierActive = el ? Math.max(0, parseFloat(el.value) || 0) : 0;
     const base = (typeof lioGetBaseFee === 'function') ? lioGetBaseFee(mod) : 0;
     saasSubtotal += tierActive + base;
-    // Your Price readout = the annual (Base + Tier), i.e. what prints on the PDF.
+    // Annual Price column = Base + Tier (exactly what prints as Annual Fee).
     const ann = document.getElementById('qann-' + mod);
-    if (ann) ann.textContent = base > 0 ? '= ' + fmtRaw(tierActive + base) + ' /yr' : '';
+    if (ann) ann.textContent = fmtRaw(tierActive + base);
   });
   // Add custom positions to the subtotal so they roll into bundle/CS/Impl/Total.
   saasSubtotal += customPositionsTotal();
@@ -4539,7 +4569,9 @@ function generateQuoteData() {
   const mods = LIO_ALL_MODKEYS.slice();
   const sel = [];
   let totalSaas = 0, hasSM = false;
-  mods.forEach(k => {
+  // Respect the user's custom row order (▲▼ buttons) so the PDF matches.
+  const orderedMods = lioOrderSelected(mods.filter(m => document.getElementById('chk-' + m)?.checked));
+  orderedMods.forEach(k => {
     if (!document.getElementById('chk-' + k)?.checked) return;
     if (excludedModules[k]) return;
     const tierEl = document.getElementById('ct-' + k);
@@ -4955,6 +4987,7 @@ function saveQuoteToHistory(data) {
       customPositions: (window._customPositions || []).map(p => ({ name: p.name || '', tier: p.tier || '', price: parseFloat(p.price) || 0 })),
       tierLabelOverrides: Object.assign({}, window._tierLabelOverrides || {}),
       baseFees: Object.assign({}, window._baseFees || {}),
+      agentOrder: (window._quoteAgentOrder || []).slice(),
       includeAdvROI: document.getElementById('quote-inc-adv-roi')?.checked ?? false,
       includePricingRef: document.getElementById('quote-inc-pricing-ref')?.checked ?? false,
       pricingRefTitle: document.getElementById('pricing-ref-title')?.value || '',
@@ -7513,6 +7546,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
       window._hideTierColumn = !!fs.hideTierColumn;
       window._tierLabelOverrides = (fs.tierLabelOverrides && typeof fs.tierLabelOverrides === 'object') ? Object.assign({}, fs.tierLabelOverrides) : {};
       window._baseFees = (fs.baseFees && typeof fs.baseFees === 'object') ? Object.assign({}, fs.baseFees) : {};
+      window._quoteAgentOrder = Array.isArray(fs.agentOrder) ? fs.agentOrder.slice() : [];
 
       // Show the wizard
       document.getElementById('lio-dashboard')?.classList.add('hidden');
