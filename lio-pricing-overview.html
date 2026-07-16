@@ -2032,17 +2032,18 @@ input[type="checkbox"] { accent-color: #6366f1; }
             <thead>
               <tr class="bg-slate-800/50 text-slate-400 text-xs uppercase">
                 <th class="text-left p-2 pl-3">Module</th>
+                <th class="text-right p-2" style="width:110px" title="Optional annual base fee — added on top of the tier price">Base</th>
                 <th class="text-left p-2" style="width:130px">Tier</th>
                 <th class="text-right p-2">List Price</th>
                 <th class="text-center p-2" style="width:70px">Disc %</th>
-                <th class="text-right p-2 pr-3">Your Price</th>
+                <th class="text-right p-2 pr-3" title="Annual = Base + Tier price">Your Price</th>
                 <th class="text-center p-2" style="width:30px" title="Exclude from quote"></th>
               </tr>
             </thead>
             <tbody id="quote-pricing-lines"></tbody>
             <tfoot>
               <tr class="border-t border-slate-700/50 bg-slate-800/30">
-                <td class="p-2 pl-3 text-slate-400 text-xs" colspan="3">SaaS Subtotal</td>
+                <td class="p-2 pl-3 text-slate-400 text-xs" colspan="4">SaaS Subtotal</td>
                 <td class="p-2 pr-3 text-right font-semibold" id="quote-saas-subtotal">$0</td>
               </tr>
             </tfoot>
@@ -5988,22 +5989,23 @@ function populateQuotePricing() {
         + '</div>';
     };
     tbody.innerHTML += '<tr class="border-t border-slate-700/30" data-mod="' + mod + '" id="qrow-' + mod + '" data-list-usd="' + listUsd + '" data-list-eur="' + listEur + '" data-list-gbp="' + listGbp + '" data-list-chf="' + listChf + '">'
-      + '<td class="p-2 pl-3"><select onchange="swapModuleInRow(\'' + mod + '\', this.value)" class="w-full bg-slate-800/50 border border-slate-600 rounded p-1 text-xs text-slate-200 outline-none cursor-pointer hover:bg-slate-800" title="Click to swap with a different agent">' + modOptions + '</select></td>'
-      + '<td class="p-2"><select id="qt-' + mod + '" onchange="changeQuoteTier(\'' + mod + '\'); syncTierLabelPlaceholder(\'' + mod + '\')" class="w-full bg-slate-800/50 border border-slate-600 rounded p-1 text-xs text-white outline-none">' + tierOpts + '</select>'
+      + '<td class="p-2 pl-3 align-top"><select onchange="swapModuleInRow(\'' + mod + '\', this.value)" class="w-full bg-slate-800/50 border border-slate-600 rounded p-1 text-xs text-slate-200 outline-none cursor-pointer hover:bg-slate-800" title="Click to swap with a different agent">' + modOptions + '</select></td>'
+      + '<td class="p-2 text-right align-top"><input type="number" id="qb-' + mod + '" min="0" step="500" placeholder="—" class="w-24 bg-slate-800/50 border border-cyan-700/50 rounded px-1.5 py-0.5 text-xs text-cyan-300 text-right outline-none placeholder-slate-600" oninput="onBaseFee(\'' + mod + '\', this.value)" title="Optional annual base fee, added ON TOP of the tier price. Your Price = Base + Tier. Prints as its own Base column on the PDF."></td>'
+      + '<td class="p-2 align-top"><select id="qt-' + mod + '" onchange="changeQuoteTier(\'' + mod + '\'); syncTierLabelPlaceholder(\'' + mod + '\')" class="w-full bg-slate-800/50 border border-slate-600 rounded p-1 text-xs text-white outline-none">' + tierOpts + '</select>'
       + '<input type="text" id="qt-label-' + mod + '" placeholder="Custom label (optional)" class="w-full mt-1 bg-slate-800/50 border border-slate-600 rounded p-1 text-[11px] text-slate-300 outline-none placeholder-slate-500" oninput="updateTierLabelOverride(\'' + mod + '\', this.value)" title="Override the tier label that prints on the quote (leave empty to use the volume from the dropdown).">'
-      + '<input type="number" id="qb-' + mod + '" min="0" step="500" placeholder="+ Base fee (optional)" class="w-full mt-1 bg-slate-800/50 border border-cyan-700/50 rounded p-1 text-[11px] text-cyan-300 outline-none placeholder-slate-500" oninput="onBaseFee(\'' + mod + '\', this.value)" title="Optional annual base fee charged ON TOP of the selected tier. Effective price = base + tier. Prints as a Base Fee row above the tier ladder on the PDF.">'
       + '</td>'
       + '<td class="p-2 text-right text-slate-400 align-top" data-list-price="' + rawPrice + '">' + fmtRaw(rawPrice) + '</td>'
       + '<td class="p-2 text-center align-top">'
       + '<input type="number" id="qd-' + mod + '" value="" min="0" max="100" step="1" placeholder="%" onchange="applyDiscountPct(\'' + mod + '\')" oninput="applyDiscountPct(\'' + mod + '\')" class="w-16 bg-slate-800/50 border border-slate-600 rounded p-1 text-sm text-white text-center outline-none">'
       + '</td>'
-      + '<td class="p-2 pr-3 text-right">'
+      + '<td class="p-2 pr-3 text-right align-top">'
       + '<div class="inline-flex flex-col gap-0.5 items-end">'
       + curRow('usd', '$', listUsd)
       + curRow('eur', '€', listEur)
       + curRow('gbp', '£', listGbp)
       + curRow('chf', 'CHF', listChf)
       + '<input type="hidden" id="qf-' + mod + '" value="' + rawPrice + '">'
+      + '<div id="qann-' + mod + '" class="text-[10px] text-lio-300 font-semibold mt-0.5"></div>'
       + '</div>'
       + '</td>'
       + '<td class="p-2 text-center align-top"><button onclick="toggleExcludeModule(\'' + mod + '\')" id="qx-' + mod + '" class="text-slate-500 hover:text-red-400 text-lg transition" title="Exclude from quote">&times;</button></td>'
@@ -6365,8 +6367,12 @@ function updateQuotePricing() {
   selectedKeys.forEach(mod => {
     if (excludedModules[mod]) return;
     const el = document.getElementById('qf-' + mod);
-    if (el) saasSubtotal += Math.max(0, parseFloat(el.value) || 0);
-    saasSubtotal += (typeof lioGetBaseFee === 'function') ? lioGetBaseFee(mod) : 0;
+    const tierActive = el ? Math.max(0, parseFloat(el.value) || 0) : 0;
+    const base = (typeof lioGetBaseFee === 'function') ? lioGetBaseFee(mod) : 0;
+    saasSubtotal += tierActive + base;
+    // Your Price readout = the annual (Base + Tier), i.e. what prints on the PDF.
+    const ann = document.getElementById('qann-' + mod);
+    if (ann) ann.textContent = base > 0 ? '= ' + fmtRaw(tierActive + base) + ' /yr' : '';
   });
   // Add custom positions to the subtotal so they roll into bundle/CS/Impl/Total.
   saasSubtotal += customPositionsTotal();
