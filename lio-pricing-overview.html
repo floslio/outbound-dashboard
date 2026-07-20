@@ -6558,7 +6558,15 @@ function generateQuoteData() {
     // base rides on top so Annual = tier + base always holds.
     const baseFee = (typeof lioGetBaseFee === 'function') ? lioGetBaseFee(mod) : 0;
     const tierOff = lioGetAgentTierOff(mod); // tier price removed → base only
-    const tierList = getTierPriceRaw(tierObj); // tier list price (display currency, no base)
+    // Tier list price — read from the editing row's data-list-{currency} so it
+    // ALWAYS matches what the user sees on screen. Re-deriving via
+    // modules[].tiers.find() can desync (segment scaling / admin price edits
+    // shift the price so the calc <option> value no longer matches, and the
+    // fallback object lacks native eur/gbp → a wrong USD conversion → phantom
+    // discount). data-list-* is the single source of truth.
+    const _row = document.querySelector('tr[data-mod="' + mod + '"]');
+    const _dataList = _row ? parseFloat(_row.getAttribute('data-list-' + currentCurrency)) : NaN;
+    const tierList = (isFinite(_dataList) && _dataList > 0) ? _dataList : getTierPriceRaw(tierObj); // tier list price (display currency, no base)
 
     // Effective tier price: a manual override / discount in qf-{mod} wins.
     // When the tier is switched off for this agent, it contributes 0.
