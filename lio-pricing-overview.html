@@ -2187,6 +2187,10 @@ input[type="checkbox"] { accent-color: #6366f1; }
                 <input type="checkbox" id="quote-hide-tier-column" class="w-4 h-4 rounded" onchange="window._hideTierColumn = this.checked;">
                 Hide "Tier" column on PDF
               </label>
+              <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer" title="Keeps the tier tables for your selected/quoted agents, but never prints tier tables in the 'More Ways / Additional Agents to Showcase' section.">
+                <input type="checkbox" id="quote-hide-showcase-tiers" checked class="w-4 h-4 rounded" onchange="window._hideShowcaseTiers = this.checked;">
+                Hide tier tables for Additional Agents (showcase)
+              </label>
             </div>
           </div>
           <div id="lio-modedit-host-dark" class="space-y-2"></div>
@@ -3811,6 +3815,23 @@ window._currentSegmentKey = null;
 
 // Snapshot the factory tier prices once so we can reset cleanly on segment change.
 window._modulesBaseline = null;
+// Global "standard tier size" (volume label) overrides set in the Segment
+// Admin. Applied to the live module registry BEFORE the baseline snapshot so
+// they persist across segment switches, reloads and quotes.
+window._tierVolOverrides = window._tierVolOverrides || {};
+(function _applyStoredTierVolOverrides() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('lio-tier-vol-overrides') || '{}');
+    window._tierVolOverrides = stored && typeof stored === 'object' ? stored : {};
+    Object.keys(window._tierVolOverrides).forEach(k => {
+      if (!modules[k] || !modules[k].tiers) return;
+      Object.keys(window._tierVolOverrides[k]).forEach(idx => {
+        const i = parseInt(idx);
+        if (modules[k].tiers[i]) modules[k].tiers[i].vol = window._tierVolOverrides[k][idx];
+      });
+    });
+  } catch (e) { window._tierVolOverrides = {}; }
+})();
 function _ensureModulesBaseline() {
   if (window._modulesBaseline) return;
   window._modulesBaseline = {};
@@ -6893,7 +6914,7 @@ function generateQuoteData() {
         '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">' +
         a.features.slice(0, 4).map(f => '<span style="display:inline-block;background:#f0f0f0;color:#1e293b;padding:4px 10px;border-radius:6px;font-size:11px;">&#10003; ' + f + '</span>').join('') +
         '</div>' +
-        (a.tiers.length > 0 ? '<div data-tier-ladder="1" data-modkey="' + (a.key || '') + '" style="margin-top:8px;"><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers (' + a.unit + ')</div>' +
+        (a.tiers.length > 0 && !window._hideShowcaseTiers ? '<div data-tier-ladder="1" data-modkey="' + (a.key || '') + '" style="margin-top:8px;"><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers (' + a.unit + ')</div>' +
         '<table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;"><thead><tr style="background:#f8fafc;"><th style="padding:4px 8px;text-align:left;font-size:10px;color:#64748b;text-transform:uppercase;">Volume</th><th style="padding:4px 8px;text-align:right;font-size:10px;color:#64748b;text-transform:uppercase;">Price</th></tr></thead><tbody>' + tierRows + '</tbody></table></div>' : '') +
         '</div>';
     }).join('')}
@@ -7984,6 +8005,9 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
 window._moduleOverrides = window._moduleOverrides || {};
 window._hideTierLadder = window._hideTierLadder || false;
 window._hideTierColumn = window._hideTierColumn || false;
+// Default ON: never print tier tables in the "Additional Agents to Showcase"
+// section — selected/quoted modules keep their tier ladders.
+window._hideShowcaseTiers = (window._hideShowcaseTiers === undefined) ? true : window._hideShowcaseTiers;
 
 if (typeof window.generateQuoteData === 'function' && !window._origGenerateQuoteData) {
   window._origGenerateQuoteData = window.generateQuoteData;
@@ -8370,7 +8394,9 @@ function lioRenderModuleTableDark(segKey) {
       const chfVal = tier.chf ?? _lioFactorTierPrice(blTier, 'chf', factor);
       const inp = `bg-slate-800/80 border border-slate-700 rounded px-2 py-1 text-xs text-white outline-none focus:ring-1 focus:ring-lio-500 focus:border-lio-500 transition`;
       html += `<tr class="hover:bg-slate-800/20 transition">
-        <td class="px-4 py-1 text-xs text-slate-400 pl-6">${tier.vol}</td>
+        <td class="px-4 py-1 pl-6">
+          <input type="text" class="seg-admin-vol w-full ${inp}" data-modkey="${modKey}" data-tieridx="${i}" value="${(tier.vol || '').replace(/"/g, '&quot;')}" title="Standard tier size / volume label (applies globally)">
+        </td>
         <td class="px-3 py-1">
           <input type="number" class="seg-admin-input w-full ${inp}" data-modkey="${modKey}" data-tieridx="${i}" data-currency="usd" value="${usdVal}" min="0" step="100">
         </td>
@@ -8430,6 +8456,28 @@ async function lioSaveSegmentPricingDark() {
       else if (currency === 'chf') collected[modKey][tierIdx].chf = val;
     }
   });
+
+  // 2b. Tier VOLUME labels ("standard tier size") — these are GLOBAL, not
+  // per-segment. Apply to the live module registry + baseline + collected
+  // custom tiers, and persist so they survive reload.
+  window._tierVolOverrides = window._tierVolOverrides || {};
+  document.querySelectorAll('#seg-admin-module-tbody .seg-admin-vol').forEach(inp => {
+    const modKey = inp.dataset.modkey;
+    const tierIdx = parseInt(inp.dataset.tieridx);
+    const vol = (inp.value || '').trim();
+    if (!vol || isNaN(tierIdx)) return;
+    if (modules[modKey] && modules[modKey].tiers && modules[modKey].tiers[tierIdx]) {
+      const cur = modules[modKey].tiers[tierIdx].vol;
+      if (cur !== vol) {
+        modules[modKey].tiers[tierIdx].vol = vol;
+        if (baseline[modKey] && baseline[modKey].tiers && baseline[modKey].tiers[tierIdx]) baseline[modKey].tiers[tierIdx].vol = vol;
+        if (!window._tierVolOverrides[modKey]) window._tierVolOverrides[modKey] = {};
+        window._tierVolOverrides[modKey][tierIdx] = vol;
+      }
+    }
+    if (collected[modKey] && collected[modKey][tierIdx]) collected[modKey][tierIdx].vol = vol;
+  });
+  try { localStorage.setItem('lio-tier-vol-overrides', JSON.stringify(window._tierVolOverrides)); } catch (e) {}
 
   // 3. Decide: save as custom override vs revert to factor
   if (statusEl) { statusEl.textContent = 'Saving…'; statusEl.style.color = '#94a3b8'; }
@@ -10113,6 +10161,8 @@ if (typeof _origOpenQuoteModal === 'function') {
     if (hideTiersCb) hideTiersCb.checked = !!window._hideTierLadder;
     const hideTierColCb = document.getElementById('quote-hide-tier-column');
     if (hideTierColCb) hideTierColCb.checked = !!window._hideTierColumn;
+    const hideShowcaseCb = document.getElementById('quote-hide-showcase-tiers');
+    if (hideShowcaseCb) hideShowcaseCb.checked = !!window._hideShowcaseTiers;
     // Default the view to Standard each time the modal opens (state preserved).
     if (typeof lioSetQuoteView === 'function') lioSetQuoteView(window._quoteView || 'standard');
   };
@@ -10135,6 +10185,7 @@ if (typeof _origSaveQuoteToHistory === 'function') {
         } else { delete top.formState.moduleOverrides; }
         top.formState.hideTierLadder = !!window._hideTierLadder;
         top.formState.hideTierColumn = !!window._hideTierColumn;
+        top.formState.hideShowcaseTiers = !!window._hideShowcaseTiers;
         localStorage.setItem('lio-quote-history', JSON.stringify(hist));
         if (typeof sbUpdateQuote === 'function' && top.ref) sbUpdateQuote(top.ref, top);
       } catch (e) { /* non-fatal */ }
@@ -10156,6 +10207,7 @@ if (typeof _origLoadQuote === 'function') {
         window._moduleOverrides = (fs.moduleOverrides && typeof fs.moduleOverrides === 'object') ? JSON.parse(JSON.stringify(fs.moduleOverrides)) : {};
         window._hideTierLadder = !!fs.hideTierLadder;
         window._hideTierColumn = !!fs.hideTierColumn;
+        if (fs.hideShowcaseTiers !== undefined) window._hideShowcaseTiers = !!fs.hideShowcaseTiers;
         if (fs.segmentKey) applySegmentPricing(fs.segmentKey);
         renderSegmentPicker();
         renderModuleOverridesEditorDark();
@@ -10163,6 +10215,8 @@ if (typeof _origLoadQuote === 'function') {
         if (hideTiersCb) hideTiersCb.checked = !!window._hideTierLadder;
         const hideTierColCb2 = document.getElementById('quote-hide-tier-column');
         if (hideTierColCb2) hideTierColCb2.checked = !!window._hideTierColumn;
+        const hideShowcaseCb2 = document.getElementById('quote-hide-showcase-tiers');
+        if (hideShowcaseCb2) hideShowcaseCb2.checked = !!window._hideShowcaseTiers;
       } catch (e) { /* non-fatal */ }
     }, 400);
   };
@@ -10236,6 +10290,7 @@ function lioInstallSaveHookForPhases() {
         try { top.formState.moduleOverrides = JSON.parse(JSON.stringify(window._moduleOverrides || {})); } catch (e) { top.formState.moduleOverrides = {}; }
         top.formState.hideTierLadderAll = !!window._hideTierLadder;
         top.formState.hideTierColumn = !!window._hideTierColumn;
+        top.formState.hideShowcaseTiers = !!window._hideShowcaseTiers;
         top.formState.currency = (typeof currentCurrency !== 'undefined') ? currentCurrency : 'usd';
         top.formState.segmentKey = window._currentSegmentKey || null;
         // excludedModules is a const at script scope, not on window — read it back
@@ -10305,6 +10360,9 @@ function lioInstallLoadHookForPhases() {
         window._hideTierColumn = !!fs.hideTierColumn;
         const hideTierColCb3 = document.getElementById('quote-hide-tier-column');
         if (hideTierColCb3) hideTierColCb3.checked = !!fs.hideTierColumn;
+        if (fs.hideShowcaseTiers !== undefined) window._hideShowcaseTiers = !!fs.hideShowcaseTiers;
+        const hideShowcaseCb3 = document.getElementById('quote-hide-showcase-tiers');
+        if (hideShowcaseCb3) hideShowcaseCb3.checked = !!window._hideShowcaseTiers;
         if (fs.currency && typeof setCurrency === 'function' && fs.currency !== currentCurrency) {
           try { setCurrency(fs.currency); } catch (e) { /* non-fatal */ }
         }

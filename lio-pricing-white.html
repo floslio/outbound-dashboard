@@ -1883,7 +1883,9 @@ function lioRenderModuleTableWhite(segKey) {
       const chfVal = tier.chf ?? _lioFactorTierPriceW(blTier, 'chf', factor);
       const inp = `border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-700 outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-400 transition`;
       html += `<tr class="hover:bg-slate-50 transition">
-        <td class="px-4 py-1 text-xs text-slate-400 pl-6">${tier.vol}</td>
+        <td class="px-4 py-1 pl-6">
+          <input type="text" class="seg-admin-vol-white w-full ${inp}" data-modkey="${modKey}" data-tieridx="${i}" value="${(tier.vol || '').replace(/"/g, '&quot;')}" title="Standard tier size / volume label (applies globally)">
+        </td>
         <td class="px-3 py-1">
           <input type="number" class="seg-admin-input-white w-full ${inp}" data-modkey="${modKey}" data-tieridx="${i}" data-currency="usd" value="${usdVal}" min="0" step="100">
         </td>
@@ -1943,6 +1945,24 @@ async function lioSaveSegmentPricingWhite() {
       else if (currency === 'chf') collected[modKey][tierIdx].chf = val;
     }
   });
+
+  // 2b. Tier VOLUME labels ("standard tier size") — GLOBAL, persisted.
+  window._tierVolOverrides = window._tierVolOverrides || {};
+  document.querySelectorAll('#seg-admin-module-tbody-white .seg-admin-vol-white').forEach(inp => {
+    const modKey = inp.dataset.modkey;
+    const tierIdx = parseInt(inp.dataset.tieridx);
+    const vol = (inp.value || '').trim();
+    if (!vol || isNaN(tierIdx)) return;
+    if (modules[modKey] && modules[modKey].tiers && modules[modKey].tiers[tierIdx]) {
+      modules[modKey].tiers[tierIdx].vol = vol;
+      const bl = (window._modulesBaseline || {})[modKey];
+      if (bl && bl.tiers && bl.tiers[tierIdx]) bl.tiers[tierIdx].vol = vol;
+      if (!window._tierVolOverrides[modKey]) window._tierVolOverrides[modKey] = {};
+      window._tierVolOverrides[modKey][tierIdx] = vol;
+    }
+    if (collected[modKey] && collected[modKey][tierIdx]) collected[modKey][tierIdx].vol = vol;
+  });
+  try { localStorage.setItem('lio-tier-vol-overrides', JSON.stringify(window._tierVolOverrides)); } catch (e) {}
 
   if (statusEl) { statusEl.textContent = 'Saving…'; statusEl.style.color = '#6366f1'; }
   if (saveBtn) saveBtn.disabled = true;
@@ -2604,6 +2624,22 @@ const modules = {
 };
 
 let currentCurrency = 'usd';
+// Global "standard tier size" (volume label) overrides set in the Segment
+// Admin — applied to the live module registry at startup so they persist.
+window._tierVolOverrides = window._tierVolOverrides || {};
+(function _applyStoredTierVolOverrides() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('lio-tier-vol-overrides') || '{}');
+    window._tierVolOverrides = stored && typeof stored === 'object' ? stored : {};
+    Object.keys(window._tierVolOverrides).forEach(k => {
+      if (!modules[k] || !modules[k].tiers) return;
+      Object.keys(window._tierVolOverrides[k]).forEach(idx => {
+        const i = parseInt(idx);
+        if (modules[k].tiers[i]) modules[k].tiers[i].vol = window._tierVolOverrides[k][idx];
+      });
+    });
+  } catch (e) { window._tierVolOverrides = {}; }
+})();
 // Shared module-keys list — extended at runtime by the Module Library (admin
 // mode) so custom modules participate in calc/PDF flows. All places that
 // previously hardcoded the 16 standard keys now pull from this slice.
@@ -4898,7 +4934,7 @@ function generateQuoteData() {
         '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">' +
         a.features.slice(0, 4).map(f => '<span style="display:inline-block;background:#f0f0f0;color:#1e293b;padding:4px 10px;border-radius:6px;font-size:11px;">&#10003; ' + f + '</span>').join('') +
         '</div>' +
-        (a.tiers.length > 0 ? '<div data-tier-ladder="1" data-modkey="' + (a.key || '') + '" style="margin-top:8px;"><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers (' + a.unit + ')</div>' +
+        (a.tiers.length > 0 && !window._hideShowcaseTiers ? '<div data-tier-ladder="1" data-modkey="' + (a.key || '') + '" style="margin-top:8px;"><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Available Tiers (' + a.unit + ')</div>' +
         '<table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;"><thead><tr style="background:#f8fafc;"><th style="padding:4px 8px;text-align:left;font-size:10px;color:#64748b;text-transform:uppercase;">Volume</th><th style="padding:4px 8px;text-align:right;font-size:10px;color:#64748b;text-transform:uppercase;">Price</th></tr></thead><tbody>' + tierRows + '</tbody></table></div>' : '') +
         '</div>';
     }).join('')}
@@ -6387,6 +6423,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
     // reset PDF overrides, tier-ladder visibility, and tier-label overrides for a fresh quote
     window._moduleOverrides = {};
     window._hideTierLadder = false;
+    if (window._hideShowcaseTiers === undefined) window._hideShowcaseTiers = true;
     window._hideTierColumn = false;
     window._tierLabelOverrides = {};
     // reset editing-quote pointer
@@ -6846,6 +6883,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
             '<label class="flex items-center gap-2"><input type="checkbox" id="lio-sec-details" class="w-4 h-4" checked>Module details page</label>' +
             '<label class="flex items-center gap-2 ml-6 text-slate-600"><input type="checkbox" id="lio-sec-hidetiers" class="w-4 h-4">Hide tier price ladder per module <span class="text-xs text-slate-400">(keep description)</span></label>' +
             '<label class="flex items-center gap-2 ml-6 text-slate-600"><input type="checkbox" id="lio-sec-hidetiercol" class="w-4 h-4">Hide "Tier" column on PDF <span class="text-xs text-slate-400">(pricing table shows Module + Fee only)</span></label>' +
+            '<label class="flex items-center gap-2 ml-6 text-slate-600"><input type="checkbox" id="lio-sec-hideshowcasetiers" class="w-4 h-4">Hide tier tables for Additional Agents (showcase) <span class="text-xs text-slate-400">(selected modules keep their tiers)</span></label>' +
             '<label class="flex items-center gap-2"><input type="checkbox" id="lio-sec-roi" class="w-4 h-4">Impact summary (Simple ROI)</label>' +
             '<label class="flex items-center gap-2"><input type="checkbox" id="lio-sec-advroi" class="w-4 h-4">Advanced ROI analysis</label>' +
             '<label class="flex items-center gap-2"><input type="checkbox" id="lio-sec-pricingref" class="w-4 h-4">Pricing range reference</label>' +
@@ -6887,6 +6925,12 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
     if (hideTierCol) {
       hideTierCol.checked = !!window._hideTierColumn;
       hideTierCol.addEventListener('change', () => { window._hideTierColumn = hideTierCol.checked; });
+    }
+    // Hide tier tables for Additional Agents (showcase) toggle
+    const hideShowcase = document.getElementById('lio-sec-hideshowcasetiers');
+    if (hideShowcase) {
+      hideShowcase.checked = !!window._hideShowcaseTiers;
+      hideShowcase.addEventListener('change', () => { window._hideShowcaseTiers = hideShowcase.checked; });
     }
     // Render the per-module description + features editor
     renderModuleOverridesEditor();
@@ -7324,6 +7368,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
         }
         top.formState.hideTierLadder = !!window._hideTierLadder;
         top.formState.hideTierColumn = !!window._hideTierColumn;
+        top.formState.hideShowcaseTiers = !!window._hideShowcaseTiers;
         if (window._tierLabelOverrides && Object.keys(window._tierLabelOverrides).length > 0) {
           top.formState.tierLabelOverrides = Object.assign({}, window._tierLabelOverrides);
         } else {
@@ -7560,6 +7605,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
       window._moduleOverrides = (fs.moduleOverrides && typeof fs.moduleOverrides === 'object') ? JSON.parse(JSON.stringify(fs.moduleOverrides)) : {};
       window._hideTierLadder = !!fs.hideTierLadder;
       window._hideTierColumn = !!fs.hideTierColumn;
+      if (fs.hideShowcaseTiers !== undefined) window._hideShowcaseTiers = !!fs.hideShowcaseTiers;
       window._tierLabelOverrides = (fs.tierLabelOverrides && typeof fs.tierLabelOverrides === 'object') ? Object.assign({}, fs.tierLabelOverrides) : {};
       window._baseFees = (fs.baseFees && typeof fs.baseFees === 'object') ? Object.assign({}, fs.baseFees) : {};
       window._agentTierOff = (fs.agentTierOff && typeof fs.agentTierOff === 'object') ? Object.assign({}, fs.agentTierOff) : {};
