@@ -1033,6 +1033,17 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
       </div>
     </div>
 
+    <!-- Currency switcher — change the whole quote's display currency here -->
+    <div class="mb-4 p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3 flex-wrap">
+      <div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Quote Currency <span class="normal-case text-slate-400 tracking-normal">— switches every price, tier &amp; total</span></div>
+      <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-lg p-0.5">
+        <button type="button" onclick="setCurrency('usd')" class="currency-btn px-2.5 py-1 rounded text-xs font-medium" data-cur="usd">🇺🇸 $</button>
+        <button type="button" onclick="setCurrency('eur')" class="currency-btn px-2.5 py-1 rounded text-xs font-medium" data-cur="eur">🇩🇪 €</button>
+        <button type="button" onclick="setCurrency('gbp')" class="currency-btn px-2.5 py-1 rounded text-xs font-medium" data-cur="gbp">🇬🇧 £</button>
+        <button type="button" onclick="setCurrency('chf')" class="currency-btn px-2.5 py-1 rounded text-xs font-medium" data-cur="chf">🇨🇭 CHF</button>
+      </div>
+    </div>
+
     <!-- Customer Segment Picker — scales tier prices for this quote -->
     <div class="mb-4 p-3 rounded-xl bg-slate-50 border border-slate-200">
       <div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-2">Customer Segment <span class="normal-case text-slate-400 tracking-normal text-[10px]">— scales all tier prices (Fortune 500 = ×1.50 · DAX 40 = ×1.25 · Mid Market = ×0.85 · Mittelstand = ×0.70 · Custom = ×1.00)</span></div>
