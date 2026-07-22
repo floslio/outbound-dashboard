@@ -1979,6 +1979,17 @@ input[type="checkbox"] { accent-color: #6366f1; }
           <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="checkbox" id="quote-inc-service" checked> Service & Support</label>
           <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer"><input type="checkbox" id="quote-inc-terms" checked> Terms & Conditions</label>
         </div>
+        <!-- Editable Service & Support description bullets (one bullet per line) -->
+        <div id="quote-service-editor" class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block mb-1">Implementation — bullets <span class="text-slate-500 normal-case tracking-normal">(one per line, edit/add/remove)</span></label>
+            <textarea id="quote-service-impl-text" rows="5" class="w-full bg-slate-800/50 border border-slate-600 rounded-lg p-2 text-xs text-white placeholder-slate-500 outline-none resize-y" placeholder="One bullet per line…"></textarea>
+          </div>
+          <div>
+            <label class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block mb-1">Customer Success &amp; Support — bullets <span class="text-slate-500 normal-case tracking-normal">(one per line, edit/add/remove)</span></label>
+            <textarea id="quote-service-cs-text" rows="5" class="w-full bg-slate-800/50 border border-slate-600 rounded-lg p-2 text-xs text-white placeholder-slate-500 outline-none resize-y" placeholder="One bullet per line…"></textarea>
+          </div>
+        </div>
       </div>
       <div class="mt-4">
         <div class="flex items-center justify-between mb-2">
@@ -6709,6 +6720,18 @@ function generateQuoteData() {
   const includeService = document.getElementById('quote-inc-service')?.checked ?? true;
   const includeTerms = document.getElementById('quote-inc-terms')?.checked ?? true;
   const customNotes = document.getElementById('quote-notes')?.value || '';
+  // Editable Service & Support bullets (one per line). Fall back to defaults
+  // when the textareas are untouched/empty.
+  const _svcImplRaw = document.getElementById('quote-service-impl-text')?.value;
+  const _svcCsRaw = document.getElementById('quote-service-cs-text')?.value;
+  const _defImplBullets = ['Web Interface & Teams interface','ERP & P2P System integration','Full system configuration','Up to 50 punchout catalogs','Buyer & requestor training'];
+  const _defCsBullets = ['Dedicated CSM','SLA-backed response times','Escalation management','Monthly strategy sessions'];
+  const _escHtml = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const _lines = (raw) => (raw == null ? null : raw.split('\n').map(l => l.trim()).filter(Boolean));
+  const svcImplBullets = (_lines(_svcImplRaw) || _defImplBullets);
+  const svcCsBullets = (_lines(_svcCsRaw) || _defCsBullets);
+  const svcImplHtml = svcImplBullets.map(b => '&#10003; ' + _escHtml(b)).join('<br>');
+  const svcCsHtml = svcCsBullets.map(b => '&#10003; ' + _escHtml(b)).join('<br>');
 
   // Lio contact person
   const lioContacts = {
@@ -7042,25 +7065,18 @@ function generateQuoteData() {
 
   <!-- Service & Support (conditional) -->
   ${includeService ? `<div style="background:#f8fafc;border-radius:12px;padding:24px;margin-top:32px;page-break-inside:avoid;">
-    <h3 style="font-size:15px;font-weight:700;margin-bottom:12px;">Service & Support Included</h3>
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:12px;">Service &amp; Support includes</h3>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
       <div>
         <div style="font-size:12px;font-weight:600;color:#1e293b;text-transform:uppercase;margin-bottom:8px;">Implementation (15%)</div>
         <div style="font-size:12px;color:#1e293b;line-height:1.8;">
-          &#10003; Web Interface & Teams interface<br>
-          &#10003; ERP & P2P System integration<br>
-          &#10003; Full system configuration<br>
-          &#10003; Up to 50 punchout catalogs<br>
-          &#10003; Buyer & requestor training
+          ${svcImplHtml}
         </div>
       </div>
       <div>
         <div style="font-size:12px;font-weight:600;color:#1e293b;text-transform:uppercase;margin-bottom:8px;">Customer Success & Support (10%)</div>
         <div style="font-size:12px;color:#1e293b;line-height:1.8;">
-          &#10003; Dedicated CSM<br>
-          &#10003; SLA-backed response times<br>
-          &#10003; Escalation management<br>
-          &#10003; Monthly strategy sessions
+          ${svcCsHtml}
         </div>
       </div>
     </div>
@@ -7090,7 +7106,7 @@ function generateQuoteData() {
 
 </div></body></html>`;
 
-  return { html, quoteRef, today, recipientCompany, recipientContact, recipientAddress, customNotes, selectedMods, grandTotal, bundleApply, includeDetails, includeROI, includeService, includeTerms, hideDiscounts };
+  return { html, quoteRef, today, validUntil, recipientCompany, recipientContact, recipientAddress, customNotes, selectedMods, grandTotal, bundleApply, includeDetails, includeROI, includeService, includeTerms, hideDiscounts };
 }
 
 function saveQuoteToHistory(data) {
@@ -7153,6 +7169,8 @@ function saveQuoteToHistory(data) {
       baseFees: Object.assign({}, window._baseFees || {}),
       agentTierOff: Object.assign({}, window._agentTierOff || {}),
       agentOrder: (window._quoteAgentOrder || []).slice(),
+      serviceImplText: document.getElementById('quote-service-impl-text')?.value ?? '',
+      serviceCsText: document.getElementById('quote-service-cs-text')?.value ?? '',
       includeAdvROI: document.getElementById('quote-inc-adv-roi')?.checked ?? false,
       includePricingRef: document.getElementById('quote-inc-pricing-ref')?.checked ?? false,
       pricingRefTitle: document.getElementById('pricing-ref-title')?.value || '',
@@ -7513,6 +7531,10 @@ function loadQuote(id) {
   window._baseFees = (fs.baseFees && typeof fs.baseFees === 'object') ? Object.assign({}, fs.baseFees) : {};
   window._agentTierOff = (fs.agentTierOff && typeof fs.agentTierOff === 'object') ? Object.assign({}, fs.agentTierOff) : {};
   window._quoteAgentOrder = Array.isArray(fs.agentOrder) ? fs.agentOrder.slice() : [];
+  if (fs.serviceImplText !== undefined) window._serviceImplText = fs.serviceImplText;
+  if (fs.serviceCsText !== undefined) window._serviceCsText = fs.serviceCsText;
+  const _implTaL = document.getElementById('quote-service-impl-text'); if (_implTaL && fs.serviceImplText !== undefined) _implTaL.value = fs.serviceImplText;
+  const _csTaL = document.getElementById('quote-service-cs-text'); if (_csTaL && fs.serviceCsText !== undefined) _csTaL.value = fs.serviceCsText;
 
   // Open quote modal
   openQuoteModal();
@@ -10184,6 +10206,12 @@ if (typeof _origOpenQuoteModal === 'function') {
     if (hideShowcaseCb) hideShowcaseCb.checked = !!window._hideShowcaseTiers;
     // Sync the in-modal currency switcher to the active currency.
     document.querySelectorAll('#quote-modal .currency-btn').forEach(b => b.classList.toggle('active', b.dataset.cur === currentCurrency));
+    // Hydrate the editable Service & Support bullet textareas (saved value wins,
+    // else the defaults) so the user can edit/add/remove before printing.
+    const _implTa = document.getElementById('quote-service-impl-text');
+    const _csTa = document.getElementById('quote-service-cs-text');
+    if (_implTa && !_implTa.value) _implTa.value = (window._serviceImplText != null ? window._serviceImplText : 'Web Interface & Teams interface\nERP & P2P System integration\nFull system configuration\nUp to 50 punchout catalogs\nBuyer & requestor training');
+    if (_csTa && !_csTa.value) _csTa.value = (window._serviceCsText != null ? window._serviceCsText : 'Dedicated CSM\nSLA-backed response times\nEscalation management\nMonthly strategy sessions');
     // Default the view to Standard each time the modal opens (state preserved).
     if (typeof lioSetQuoteView === 'function') lioSetQuoteView(window._quoteView || 'standard');
   };
