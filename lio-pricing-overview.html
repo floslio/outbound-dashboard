@@ -8099,12 +8099,22 @@ if (typeof window.generateQuoteData === 'function' && !window._origGenerateQuote
   window.generateQuoteData = function () {
     const ov = window._moduleOverrides || {};
     const backup = {};
+    const backupMD = {};
+    const hasMD = (typeof moduleDetails !== 'undefined' && moduleDetails);
     Object.keys(ov).forEach(k => {
       if (modules[k]) {
         backup[k] = { desc: modules[k].desc, features: modules[k].features, tiers: modules[k].tiers };
         if (typeof ov[k].desc === 'string') modules[k].desc = ov[k].desc;
         if (Array.isArray(ov[k].features)) modules[k].features = ov[k].features;
         if (Array.isArray(ov[k].tiers) && ov[k].tiers.length > 0) modules[k].tiers = ov[k].tiers;
+      }
+      // CRITICAL: generateQuoteData reads the PDF module description + features
+      // from moduleDetails[k], NOT modules[k]. Patch it too so per-module
+      // customizations actually appear on the PDF (for every agent).
+      if (hasMD && moduleDetails[k]) {
+        backupMD[k] = { desc: moduleDetails[k].desc, features: moduleDetails[k].features };
+        if (typeof ov[k].desc === 'string') moduleDetails[k].desc = ov[k].desc;
+        if (Array.isArray(ov[k].features)) moduleDetails[k].features = ov[k].features;
       }
     });
     let result;
@@ -8116,6 +8126,12 @@ if (typeof window.generateQuoteData === 'function' && !window._origGenerateQuote
           modules[k].desc = backup[k].desc;
           modules[k].features = backup[k].features;
           modules[k].tiers = backup[k].tiers;
+        }
+      });
+      Object.keys(backupMD).forEach(k => {
+        if (hasMD && moduleDetails[k]) {
+          moduleDetails[k].desc = backupMD[k].desc;
+          moduleDetails[k].features = backupMD[k].features;
         }
       });
     }
