@@ -4701,13 +4701,15 @@ function generateQuoteData() {
     const _dataList = _row ? parseFloat(_row.getAttribute('data-list-' + currentCurrency)) : NaN;
     const tierList = (isFinite(_dataList) && _dataList > 0) ? _dataList : getTierPriceRaw(tierObj); // tier list price (no base)
 
-    // Effective tier price: a manual override / discount in qf wins.
-    // When the tier is switched off for this agent, it contributes 0.
+    // Effective tier price: qf holds the current tier (net) price, already
+    // reflecting any discount / manual override. Use it whenever it's a valid
+    // number — including 0 (a legitimate 100% discount; the old `qfVal > 0`
+    // guard wrongly fell back to the full list price there).
     let tierNet = tierList;
     const qfEl = document.getElementById('qf-' + k);
     if (qfEl) {
-      const qfVal = parseFloat(qfEl.value) || 0;
-      if (qfVal > 0 && qfVal !== tierList) tierNet = qfVal;
+      const qfVal = parseFloat(qfEl.value);
+      if (isFinite(qfVal) && qfVal >= 0) tierNet = qfVal;
     }
     if (tierOff) tierNet = 0;
 
