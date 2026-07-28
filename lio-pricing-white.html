@@ -37,6 +37,9 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
 .currency-btn { color: #64748b; transition: all 0.2s; }
 .currency-btn:hover { color: #1e293b; }
 .currency-btn.active { background: #4f46e5; color: white; }
+.qv-tab { color: #64748b; }
+.qv-tab.active { background: #4f46e5; color: #fff; }
+.tok-plan-tab.active, .tok-mode-tab.active { background: #4f46e5; color: #fff; }
 .active-scenario-w { background: #4f46e5 !important; color: white !important; border-color: #4f46e5 !important; }
 /* 21st.dev inspired animations */
 @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
@@ -1024,10 +1027,14 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
 
 <!-- Quote Modal -->
 <div id="quote-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
-  <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
+  <div id="quote-modal-shell" class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl transition-[max-width]">
     <div class="flex justify-between items-center mb-4">
       <h3 class="text-xl font-bold text-slate-900">Create Quote</h3>
       <div class="flex items-center gap-2">
+        <div class="inline-flex bg-slate-100 border border-slate-200 rounded-lg p-0.5" id="quote-view-toggle">
+          <button type="button" onclick="lioSetQuoteView('standard')" data-view="standard" class="qv-tab active px-2.5 py-1 text-xs font-semibold rounded transition">📋 Standard</button>
+          <button type="button" onclick="lioSetQuoteView('token')" data-view="token" class="qv-tab px-2.5 py-1 text-xs font-semibold rounded transition text-slate-400">💠 Token</button>
+        </div>
         <button type="button" onclick="lioOpenSegmentAdmin()" class="px-3 py-1.5 text-xs bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-500 hover:text-slate-700 transition font-medium" title="Edit segment pricing factors (admin)">⚙️ Segment Admin</button>
         <button onclick="closeQuoteModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
       </div>
@@ -1044,6 +1051,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
       </div>
     </div>
 
+    <div id="quote-standard-view">
     <!-- Customer Segment Picker — scales tier prices for this quote -->
     <div class="mb-4 p-3 rounded-xl bg-slate-50 border border-slate-200">
       <div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-2">Customer Segment <span class="normal-case text-slate-400 tracking-normal text-[10px]">— scales all tier prices (Fortune 500 = ×1.50 · DAX 40 = ×1.25 · Mid Market = ×0.85 · Mittelstand = ×0.70 · Custom = ×1.00)</span></div>
@@ -1369,6 +1377,44 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
           <div class="flex justify-between text-sm mt-2 pt-2 border-t border-slate-200 font-bold"><span>Total First Year</span><span id="quote-final-total" class="text-lg accent-text">$0</span></div>
         </div>
       </div>
+    </div><!-- /#quote-standard-view -->
+
+    <!-- ============================================================ -->
+    <!-- TOKEN VIEW — Excel-based agent fees with Enterprise/Strategic -->
+    <!-- plans + Token/Tier pricing switch (ported from dark).         -->
+    <!-- ============================================================ -->
+    <div id="quote-token-view" class="hidden">
+      <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-slate-200">
+        <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Plan</div>
+        <div class="inline-flex bg-slate-100 border border-slate-200 rounded-lg p-0.5" id="tok-plan-toggle">
+          <button type="button" onclick="lioTokSetPlan('enterprise')" data-plan="enterprise" class="tok-plan-tab active px-2.5 py-1 text-xs font-semibold rounded transition">🏢 Enterprise</button>
+          <button type="button" onclick="lioTokSetPlan('strategic')" data-plan="strategic" class="tok-plan-tab px-2.5 py-1 text-xs font-semibold rounded transition text-slate-400">🚀 Strategic</button>
+        </div>
+        <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold ml-2">Pricing</div>
+        <div class="inline-flex bg-slate-100 border border-slate-200 rounded-lg p-0.5" id="tok-mode-toggle">
+          <button type="button" onclick="lioTokSetMode('token')" data-mode="token" class="tok-mode-tab active px-2.5 py-1 text-xs font-semibold rounded transition">💠 Token-based</button>
+          <button type="button" onclick="lioTokSetMode('tier')" data-mode="tier" class="tok-mode-tab px-2.5 py-1 text-xs font-semibold rounded transition text-slate-400">🪜 Tier-based</button>
+        </div>
+        <span class="text-[10px] text-slate-400 ml-auto" id="tok-currency-note">Token plan fees in EUR</span>
+      </div>
+      <div class="mt-3 p-3 rounded-lg bg-slate-50 border border-slate-200 flex flex-wrap items-center gap-3" id="tok-overage-bar">
+        <label class="text-xs text-slate-600 font-semibold">Token Overage</label>
+        <input type="number" id="tok-overage-price" min="0" step="0.01" placeholder="e.g. 1.00" onchange="lioTokUpdateTotals()" oninput="lioTokUpdateTotals()" class="w-24 border border-slate-200 rounded p-1.5 text-xs text-slate-700 text-right outline-none">
+        <span class="text-xs text-slate-500">€ per additional token <span class="text-slate-400">(leave empty to omit)</span></span>
+        <div class="flex items-center gap-1 ml-auto">
+          <button type="button" onclick="lioTokSelectAll(true)" class="text-[10px] px-2 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-200 text-slate-600">Select all</button>
+          <button type="button" onclick="lioTokSelectAll(false)" class="text-[10px] px-2 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-200 text-slate-600">Deselect all</button>
+        </div>
+      </div>
+      <div id="tok-agent-host" class="mt-4 rounded-lg border border-slate-200 bg-white overflow-x-auto"></div>
+      <div class="mt-4 p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-1" id="tok-summary">
+        <div class="flex justify-between text-sm"><span class="text-slate-500">SaaS Subtotal (annual)</span><span id="tok-sum-saas">—</span></div>
+        <div class="flex justify-between items-center text-sm"><span class="text-slate-500 flex items-center gap-1">Implementation (<input type="number" id="tok-impl-pct" value="15" min="0" max="100" step="0.5" onchange="lioTokUpdateTotals()" oninput="lioTokUpdateTotals()" class="w-10 border border-slate-200 rounded p-0.5 text-xs text-right outline-none">%) — one-time</span><span id="tok-sum-impl">—</span></div>
+        <div class="flex justify-between items-center text-sm"><span class="text-slate-500 flex items-center gap-1">Customer Success &amp; Support (<input type="number" id="tok-cs-pct" value="10" min="0" max="100" step="0.5" onchange="lioTokUpdateTotals()" oninput="lioTokUpdateTotals()" class="w-10 border border-slate-200 rounded p-0.5 text-xs text-right outline-none">%/yr)</span><span id="tok-sum-cs">—</span></div>
+        <div class="flex justify-between text-sm pt-2 mt-1 border-t border-slate-200 font-bold"><span>Total First Year</span><span id="tok-sum-total" class="text-lg">—</span></div>
+      </div>
+    </div><!-- /#quote-token-view -->
+
     <div class="flex gap-3 mt-6">
       <button onclick="downloadPDF()" class="flex-1 py-3 accent-gradient text-white rounded-xl font-semibold transition hover:opacity-90 flex items-center justify-center gap-2">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -3816,6 +3862,7 @@ function openQuoteModal() {
   const modal = document.getElementById('quote-modal');
   modal.classList.remove('hidden');
   modal.classList.add('flex');
+  if (typeof lioSetQuoteView === 'function') lioSetQuoteView('standard');
   const vd = new Date(); vd.setDate(vd.getDate() + 90);
   document.getElementById('quote-valid-until').value = vd.toISOString().split('T')[0];
   // Hydrate the editable Service & Support bullet textareas with defaults
@@ -4370,6 +4417,232 @@ function lioMoveAgent(mod, dir) {
   const tmp = order[i]; order[i] = order[j]; order[j] = tmp;
   window._quoteAgentOrder = order;
   populateQuotePricing();
+}
+
+// ===== Token Pricing view (ported from dark for full parity) =====
+const LIO_TOKEN_PRICING = {
+  clusters: [
+    { name: 'Procure to Pay (P2P)',          keys: ['gb2po','pra','oc','ta','gr','inv','bpo'] },
+    { name: 'Source to Contract (S2C)',      keys: ['tsa','tna','npa','ca','rfx','sa','ssa','at','ae','sbg','sh'] },
+    { name: 'Plan to Strategy (P2S)',        keys: ['ada','asc','oba','csa','stc'] },
+    { name: 'Agentic Supplier Management',   keys: ['soa','sm'] },
+    { name: 'Lio Studio & Platform',         keys: ['liox','aop','abf'] }
+  ],
+  agents: {
+    gb2po: { name: 'Guided Buying Agent',                   ent: 100000, strat: 250000, tokEnt: null,   tokStrat: null,   tokEvt: null, model: 'none' },
+    pra:   { name: 'PR Review Agent',                       ent: 50000,  strat: 250000, tokEnt: 25000,  tokStrat: 125000, tokEvt: 1,    model: 'used' },
+    oc:    { name: 'Order Confirmation Agent',              ent: 25000,  strat: 100000, tokEnt: 25000,  tokStrat: 50000,  tokEvt: 1,    model: 'used' },
+    ta:    { name: 'Tracking Agent',                        ent: 25000,  strat: 100000, tokEnt: 50000,  tokStrat: 100000, tokEvt: 1,    model: 'used' },
+    gr:    { name: 'Goods Receipt Agent',                   ent: 25000,  strat: 50000,  tokEnt: 12500,  tokStrat: 25000,  tokEvt: 0.25, model: 'used' },
+    inv:   { name: 'Invoice Agent',                         ent: 100000, strat: 250000, tokEnt: 50000,  tokStrat: 125000, tokEvt: 2,    model: 'used' },
+    bpo:   { name: 'BPO Agent',                             ent: 50000,  strat: 150000, tokEnt: null,   tokStrat: null,   tokEvt: null, model: 'none' },
+    tsa:   { name: 'Tailspend Sourcing Agent',              ent: 20000,  strat: 100000, tokEnt: 10000,  tokStrat: 50000,  tokEvt: 8,    model: 'used' },
+    tna:   { name: 'Tailspend Negotiation Agent',           ent: 40000,  strat: 150000, tokEnt: 20000,  tokStrat: 75000,  tokEvt: 16,   model: 'used' },
+    npa:   { name: 'Strategic Negotiation Preparation Agent', ent: 60000, strat: 100000, tokEnt: 40000, tokStrat: 80000,  tokEvt: 8,    model: 'used' },
+    ca:    { name: 'Contract Creation Agent',               ent: 60000,  strat: 150000, tokEnt: 20000,  tokStrat: 75000,  tokEvt: 4,    model: 'used' },
+    rfx:   { name: 'RfX Creation Agent',                    ent: 40000,  strat: 100000, tokEnt: 20000,  tokStrat: 50000,  tokEvt: 8,    model: 'used' },
+    sa:    { name: 'Supplier Sourcing Agent',               ent: 60000,  strat: 150000, tokEnt: 20000,  tokStrat: 75000,  tokEvt: 8,    model: 'used' },
+    ssa:   { name: 'Supplier Selection Agent',              ent: 60000,  strat: 150000, tokEnt: 20000,  tokStrat: 75000,  tokEvt: 8,    model: 'used' },
+    at:    { name: 'Agentic Tenders',                       ent: 75000,  strat: 200000, tokEnt: 10000,  tokStrat: 30000,  tokEvt: 6,    model: 'used' },
+    ae:    { name: 'Agentic Evaluation Agent',              ent: 40000,  strat: 100000, tokEnt: 15000,  tokStrat: 50000,  tokEvt: 2,    model: 'used' },
+    sbg:   { name: 'Scenario Building Agent',               ent: 40000,  strat: 100000, tokEnt: 20000,  tokStrat: 50000,  tokEvt: 4,    model: 'used' },
+    sh:    { name: 'Strategic Sourcing Hub',                ent: 100000, strat: 250000, tokEnt: null,   tokStrat: null,   tokEvt: null, model: 'none' },
+    ada:   { name: 'Data Analytics Agent',                  ent: 50000,  strat: 150000, tokEnt: 100000, tokStrat: 500000, tokEvt: 1,    model: 'used' },
+    asc:   { name: 'Strategy Creation Agent',               ent: 60000,  strat: 150000, tokEnt: 5000,   tokStrat: 20000,  tokEvt: 8,    model: 'used' },
+    oba:   { name: 'Order Bundling Agent',                  ent: 40000,  strat: 100000, tokEnt: 25000,  tokStrat: 75000,  tokEvt: 2,    model: 'used' },
+    csa:   { name: 'Contract Surveillance Agent',           ent: 35000,  strat: 100000, tokEnt: 50000,  tokStrat: 150000, tokEvt: 1,    model: 'used' },
+    stc:   { name: 'Spend-to-Contract Agent',               ent: 50000,  strat: 125000, tokEnt: 15000,  tokStrat: 50000,  tokEvt: 6,    model: 'used' },
+    soa:   { name: 'Supplier Onboarding Agent',             ent: 50000,  strat: 150000, tokEnt: 25000,  tokStrat: 75000,  tokEvt: 4,    model: 'used' },
+    sm:    { name: 'Agentic Supplier Relationship Mgmt',    ent: 60000,  strat: 175000, tokEnt: 50000,  tokStrat: 200000, tokEvt: 4,    model: 'used' },
+    liox:  { name: 'Lio Assistant',                         ent: 30000,  strat: 75000,  tokEnt: 30000,  tokStrat: 75000,  tokEvt: 1000, model: 'used', note: 'Metered per seat (1 event = 1 user seat/yr)' },
+    aop:   { name: 'Lio Operating Procedures (AOPs)',       ent: 25000,  strat: 75000,  tokEnt: 50000,  tokStrat: 150000, tokEvt: 1,    model: 'used' },
+    abf:   { name: 'Agent Builder & Agentic Forms',         ent: 100000, strat: 250000, tokEnt: 100000, tokStrat: 250000, tokEvt: 1,    model: 'used' }
+  }
+};
+
+// State: plan, mode, selected agents, per-plan fee overrides, tier picks.
+window._tokenConfig = window._tokenConfig || {
+  plan: 'enterprise',           // 'enterprise' | 'strategic'
+  mode: 'token',                // 'token' | 'tier'
+  sel: {},                      // key -> true when included
+  fees: { enterprise: {}, strategic: {} },  // key -> EUR override
+  tierIdx: {},                  // key -> 0..3 (tier mode)
+  overage: ''                   // € per additional token ('' = unset)
+};
+
+// EUR formatter for token mode (Excel base is EUR, independent of the
+// global currency switcher — noted in the UI).
+function lioTokFmtEur(n) {
+  return Math.round(n).toLocaleString('de-DE') + ' €';
+}
+// Token counts: 12500 → "12.500"
+function lioTokFmtNum(n) {
+  return n == null ? '—' : n.toLocaleString('de-DE');
+}
+
+function lioTokSetPlan(plan) {
+  window._tokenConfig.plan = plan;
+  document.querySelectorAll('#tok-plan-toggle .tok-plan-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.plan === plan);
+    b.classList.toggle('text-slate-400', b.dataset.plan !== plan);
+  });
+  lioRenderTokenView();
+}
+
+function lioTokSetMode(mode) {
+  window._tokenConfig.mode = mode;
+  document.querySelectorAll('#tok-mode-toggle .tok-mode-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === mode);
+    b.classList.toggle('text-slate-400', b.dataset.mode !== mode);
+  });
+  const bar = document.getElementById('tok-overage-bar');
+  if (bar) bar.style.display = '';
+  const ov = document.getElementById('tok-overage-price');
+  if (ov) ov.disabled = (mode !== 'token');
+  const note = document.getElementById('tok-currency-note');
+  if (note) note.textContent = mode === 'token' ? 'Token plan fees in EUR' : 'Tier prices follow the global currency switch';
+  lioRenderTokenView();
+}
+
+function lioTokSelectAll(on) {
+  Object.keys(LIO_TOKEN_PRICING.agents).forEach(k => { window._tokenConfig.sel[k] = !!on; });
+  lioRenderTokenView();
+}
+
+function lioTokToggle(key, on) {
+  window._tokenConfig.sel[key] = !!on;
+  lioTokUpdateTotals();
+}
+
+function lioTokSetFee(key, val) {
+  const cfg = window._tokenConfig;
+  const n = parseFloat(val);
+  if (val === '' || isNaN(n)) delete cfg.fees[cfg.plan][key];
+  else cfg.fees[cfg.plan][key] = n;
+  lioTokUpdateTotals();
+}
+
+function lioTokSetTier(key, idx) {
+  window._tokenConfig.tierIdx[key] = parseInt(idx) || 0;
+  lioTokUpdateTotals();
+}
+
+// Effective annual fee for one agent under current plan/mode (EUR in token
+// mode; current display currency in tier mode).
+function lioTokAgentFee(key) {
+  const cfg = window._tokenConfig;
+  if (cfg.mode === 'tier') {
+    const mod = modules[key];
+    if (!mod || !mod.tiers || !mod.tiers.length) return 0;
+    const idx = Math.min(cfg.tierIdx[key] || 0, mod.tiers.length - 1);
+    return getTierPriceRaw(mod.tiers[idx]);
+  }
+  const a = LIO_TOKEN_PRICING.agents[key];
+  if (!a) return 0;
+  const override = cfg.fees[cfg.plan][key];
+  if (override !== undefined) return override;
+  return cfg.plan === 'strategic' ? a.strat : a.ent;
+}
+
+function lioTokFmtMode(n) {
+  return window._tokenConfig.mode === 'token' ? lioTokFmtEur(n) : fmtRaw(n);
+}
+
+function lioRenderTokenView() {
+  const host = document.getElementById('tok-agent-host');
+  if (!host) return;
+  const cfg = window._tokenConfig;
+  const tokenMode = cfg.mode === 'token';
+
+  const headCols = tokenMode
+    ? '<th style="text-align:right;padding:8px 12px;">Base Fee / yr</th><th style="text-align:right;padding:8px 12px;">Incl. Tokens</th><th style="text-align:right;padding:8px 12px;">Tokens/Event</th><th style="text-align:center;padding:8px 12px;">Model</th>'
+    : '<th style="text-align:left;padding:8px 12px;">Volume Tier</th><th style="text-align:right;padding:8px 12px;">Annual Fee</th>';
+
+  let html = '<table class="w-full text-sm" style="border-collapse:collapse;min-width:640px;">';
+  html += '<thead><tr class="text-[10px] text-slate-400 uppercase tracking-wider border-b border-slate-700/50"><th style="text-align:left;padding:8px 12px;">Agent</th>' + headCols + '</tr></thead><tbody>';
+
+  LIO_TOKEN_PRICING.clusters.forEach(cluster => {
+    html += `<tr class="bg-slate-800/60"><td colspan="${tokenMode ? 5 : 3}" class="px-3 py-1.5 text-[10px] font-bold text-lio-300 uppercase tracking-wider">${cluster.name}</td></tr>`;
+    cluster.keys.forEach(key => {
+      const a = LIO_TOKEN_PRICING.agents[key];
+      if (!a) return;
+      const mod = modules[key] || {};
+      const icon = (typeof _DARK_MOD_ICONS !== 'undefined' && _DARK_MOD_ICONS[key]) || mod.icon || '⚙️';
+      const on = !!cfg.sel[key];
+      const rowCls = on ? '' : 'opacity-45';
+      let cells;
+      if (tokenMode) {
+        const fee = lioTokAgentFee(key);
+        const tokIncl = cfg.plan === 'strategic' ? a.tokStrat : a.tokEnt;
+        const modelBadge = a.model === 'used'
+          ? '<span class="px-1.5 py-0.5 rounded text-[10px] bg-lio-500/20 text-lio-300 border border-lio-500/30">Used</span>'
+          : '<span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-700/60 text-slate-400 border border-slate-600">None</span>';
+        cells = `
+          <td style="text-align:right;padding:6px 12px;">
+            <input type="number" value="${fee}" min="0" step="500" onchange="lioTokSetFee('${key}', this.value)" class="w-24 bg-slate-800/50 border border-slate-600 rounded p-1 text-xs text-white text-right outline-none" ${on ? '' : 'disabled'}>
+            <span class="text-[10px] text-slate-500 ml-0.5">€</span>
+          </td>
+          <td style="text-align:right;padding:6px 12px;" class="text-slate-300">${lioTokFmtNum(tokIncl)}</td>
+          <td style="text-align:right;padding:6px 12px;" class="text-slate-400">${a.tokEvt == null ? '—' : a.tokEvt.toLocaleString('de-DE')}</td>
+          <td style="text-align:center;padding:6px 12px;">${modelBadge}${a.note ? `<div class="text-[9px] text-slate-500 mt-0.5">${a.note}</div>` : ''}</td>`;
+      } else {
+        const tiers = (mod.tiers || []);
+        const idx = Math.min(cfg.tierIdx[key] || 0, Math.max(0, tiers.length - 1));
+        const opts = tiers.map((t, i) => `<option value="${i}" ${i === idx ? 'selected' : ''}>${t.vol} — ${fmtTierPrice(t)}/yr</option>`).join('');
+        cells = `
+          <td style="padding:6px 12px;">${tiers.length ? `<select onchange="lioTokSetTier('${key}', this.value)" class="w-full bg-slate-800/50 border border-slate-600 rounded p-1 text-xs text-white outline-none" ${on ? '' : 'disabled'}>${opts}</select>` : '<span class="text-slate-500 text-xs">no tiers</span>'}</td>
+          <td style="text-align:right;padding:6px 12px;" class="font-semibold">${tiers.length ? fmtTierPrice(tiers[idx]) : '—'}</td>`;
+      }
+      html += `<tr class="border-b border-slate-800/60 ${rowCls}" id="tok-row-${key}">
+        <td style="padding:6px 12px;">
+          <label class="inline-flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" ${on ? 'checked' : ''} onchange="lioTokToggle('${key}', this.checked); lioRenderTokenView();" class="w-4 h-4 rounded">
+            <span>${icon} <span class="font-medium">${a.name}</span></span>
+          </label>
+        </td>${cells}</tr>`;
+    });
+  });
+  html += '</tbody></table>';
+  host.innerHTML = html;
+  lioTokUpdateTotals();
+}
+
+function lioTokUpdateTotals() {
+  const cfg = window._tokenConfig;
+  cfg.overage = document.getElementById('tok-overage-price')?.value ?? cfg.overage;
+  const keys = Object.keys(LIO_TOKEN_PRICING.agents).filter(k => cfg.sel[k]);
+  const subtotal = keys.reduce((s, k) => s + lioTokAgentFee(k), 0);
+  const implPctRaw = document.getElementById('tok-impl-pct')?.value;
+  const csPctRaw = document.getElementById('tok-cs-pct')?.value;
+  const implPct = (implPctRaw === '' || implPctRaw == null || isNaN(parseFloat(implPctRaw))) ? 0 : parseFloat(implPctRaw);
+  const csPct = (csPctRaw === '' || csPctRaw == null || isNaN(parseFloat(csPctRaw))) ? 0 : parseFloat(csPctRaw);
+  const impl = Math.round(subtotal * implPct / 100);
+  const cs = Math.round(subtotal * csPct / 100);
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('tok-sum-saas', lioTokFmtMode(subtotal));
+  set('tok-sum-impl', lioTokFmtMode(impl));
+  set('tok-sum-cs', lioTokFmtMode(cs));
+  set('tok-sum-total', lioTokFmtMode(subtotal + impl + cs));
+}
+
+// View switcher (white): Standard <-> Token inside the Create Quote modal.
+window._quoteView = window._quoteView || 'standard';
+function lioSetQuoteView(view) {
+  window._quoteView = view;
+  const stdEl = document.getElementById('quote-standard-view');
+  const tokEl = document.getElementById('quote-token-view');
+  if (stdEl) stdEl.classList.toggle('hidden', view !== 'standard');
+  if (tokEl) tokEl.classList.toggle('hidden', view !== 'token');
+  document.querySelectorAll('#quote-view-toggle .qv-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === view);
+    b.classList.toggle('text-slate-400', b.dataset.view !== view);
+  });
+  const shell = document.getElementById('quote-modal-shell');
+  if (shell) {
+    shell.classList.toggle('max-w-2xl', view === 'standard');
+    shell.classList.toggle('max-w-6xl', view === 'token');
+  }
+  if (view === 'token' && typeof lioRenderTokenView === 'function') lioRenderTokenView();
 }
 
 function syncTierLabelPlaceholder(key) {
