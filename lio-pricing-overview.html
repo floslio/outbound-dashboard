@@ -1951,7 +1951,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
           <option value="joachim">Joachim Strauss</option>
           <option value="temoc">Temoc Chavero</option>
           <option value="sophia">Sophia Heussen</option>
-          <option value="dominik">Dominik Hiebl</option>
+          <option value="dominik">Dominik Hiebel</option>
         </select>
       </div>
       <div>
@@ -2639,7 +2639,7 @@ input[type="checkbox"] { accent-color: #6366f1; }
                 <option value="joachim">Joachim Strauss</option>
           <option value="temoc">Temoc Chavero</option>
           <option value="sophia">Sophia Heussen</option>
-          <option value="dominik">Dominik Hiebl</option>
+          <option value="dominik">Dominik Hiebel</option>
               </select>
             </div>
           </div>
@@ -4726,7 +4726,7 @@ function buildROIPdfHtml() {
     joachim: { name: 'Joachim Strauss', email: 'joachim.strauss@lio.ai', phone: '' },
     temoc: { name: 'Temoc Chavero', email: 'temoc.chavero@lio.ai', phone: '' },
     sophia: { name: 'Sophia Heussen', email: 'sophia.heussen@lio.ai', phone: '' },
-    dominik: { name: 'Dominik Hiebl', email: 'dominik.hiebel@lio.ai', phone: '' }
+    dominik: { name: 'Dominik Hiebel', email: 'dominik.hiebel@lio.ai', phone: '' }
   };
   const lioSender = lioContactsMap[lioContactKey] || lioContactsMap.florian;
 
@@ -5618,7 +5618,7 @@ async function downloadAdvancedRoiPDF() {
     joachim: { name: 'Joachim Strauss', email: 'joachim.strauss@lio.ai' },
     temoc: { name: 'Temoc Chavero', email: 'temoc.chavero@lio.ai' },
     sophia: { name: 'Sophia Heussen', email: 'sophia.heussen@lio.ai' },
-    dominik: { name: 'Dominik Hiebl', email: 'dominik.hiebel@lio.ai' }
+    dominik: { name: 'Dominik Hiebel', email: 'dominik.hiebel@lio.ai' }
   };
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const inner = buildAdvancedRoiHtml(data, {
@@ -6797,7 +6797,7 @@ function generateQuoteData() {
     joachim: { name: 'Joachim Strauss', email: 'joachim.strauss@lio.ai' },
     temoc: { name: 'Temoc Chavero', email: 'temoc.chavero@lio.ai' },
     sophia: { name: 'Sophia Heussen', email: 'sophia.heussen@lio.ai' },
-    dominik: { name: 'Dominik Hiebl', email: 'dominik.hiebel@lio.ai' }
+    dominik: { name: 'Dominik Hiebel', email: 'dominik.hiebel@lio.ai' }
   };
   const lioContactKey = document.getElementById('quote-lio-contact')?.value || 'florian';
   const lioContact = lioContacts[lioContactKey] || lioContacts.florian;
@@ -7344,7 +7344,7 @@ const LIO_NAME_BY_KEY = {
   patricia: 'Patricia Hoelscher', olivia: 'Olivia Pavoni', julius: 'Julius Kaiser',
   vladimir: 'Vladimir Keil', till: 'Till Wagner', lukas: 'Lukas Heinzmann',
   moritz: 'Moritz Medinger', stefan: 'Stefan Schweiger', lasse: 'Lasse Fehl',
-  niklas: 'Niklas Marxer', temoc: 'Temoc Chavero', sophia: 'Sophia Heussen', dominik: 'Dominik Hiebl'
+  niklas: 'Niklas Marxer', temoc: 'Temoc Chavero', sophia: 'Sophia Heussen', dominik: 'Dominik Hiebel'
 };
 function ownerKeyOf(q) { return q.lioContact || q.formState?.lioContact || 'florian'; }
 
