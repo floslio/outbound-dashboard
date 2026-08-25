@@ -3692,7 +3692,7 @@ const modules = {
     ],
     unit: 'Annual spend analyzed'
   },
-  pra: { name: 'PR Review Agent', color: 'sky', icon: '📝',
+  pra: { name: 'Purchase Requisition Review', color: 'sky', icon: '📝',
     desc: 'Reviews purchase requisitions automatically — validates data quality, flags policy violations, and routes to the right approver. Turns manual PR triage into an intelligent, auditable flow.',
     features: ['Automatic PR data validation','Policy compliance checks','Smart approver routing','Duplicate detection','Audit trail','ERP-native integration'],
     tiers: [
@@ -4389,7 +4389,7 @@ const moduleDetails = {
     features: modules.sba.features,
     metrics: [{label:'Bundling Potential',value:'8–15% spend'},{label:'Maverick Reduction',value:'-70%'},{label:'Supplier Consolidation',value:'-30%'}],
     tiers: modules.sba.tiers, unit: 'Annual spend analyzed' },
-  pra: { title:'PR Review Agent', subtitle:'PR Triage', color:'sky', icon:'📝',
+  pra: { title:'Purchase Requisition Review', subtitle:'PR Triage', color:'sky', icon:'📝',
     desc: modules.pra.desc, features: modules.pra.features,
     metrics: [{label:'PR Cycle Time',value:'-70%'},{label:'Policy Compliance',value:'99%'},{label:'Duplicate PRs',value:'-90%'}],
     tiers: modules.pra.tiers, unit: 'Purchase Requisitions / yr' },
@@ -6094,6 +6094,32 @@ function populateQuotePricing() {
     const b = document.getElementById('qb-' + mod);
     if (b) b.value = lioGetBaseFee(mod) || '';
   });
+  // Restore per-row discounts and manual prices that the rebuild above reset.
+  // A manual price wins over a discount (that is how the inputs behave live).
+  selectedKeys.forEach(mod => {
+    const pct = parseFloat(window._rowDiscounts[mod]);
+    if (isFinite(pct) && pct > 0) {
+      const qd = document.getElementById('qd-' + mod);
+      if (qd) qd.value = pct;
+      applyDiscountPct(mod);
+    }
+    const mp = window._manualPrices[mod];
+    if (mp && typeof mp === 'object') {
+      ['usd','eur','gbp','chf'].forEach(cur => {
+        const v = parseFloat(mp[cur]);
+        if (!isFinite(v)) return;
+        const el = document.getElementById('qf' + cur[0] + '-' + mod);
+        if (el) el.value = v;
+        if (cur === currentCurrency) {
+          const qf = document.getElementById('qf-' + mod);
+          if (qf) qf.value = v;
+        }
+      });
+      discountMode[mod] = 'manual';
+      const qd = document.getElementById('qd-' + mod);
+      if (qd) qd.value = '';
+    }
+  });
   updateQuotePricing();
 }
 
@@ -6109,6 +6135,9 @@ function applyDiscountPct(key) {
   const _activeFromList = currentCurrency === 'usd' ? listUsd : (currentCurrency === 'eur' ? listEur : (currentCurrency === 'gbp' ? listGbp : listChf));
   const rawVal = pctInput.value?.toString().trim();
   const pct = parseFloat(rawVal);
+  // Remember the discount so a re-render can restore it.
+  if (isFinite(pct) && pct > 0) { window._rowDiscounts[key] = pct; delete window._manualPrices[key]; }
+  else delete window._rowDiscounts[key];
   if (isFinite(pct) && pct > 0 && (listUsd > 0 || listEur > 0 || listGbp > 0 || listChf > 0)) {
     const mul = 1 - Math.min(100, pct) / 100;
     // Apply discount to ALL four currencies — keeps cross-currency edits aligned.
@@ -6153,6 +6182,11 @@ function onQfCur(mod, cur) {
   const qd = document.getElementById('qd-' + mod);
   if (qd) qd.value = '';
   discountMode[mod] = 'manual';
+  // Remember the manual price per currency so a re-render can restore it, and
+  // drop any discount for this row (a manual price supersedes it).
+  delete window._rowDiscounts[mod];
+  if (!window._manualPrices[mod]) window._manualPrices[mod] = {};
+  window._manualPrices[mod][cur] = parseFloat(src.value) || 0;
   // Mirror only the ACTIVE currency into the hidden qf-{mod}
   if (cur === currentCurrency) {
     const qf = document.getElementById('qf-' + mod);
@@ -6188,6 +6222,12 @@ window._baseFees = window._baseFees || {};
 // anchor; the discount % applies to it to produce the tier (net) price.
 // { mod: { usd, eur, gbp, chf } }
 window._listOverrides = window._listOverrides || {};
+// Per-row discount % and manual per-currency prices. These used to live only in
+// the DOM, so every populateQuotePricing() rebuild (currency switch, segment
+// change, tier toggle, reorder) silently wiped them. Persisting them here keeps
+// the editing view and the PDF in agreement.
+window._rowDiscounts = window._rowDiscounts || {};
+window._manualPrices = window._manualPrices || {};
 function lioGetListOverride(mod, cur) {
   const o = window._listOverrides[mod];
   const v = o ? parseFloat(o[cur]) : NaN;
@@ -6289,6 +6329,9 @@ function changeQuoteTier(key) {
   // A new tier resets any manual List-Price override — the new tier brings its
   // own registry list price.
   delete window._listOverrides[key];
+  // ...and clears this row's discount / manual price for the same reason.
+  delete window._rowDiscounts[key];
+  delete window._manualPrices[key];
   const newUsdPrice = parseInt(tierSel.value);
   const tierObj = modules[key].tiers.find(t => t.price === newUsdPrice) || { price: newUsdPrice };
   const newUsd = _tierPriceInCurrency(tierObj, 'usd');
@@ -6657,6 +6700,7 @@ function generateQuoteData() {
       discountPct: discPct,
       discountMode: discountMode[mod] || 'manual',
       tier: tierText,
+      tierOff: tierOff,
       baseFee: baseFee,
       desc: moduleDetails[mod]?.desc || '',
       features: moduleDetails[mod]?.features || []
@@ -6845,8 +6889,8 @@ function generateQuoteData() {
       : '';
     // Tier column: tier label (text) + the selected tier's price. Left blank
     // when the tier price is removed / switched off for this agent (base-only).
-    const tierCell = (m.tier && m.tierPrice > 0)
-      ? `${m.tier} <span style="color:#64748b;">— ${fmtRaw(m.tierPrice)}</span>`
+    const tierCell = (m.tier && !m.tierOff)
+      ? `${m.tier} <span style="color:#64748b;">— ${fmtRaw(m.tierPrice || 0)}</span>`
       : '';
     return `<tr style="border-bottom:1px solid #e5e7eb;">
       <td style="padding:10px 16px;font-weight:600;color:#1e293b;font-size:12px;">${m.name}</td>
@@ -7210,6 +7254,8 @@ function saveQuoteToHistory(data) {
       tierLabelOverrides: Object.assign({}, window._tierLabelOverrides || {}),
       baseFees: Object.assign({}, window._baseFees || {}),
       listOverrides: JSON.parse(JSON.stringify(window._listOverrides || {})),
+      rowDiscounts: Object.assign({}, window._rowDiscounts || {}),
+      manualPrices: JSON.parse(JSON.stringify(window._manualPrices || {})),
       agentTierOff: Object.assign({}, window._agentTierOff || {}),
       agentOrder: (window._quoteAgentOrder || []).slice(),
       serviceImplText: document.getElementById('quote-service-impl-text')?.value ?? '',
@@ -7573,6 +7619,8 @@ function loadQuote(id) {
   window._tierLabelOverrides = (fs.tierLabelOverrides && typeof fs.tierLabelOverrides === 'object') ? Object.assign({}, fs.tierLabelOverrides) : {};
   window._baseFees = (fs.baseFees && typeof fs.baseFees === 'object') ? Object.assign({}, fs.baseFees) : {};
   window._listOverrides = (fs.listOverrides && typeof fs.listOverrides === 'object') ? JSON.parse(JSON.stringify(fs.listOverrides)) : {};
+  window._rowDiscounts = (fs.rowDiscounts && typeof fs.rowDiscounts === 'object') ? Object.assign({}, fs.rowDiscounts) : {};
+  window._manualPrices = (fs.manualPrices && typeof fs.manualPrices === 'object') ? JSON.parse(JSON.stringify(fs.manualPrices)) : {};
   window._agentTierOff = (fs.agentTierOff && typeof fs.agentTierOff === 'object') ? Object.assign({}, fs.agentTierOff) : {};
   window._quoteAgentOrder = Array.isArray(fs.agentOrder) ? fs.agentOrder.slice() : [];
   if (fs.serviceImplText !== undefined) window._serviceImplText = fs.serviceImplText;
@@ -9558,7 +9606,7 @@ const LIO_TOKEN_PRICING = {
   ],
   agents: {
     gb2po: { name: 'Guided Buying Agent',                   ent: 100000, strat: 250000, tokEnt: null,   tokStrat: null,   tokEvt: null, model: 'none' },
-    pra:   { name: 'PR Review Agent',                       ent: 50000,  strat: 250000, tokEnt: 25000,  tokStrat: 125000, tokEvt: 1,    model: 'used' },
+    pra:   { name: 'Purchase Requisition Review',           ent: 50000,  strat: 250000, tokEnt: 25000,  tokStrat: 125000, tokEvt: 1,    model: 'used' },
     oc:    { name: 'Order Confirmation Agent',              ent: 25000,  strat: 100000, tokEnt: 25000,  tokStrat: 50000,  tokEvt: 1,    model: 'used' },
     ta:    { name: 'Tracking Agent',                        ent: 25000,  strat: 100000, tokEnt: 50000,  tokStrat: 100000, tokEvt: 1,    model: 'used' },
     gr:    { name: 'Goods Receipt Agent',                   ent: 25000,  strat: 50000,  tokEnt: 12500,  tokStrat: 25000,  tokEvt: 0.25, model: 'used' },

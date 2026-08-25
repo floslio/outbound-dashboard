@@ -2860,7 +2860,7 @@ const modules = {
   oba:{name:'Order Bundling Agent',color:'lime',icon:'🧩',desc:'Finds the same or similar materials in placed and approved orders, then bundles them into negotiation events. Surfaces forgotten POs and one-off purchases that should be consolidated into framework agreements — turning maverick spend into structured savings.',features:['Cross-order material matching (AI semantic)','Volume aggregation across business units','Auto-generated negotiation candidates','Framework-agreement gap detection','Maverick spend conversion ROI','Integration with negotiation + sourcing agents'],tiers:[{vol:'Up to 10,000 orders',price:14000,eur:12000,gbp:10500},{vol:'Up to 25,000',price:28000,eur:24000,gbp:21000},{vol:'Up to 50,000',price:50000,eur:43000,gbp:38000},{vol:'Up to 100,000',price:90000,eur:77000,gbp:68000}],unit:'Orders analyzed / yr'},
   csa:{name:'Contract Surveillance Agent',color:'red',icon:'🔭',desc:'Monitors active contracts continuously — flags when in-use prices exceed current market situation and surfaces leakage hidden in contracts you have forgotten about. Catches the compliance and price drift gaps that humans miss.',features:['Real-time price drift detection vs market','In-use vs contracted-price compliance','Auto-renewal & expiry alerts','Hidden leakage discovery','Volume commitment tracking','Renegotiation trigger reports'],tiers:[{vol:'Up to 250 contracts',price:12000,eur:10500,gbp:9300},{vol:'Up to 500',price:22000,eur:19000,gbp:16500},{vol:'Up to 1,000',price:38000,eur:33000,gbp:29000},{vol:'Up to 5,000',price:70000,eur:60000,gbp:53000}],unit:'Contracts monitored / yr'},
   sba:{name:'Bundling Agent',color:'cyan',icon:'💎',desc:'Turns fragmented purchasing data into transparent spend intelligence. Detects bundling, consolidation and savings potential across categories and suppliers, reduces maverick buying, exposes supplier fragmentation and prioritizes concrete sourcing actions — real negotiation leverage backed by data.',features:['Cross-category spend transparency','Bundling & consolidation opportunity detection','Supplier fragmentation analysis','Maverick buying reduction','Prioritized sourcing action list','Data-driven purchasing decisions'],tiers:[{vol:'Up to €50M spend',price:23000,eur:20000,gbp:17000},{vol:'Up to €200M',price:40000,eur:35000,gbp:30000},{vol:'Up to €500M',price:63000,eur:55000,gbp:48000},{vol:'Up to €1.5B',price:103000,eur:90000,gbp:78000}],unit:'Annual spend analyzed'},
-  pra:{name:'PR Review Agent',color:'sky',icon:'📝',desc:'Reviews purchase requisitions automatically — validates data quality, flags policy violations, and routes to the right approver. Turns manual PR triage into an intelligent, auditable flow.',features:['Automatic PR data validation','Policy compliance checks','Smart approver routing','Duplicate detection','Audit trail','ERP-native integration'],tiers:[{vol:'Up to 5,000 PRs',price:29000,eur:25000,gbp:21000},{vol:'Up to 25,000',price:58000,eur:50000,gbp:42500},{vol:'Up to 100,000',price:287000,eur:250000,gbp:212500},{vol:'Up to 250,000',price:431000,eur:375000,gbp:319000}],unit:'Purchase Requisitions / yr'},
+  pra:{name:'Purchase Requisition Review',color:'sky',icon:'📝',desc:'Reviews purchase requisitions automatically — validates data quality, flags policy violations, and routes to the right approver. Turns manual PR triage into an intelligent, auditable flow.',features:['Automatic PR data validation','Policy compliance checks','Smart approver routing','Duplicate detection','Audit trail','ERP-native integration'],tiers:[{vol:'Up to 5,000 PRs',price:29000,eur:25000,gbp:21000},{vol:'Up to 25,000',price:58000,eur:50000,gbp:42500},{vol:'Up to 100,000',price:287000,eur:250000,gbp:212500},{vol:'Up to 250,000',price:431000,eur:375000,gbp:319000}],unit:'Purchase Requisitions / yr'},
   ta:{name:'Tracking Agent',color:'teal',icon:'🚚',desc:'Tracks purchase orders end-to-end — proactively surfaces delays, discrepancies and expected delivery dates by talking to suppliers and consulting shipment data. Reduces expediting overhead and stock-out risk.',features:['End-to-end PO tracking','Proactive delay detection','Automated supplier inquiries','ETA prediction','Escalation workflows','Dashboard visibility'],tiers:[{vol:'Up to 5,000 orders',price:14000,eur:12500,gbp:10500},{vol:'Up to 25,000',price:29000,eur:25000,gbp:21000},{vol:'Up to 100,000',price:115000,eur:100000,gbp:85000},{vol:'Up to 250,000',price:172000,eur:150000,gbp:127500}],unit:'Tracked orders / yr'},
   bpo:{name:'BPO Agent',color:'orange',icon:'🏭',desc:'Business Process Outsourcing companion — connects Lio agents to external service providers and standard-operating-procedures. Enables BPO partners to work inside the Lio ecosystem without breaking process ownership.',features:['BPO partner enablement','Standard operating procedures','Multi-tenant workflow','Vendor accountability tracking','Audit-ready logs','Configurable SLAs'],tiers:[{vol:'Up to 5 BPO partners',price:29000,eur:25000,gbp:21000},{vol:'Up to 15',price:58000,eur:50000,gbp:42500},{vol:'Up to 30',price:172000,eur:150000,gbp:127500},{vol:'Up to 50',price:259000,eur:225000,gbp:191000}],unit:'BPO partners connected'},
   tsa:{name:'Tailspend Sourcing Agent',color:'emerald',icon:'🎣',desc:'Automates sourcing for the long tail of low-value, high-volume purchases. Finds suppliers, requests offers and consolidates fragmented tail spend into structured procurement — without manual buyer effort.',features:['Auto-supplier discovery','Automated RFQ dispatch','Tailspend consolidation','Buyer-free workflow','Compliance guardrails','Ongoing tail monitoring'],tiers:[{vol:'Up to 1,000 events',price:11500,eur:10000,gbp:8500},{vol:'Up to 5,000',price:23000,eur:20000,gbp:17000},{vol:'Up to 25,000',price:115000,eur:100000,gbp:85000},{vol:'Up to 100,000',price:172000,eur:150000,gbp:127500}],unit:'Tailspend events / yr'},
@@ -4448,6 +4448,32 @@ function populateQuotePricing() {
     const b = document.getElementById('qb-' + mod);
     if (b) b.value = lioGetBaseFee(mod) || '';
   });
+  // Restore per-row discounts and manual prices that the rebuild above reset.
+  // A manual price wins over a discount (that is how the inputs behave live).
+  selectedKeys.forEach(mod => {
+    const pct = parseFloat(window._rowDiscounts[mod]);
+    if (isFinite(pct) && pct > 0) {
+      const qd = document.getElementById('qd-' + mod);
+      if (qd) qd.value = pct;
+      applyDiscountPct(mod);
+    }
+    const mp = window._manualPrices[mod];
+    if (mp && typeof mp === 'object') {
+      ['usd','eur','gbp','chf'].forEach(cur => {
+        const v = parseFloat(mp[cur]);
+        if (!isFinite(v)) return;
+        const el = document.getElementById('qf' + cur[0] + '-' + mod);
+        if (el) el.value = v;
+        if (cur === currentCurrency) {
+          const qf = document.getElementById('qf-' + mod);
+          if (qf) qf.value = v;
+        }
+      });
+      discountMode[mod] = 'manual';
+      const qd = document.getElementById('qd-' + mod);
+      if (qd) qd.value = '';
+    }
+  });
   updateQuotePricing();
 }
 
@@ -4462,6 +4488,9 @@ function applyDiscountPct(key) {
   const listChf = parseFloat(row?.getAttribute('data-list-chf')) || 0;
   const rawVal = pctInput.value?.toString().trim();
   const pct = parseFloat(rawVal);
+  // Remember the discount so a re-render can restore it.
+  if (isFinite(pct) && pct > 0) { window._rowDiscounts[key] = pct; delete window._manualPrices[key]; }
+  else delete window._rowDiscounts[key];
   if (isFinite(pct) && pct > 0 && (listUsd > 0 || listEur > 0 || listGbp > 0 || listChf > 0)) {
     const mul = 1 - Math.min(100, pct) / 100;
     // These are TIER prices only; the base fee is a separate addend on top.
@@ -4502,6 +4531,11 @@ function onQfCur(mod, cur) {
   const qd = document.getElementById('qd-' + mod);
   if (qd) qd.value = '';
   discountMode[mod] = 'manual';
+  // Remember the manual price per currency so a re-render can restore it, and
+  // drop any discount for this row (a manual price supersedes it).
+  delete window._rowDiscounts[mod];
+  if (!window._manualPrices[mod]) window._manualPrices[mod] = {};
+  window._manualPrices[mod][cur] = parseFloat(src.value) || 0;
   if (cur === currentCurrency) {
     const qf = document.getElementById('qf-' + mod);
     if (qf) qf.value = src.value;
@@ -4532,6 +4566,12 @@ window._baseFees = window._baseFees || {};
 // Per-agent, per-currency LIST PRICE overrides — editable anchor the discount
 // % applies to. { mod: { usd, eur, gbp, chf } }
 window._listOverrides = window._listOverrides || {};
+// Per-row discount % and manual per-currency prices. These used to live only in
+// the DOM, so every populateQuotePricing() rebuild (currency switch, segment
+// change, tier toggle, reorder) silently wiped them. Persisting them here keeps
+// the editing view and the PDF in agreement.
+window._rowDiscounts = window._rowDiscounts || {};
+window._manualPrices = window._manualPrices || {};
 function lioGetListOverride(mod, cur) {
   const o = window._listOverrides[mod];
   const v = o ? parseFloat(o[cur]) : NaN;
@@ -4616,7 +4656,7 @@ const LIO_TOKEN_PRICING = {
   ],
   agents: {
     gb2po: { name: 'Guided Buying Agent',                   ent: 100000, strat: 250000, tokEnt: null,   tokStrat: null,   tokEvt: null, model: 'none' },
-    pra:   { name: 'PR Review Agent',                       ent: 50000,  strat: 250000, tokEnt: 25000,  tokStrat: 125000, tokEvt: 1,    model: 'used' },
+    pra:   { name: 'Purchase Requisition Review',           ent: 50000,  strat: 250000, tokEnt: 25000,  tokStrat: 125000, tokEvt: 1,    model: 'used' },
     oc:    { name: 'Order Confirmation Agent',              ent: 25000,  strat: 100000, tokEnt: 25000,  tokStrat: 50000,  tokEvt: 1,    model: 'used' },
     ta:    { name: 'Tracking Agent',                        ent: 25000,  strat: 100000, tokEnt: 50000,  tokStrat: 100000, tokEvt: 1,    model: 'used' },
     gr:    { name: 'Goods Receipt Agent',                   ent: 25000,  strat: 50000,  tokEnt: 12500,  tokStrat: 25000,  tokEvt: 0.25, model: 'used' },
@@ -6090,6 +6130,9 @@ function changeQuoteTier(key) {
   if (!tierSel) return;
   // New tier resets any manual List-Price override.
   delete window._listOverrides[key];
+  // ...and clears this row's discount / manual price for the same reason.
+  delete window._rowDiscounts[key];
+  delete window._manualPrices[key];
   const newUsdPrice = parseInt(tierSel.value);
   const tierObj = modules[key].tiers.find(t => t.price === newUsdPrice) || { price: newUsdPrice };
   const newUsd = _tierPriceInCurrency(tierObj, 'usd');
@@ -6417,7 +6460,7 @@ function generateQuoteData() {
     totalSaas += annual;
     if (k === 'sm') hasSM = true;
     const discPct = (discountMode[k] === 'pct') ? (parseFloat(document.getElementById('qd-' + k)?.value) || 0) : 0;
-    sel.push({ key: k, name: k === 'sm' ? 'Supplier Relationship Management (SRM)' : modules[k].name, price: annual, listPrice: (tierOff ? 0 : tierList) + baseFee, tierUsdPrice: tierUsd, tierPrice: tierNet, discountPct: discPct, discountMode: discountMode[k] || 'manual', tier: tierText, baseFee: baseFee, desc: modules[k].desc, features: modules[k].features });
+    sel.push({ key: k, name: k === 'sm' ? 'Supplier Relationship Management (SRM)' : modules[k].name, price: annual, listPrice: (tierOff ? 0 : tierList) + baseFee, tierUsdPrice: tierUsd, tierPrice: tierNet, discountPct: discPct, discountMode: discountMode[k] || 'manual', tier: tierText, tierOff: tierOff, baseFee: baseFee, desc: modules[k].desc, features: modules[k].features });
   });
 
   // Append custom positions as additional line items so they show in the PDF
@@ -6581,8 +6624,8 @@ function generateQuoteData() {
       : '';
     // Tier column: tier label (text) + the selected tier's price. Left blank
     // when the tier price is removed / switched off for this agent (base-only).
-    const tierCell = (m.tier && m.tierPrice > 0)
-      ? m.tier + ' <span style="color:#64748b;">— ' + fmtRaw(m.tierPrice) + '</span>'
+    const tierCell = (m.tier && !m.tierOff)
+      ? m.tier + ' <span style="color:#64748b;">— ' + fmtRaw(m.tierPrice || 0) + '</span>'
       : '';
     return '<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px 16px;font-weight:600;font-size:12px;">' + m.name + '</td>' + (showBaseCol ? '<td style="padding:8px 16px;color:#1e293b;font-size:11px;">' + baseCell + '</td>' : '') + (hideTierCol ? '' : '<td style="padding:8px 16px;color:#1e293b;font-size:11px;">' + tierCell + '</td>') + '<td style="padding:8px 16px;text-align:right;">' + priceHtml + '</td></tr>';
   }).join('');
@@ -6819,6 +6862,8 @@ function saveQuoteToHistory(data) {
       tierLabelOverrides: Object.assign({}, window._tierLabelOverrides || {}),
       baseFees: Object.assign({}, window._baseFees || {}),
       listOverrides: JSON.parse(JSON.stringify(window._listOverrides || {})),
+      rowDiscounts: Object.assign({}, window._rowDiscounts || {}),
+      manualPrices: JSON.parse(JSON.stringify(window._manualPrices || {})),
       packageConfig: window._packageConfig ? JSON.parse(JSON.stringify(window._packageConfig)) : null,
       packageCellOverrides: window._pkgCellOverrides ? JSON.parse(JSON.stringify(window._pkgCellOverrides)) : {},
       tokenConfig: window._tokenConfig ? JSON.parse(JSON.stringify(window._tokenConfig)) : null,
@@ -8283,6 +8328,8 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
     // package layout + cell overrides, and the token plan.
     window._baseFees = {};
     window._listOverrides = {};
+    window._rowDiscounts = {};
+    window._manualPrices = {};
     window._agentTierOff = {};
     window._quoteAgentOrder = [];
     window._pkgCellOverrides = {};
@@ -9722,6 +9769,8 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
       window._tierLabelOverrides = (fs.tierLabelOverrides && typeof fs.tierLabelOverrides === 'object') ? Object.assign({}, fs.tierLabelOverrides) : {};
       window._baseFees = (fs.baseFees && typeof fs.baseFees === 'object') ? Object.assign({}, fs.baseFees) : {};
       window._listOverrides = (fs.listOverrides && typeof fs.listOverrides === 'object') ? JSON.parse(JSON.stringify(fs.listOverrides)) : {};
+  window._rowDiscounts = (fs.rowDiscounts && typeof fs.rowDiscounts === 'object') ? Object.assign({}, fs.rowDiscounts) : {};
+  window._manualPrices = (fs.manualPrices && typeof fs.manualPrices === 'object') ? JSON.parse(JSON.stringify(fs.manualPrices)) : {};
       if (fs.packageConfig) window._packageConfig = JSON.parse(JSON.stringify(fs.packageConfig));
       if (fs.packageCellOverrides) window._pkgCellOverrides = JSON.parse(JSON.stringify(fs.packageCellOverrides));
       if (fs.tokenConfig) window._tokenConfig = Object.assign(window._tokenConfig || {}, JSON.parse(JSON.stringify(fs.tokenConfig)));
