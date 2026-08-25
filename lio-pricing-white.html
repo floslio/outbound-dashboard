@@ -6863,6 +6863,9 @@ function saveQuoteToHistory(data) {
       baseFees: Object.assign({}, window._baseFees || {}),
       listOverrides: JSON.parse(JSON.stringify(window._listOverrides || {})),
       rowDiscounts: Object.assign({}, window._rowDiscounts || {}),
+      // Cross-version fields: the dark build restores these; harmless here.
+      quoteView: window._quoteView || 'standard',
+      pdfMode: (typeof lioGetPdfMode === 'function') ? lioGetPdfMode() : 'standard',
       manualPrices: JSON.parse(JSON.stringify(window._manualPrices || {})),
       packageConfig: window._packageConfig ? JSON.parse(JSON.stringify(window._packageConfig)) : null,
       packageCellOverrides: window._pkgCellOverrides ? JSON.parse(JSON.stringify(window._pkgCellOverrides)) : {},
@@ -7097,13 +7100,51 @@ async function renderQuoteHistory(forceCloud = false) {
   </table></div>`;
 }
 
+// Quotes saved before formState existed (or by an older build) still carry the
+// company, contact, currency and a comma-separated list of module NAMES. Rebuild
+// a minimal formState from those so the quote opens and can be worked on,
+// instead of being print-only. Cross-version safe: the shape written here is the
+// same shape both the dark and the white build read.
+function _lioReconstructFormState(entry) {
+  const norm = (x) => String(x || '').toLowerCase()
+    .replace(/\(.*?\)/g, ' ')          // drop bracketed suffixes like "(SRM)"
+    .replace(/[^a-z0-9]+/g, ' ').trim();
+  const byName = {};
+  Object.keys(window.modules || {}).forEach(k => { byName[norm(modules[k].name)] = k; });
+  byName[norm('Supplier Relationship Management (SRM)')] = 'sm';
+  const names = String(entry.modules || '').split(',').map(x => x.trim()).filter(Boolean);
+  const keys = names.map(n => byName[norm(n)]).filter(Boolean);
+  return {
+    company: (entry.company && entry.company !== 'No company') ? entry.company : '',
+    contact: entry.contact || '',
+    address: '',
+    currency: entry.currency || 'usd',
+    lioContact: entry.lioContact || 'florian',
+    selectedModules: keys,
+    tiers: {},
+    customPrices: {},
+    _reconstructed: true,
+    _unmatchedModules: names.filter(n => !byName[norm(n)])
+  };
+}
+
 function loadQuote(id) {
   const history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
   const entry = history.find(h => h.id === id);
-  if (!entry || !entry.formState) {
-    alert('This quote was created before the reload feature was added. Only reprint is available.');
-    redownloadQuote(id);
+  if (!entry) {
+    alert('Quote not found.');
     return;
+  }
+  // No (or empty) formState — older quote, or one saved by a different build.
+  // Reconstruct what we can and carry on rather than forcing reprint-only.
+  if (!entry.formState || Object.keys(entry.formState).length === 0) {
+    entry.formState = _lioReconstructFormState(entry);
+    const un = entry.formState._unmatchedModules || [];
+    alert('This quote predates the full save format.\n\n'
+      + 'Restored: customer, currency, contact and '
+      + entry.formState.selectedModules.length + ' agent(s).\n'
+      + (un.length ? 'Could not match: ' + un.join(', ') + '\n' : '')
+      + '\nPrices and per-agent settings start from the current list — please re-check them before sending.');
   }
 
   // Check lock
@@ -7133,11 +7174,15 @@ function loadQuote(id) {
   // Set currency
   if (entry.currency && typeof setCurrency === 'function') setCurrency(entry.currency);
 
+  // Rebuild the calculator FIRST — buildCalc() re-renders the module cards and
+  // would otherwise wipe the selection we are about to restore.
+  if (typeof buildCalc === 'function') buildCalc();
+
   // Select modules in calculator
   const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba','pra','ta','bpo','tsa','tna','rfx','ssa','sbg','stc','abf'];
   allMods.forEach(m => {
     const cb = document.getElementById('chk-' + m);
-    if (cb) cb.checked = fs.selectedModules.includes(m);
+    if (cb) cb.checked = (fs.selectedModules || []).includes(m);
   });
 
   // Set tiers
@@ -7146,8 +7191,6 @@ function loadQuote(id) {
     if (sel) sel.value = val;
   });
 
-  // Update calculator
-  if (typeof buildCalc === 'function') buildCalc();
   if (typeof calcUpdate === 'function') calcUpdate();
 
   // Close history modal
@@ -9738,12 +9781,11 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
   }
   window.refreshDashboard = refreshDashboard;
 
-  window.lioOpenQuoteFromDashboard = function (id) {
-    if (typeof loadQuote !== 'function') {
-      alert('Quote loader unavailable.');
-      return;
-    }
-    loadQuote(id);
+  // Mirror a loaded quote's formState into the wizard. Runs for EVERY way a
+  // quote is opened (dashboard card or the ✎ button in the history modal), so
+  // base fees, discounts, tier switches, package/token config and the chosen
+  // format are always restored — including quotes made by the other build.
+  function _lioRestoreWizardFromQuote(id) {
     // loadQuote populates legacy DOM (chk-*, qf-*, customer fields). We then
     // mirror its formState into the wizard state — without re-running
     // lioStartNewQuote which would CLEAR everything we just loaded.
@@ -9759,6 +9801,14 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
       // Mirror into wizard state — keep all chk-*, qf-*, customer inputs alive
       W.profileKey = fs.profileSegment || (entry?.currency === 'eur' ? 'dax40' : 'fortune500');
       W.quoteRef = entry?.ref || ('LIO-' + Date.now().toString(36).toUpperCase());
+      // Derive the wizard format from whatever the quote was built as. The dark
+      // build stores quoteView ('standard' | 'package' | 'token'); a token plan
+      // is also detectable from its own config. This is what makes a quote made
+      // in the other build open in the right flow here.
+      const savedView = fs.quoteView || fs.pdfMode;
+      W.format = (savedView === 'package' || savedView === 'combined') ? 'package'
+               : (savedView === 'token' || (fs.tokenConfig && Object.values(fs.tokenConfig.sel || {}).some(Boolean))) ? 'token'
+               : 'standard';
       W.completed = new Set([1, 2, 3, 4, 5]);
       // Restore per-quote PDF overrides so the description / features editor
       // and the tier-ladder toggle reflect what was saved.
@@ -9783,12 +9833,33 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
       document.body.classList.add('lio-workspace');
       document.getElementById('lio-quote-ref').textContent = W.quoteRef;
 
-      // Land on step 2 (Modules) so the user immediately sees what was selected
-      W.step = 2;
+      // Land on the agents/plan step of the active flow so the user immediately
+      // sees what was selected (index differs per format).
+      const flow = LIO_FLOWS[W.format] || LIO_FLOWS.standard;
+      const landOn = flow.indexOf(W.format === 'token' ? 'tokens' : 'modules');
+      W.step = landOn >= 0 ? landOn + 1 : 2;
       renderStep();
       lioSyncSummary();
     }, 350);
+  }
+  window._lioRestoreWizardFromQuote = _lioRestoreWizardFromQuote;
+
+  window.lioOpenQuoteFromDashboard = function (id) {
+    if (typeof loadQuote !== 'function') { alert('Quote loader unavailable.'); return; }
+    loadQuote(id);   // the wrapper below performs the wizard restore
   };
+
+  // Wrap loadQuote once so the wizard restore also runs when the quote is
+  // opened from the history modal.
+  if (typeof window.loadQuote === 'function' && !window.loadQuote._wizRestoreWrapped) {
+    const _origLQ = window.loadQuote;
+    window.loadQuote = function (id) {
+      const out = _origLQ.apply(this, arguments);
+      try { _lioRestoreWizardFromQuote(id); } catch (e) { console.error('[wizard restore]', e); }
+      return out;
+    };
+    window.loadQuote._wizRestoreWrapped = true;
+  }
 
   // ---------------------------
   // Currency-switcher button styling sync

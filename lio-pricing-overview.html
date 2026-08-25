@@ -7551,13 +7551,51 @@ function renderFilteredQuoteHistory(history) {
   </table></div>`;
 }
 
+// Quotes saved before formState existed (or by an older build) still carry the
+// company, contact, currency and a comma-separated list of module NAMES. Rebuild
+// a minimal formState from those so the quote opens and can be worked on,
+// instead of being print-only. Cross-version safe: the shape written here is the
+// same shape both the dark and the white build read.
+function _lioReconstructFormState(entry) {
+  const norm = (x) => String(x || '').toLowerCase()
+    .replace(/\(.*?\)/g, ' ')          // drop bracketed suffixes like "(SRM)"
+    .replace(/[^a-z0-9]+/g, ' ').trim();
+  const byName = {};
+  Object.keys(window.modules || {}).forEach(k => { byName[norm(modules[k].name)] = k; });
+  byName[norm('Supplier Relationship Management (SRM)')] = 'sm';
+  const names = String(entry.modules || '').split(',').map(x => x.trim()).filter(Boolean);
+  const keys = names.map(n => byName[norm(n)]).filter(Boolean);
+  return {
+    company: (entry.company && entry.company !== 'No company') ? entry.company : '',
+    contact: entry.contact || '',
+    address: '',
+    currency: entry.currency || 'usd',
+    lioContact: entry.lioContact || 'florian',
+    selectedModules: keys,
+    tiers: {},
+    customPrices: {},
+    _reconstructed: true,
+    _unmatchedModules: names.filter(n => !byName[norm(n)])
+  };
+}
+
 function loadQuote(id) {
   const history = JSON.parse(localStorage.getItem('lio-quote-history') || '[]');
   const entry = history.find(h => h.id === id);
-  if (!entry || !entry.formState) {
-    alert('This quote was created before the reload feature was added. Only reprint is available.');
-    redownloadQuote(id);
+  if (!entry) {
+    alert('Quote not found.');
     return;
+  }
+  // No (or empty) formState — older quote, or one saved by a different build.
+  // Reconstruct what we can and carry on rather than forcing reprint-only.
+  if (!entry.formState || Object.keys(entry.formState).length === 0) {
+    entry.formState = _lioReconstructFormState(entry);
+    const un = entry.formState._unmatchedModules || [];
+    alert('This quote predates the full save format.\n\n'
+      + 'Restored: customer, currency, contact and '
+      + entry.formState.selectedModules.length + ' agent(s).\n'
+      + (un.length ? 'Could not match: ' + un.join(', ') + '\n' : '')
+      + '\nPrices and per-agent settings start from the current list — please re-check them before sending.');
   }
 
   // Check lock
@@ -7591,7 +7629,7 @@ function loadQuote(id) {
   const allMods = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba','pra','ta','bpo','tsa','tna','rfx','ssa','sbg','stc','abf'];
   allMods.forEach(m => {
     const cb = document.getElementById('check-' + m);
-    if (cb) cb.checked = fs.selectedModules.includes(m);
+    if (cb) cb.checked = (fs.selectedModules || []).includes(m);
   });
 
   // Set tiers
