@@ -191,6 +191,37 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
   .lio-cmdk-row .lio-cmdk-kind { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 6px; border-radius: 4px; background: #f1f5f9; color: #64748b; margin-left: auto; }
 
   /* Profile-segment cards */
+  /* Review step actions — the primary action is the footer button, so this row
+     only carries the alternatives. */
+  .lio-review-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    padding: 16px 18px; border-radius: 14px; border: 1px solid #eef2f6; background: #fcfdff; }
+
+  /* ── "Custom" segment (the way out of segments) ─────────────────────────
+     A quiet horizontal row under an "or" divider, so it reads as an
+     alternative to the four segments rather than a fifth one. */
+  .lio-custom-seg-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0 14px; }
+  .lio-custom-seg-divider::before, .lio-custom-seg-divider::after { content: ''; flex: 1; height: 1px; background: #eef2f6; }
+  .lio-custom-seg-divider span { font-size: 10.5px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; color: #b6bdc9; }
+  .lio-custom-seg { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 14px;
+    border: 1.5px dashed #d8dee8; background: #fcfdff; cursor: pointer; transition: border-color 160ms, background 160ms, box-shadow 160ms; }
+  .lio-custom-seg:hover { border-color: #c7d2fe; background: #fff; box-shadow: 0 8px 22px rgba(79,70,229,.07); }
+  .lio-custom-seg.active { border-style: solid; border-color: #4f46e5; background: #fff; box-shadow: 0 0 0 3px rgba(79,70,229,.10); }
+  .lio-custom-seg-icon { font-size: 20px; line-height: 1; flex-shrink: 0; }
+  .lio-custom-seg-check { width: 22px; height: 22px; border-radius: 50%; background: #4f46e5; color: #fff; font-size: 12px;
+    font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; opacity: 0; transform: scale(.7); transition: all 160ms; }
+  .lio-custom-seg.active .lio-custom-seg-check { opacity: 1; transform: scale(1); }
+
+  /* ── Agent groups (wizard agents step) ──────────────────────────────────
+     A quiet label + count per suite. The heading carries the structure so the
+     cards themselves stay unadorned. */
+  .lio-mod-group { margin-bottom: 26px; }
+  .lio-mod-group:last-child { margin-bottom: 0; }
+  .lio-mod-group-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    padding: 0 2px 8px; margin-bottom: 10px; border-bottom: 1px solid #eef2f6; }
+  .lio-mod-group-label { font-size: 12px; font-weight: 700; color: #0f172a; letter-spacing: -.005em; }
+  .lio-mod-group-count { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: #a3aab8; white-space: nowrap; }
+  .lio-mod-group-count.has { color: #4f46e5; }
+
   /* ── Format chooser (wizard step 1) ─────────────────────────────────────
      Three equal cards, one decision. Generous padding, quiet borders, and a
      single unmistakable selected state — no competing accents. */
@@ -2842,6 +2873,19 @@ const modules = {
 };
 
 let currentCurrency = 'usd';
+// Agent groups — the one place that decides how agents are grouped for the
+// calculator and the wizard's agent picker. Anything not listed falls into
+// "More agents" so a newly added module can never silently disappear.
+const LIO_AGENT_GROUPS = [
+  { label: 'P2P Suite — Procure to Pay',           keys: ['gb2po','ntpo','aa','oc','gr','inv','pra','ta','bpo'] },
+  { label: 'S2C Suite — Source to Contract',       keys: ['sa','at','ae','na','npa','cna','tsa','tna','rfx','ssa','sbg'] },
+  { label: 'P2S Suite — Procure to Strategy',      keys: ['ada','asc','oba','csa','sba','stc'] },
+  { label: 'SRM Suite — Supplier Relationship',    keys: ['sm','soa'] },
+  { label: 'Contract Management',                  keys: ['ca','clm'] },
+  { label: 'Intelligence & Assistants',            keys: ['liox','pia'] },
+  { label: 'Strategic Sourcing',                   keys: ['sh'] },
+  { label: 'Platform',                             keys: ['aop','abf'] }
+];
 // Global "standard tier size" (volume label) overrides set in the Segment
 // Admin — applied to the live module registry at startup so they persist.
 window._tierVolOverrides = window._tierVolOverrides || {};
@@ -2998,16 +3042,7 @@ function closeModule() { document.getElementById('module-overlay').classList.add
 // Calculator
 function buildCalc() {
   const container = document.getElementById('calc-modules');
-  const categories = [
-    { label: 'P2P Suite — Procure to Pay',           keys: ['gb2po','ntpo','aa','oc','gr','inv','pra','ta','bpo'] },
-    { label: 'S2C Suite — Source to Contract',       keys: ['sa','at','ae','na','npa','cna','tsa','tna','rfx','ssa','sbg'] },
-    { label: 'P2S Suite — Procure to Strategy',      keys: ['ada','asc','oba','csa','sba','stc'] },
-    { label: 'SRM Suite — Supplier Relationship',    keys: ['sm','soa'] },
-    { label: 'Contract Management',                  keys: ['ca','clm'] },
-    { label: 'Intelligence & Assistants',            keys: ['liox','pia'] },
-    { label: 'Strategic Sourcing',                   keys: ['sh'] },
-    { label: 'Platform',                             keys: ['aop','abf'] }
-  ];
+  const categories = LIO_AGENT_GROUPS;
   let html = '';
   categories.forEach(cat => {
     html += `<div class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-6 mb-2 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> ${cat.label}</div>`;
@@ -8267,8 +8302,37 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
   // ---------------------------
   // Step navigation
   // ---------------------------
+  // Mirror the token plan into the standard line items so the quote can be
+  // priced and printed. (A dedicated token PDF layout is future work; until
+  // then the standard breakdown carries the token fees as line items.)
+  function lioTokSyncToStandard() {
+    const cfg = window._tokenConfig;
+    if (!cfg || !window.modules) return;
+    const chosen = Object.keys(cfg.sel || {}).filter(k => cfg.sel[k] && window.modules[k]);
+    if (chosen.length === 0) return;
+    Object.keys(window.modules).forEach(k => {
+      const cb = document.getElementById('chk-' + k);
+      if (cb) cb.checked = chosen.includes(k);
+    });
+    if (typeof calcUpdate === 'function') calcUpdate();
+    if (typeof populateQuotePricing === 'function') populateQuotePricing();
+    // Write each agent's token-plan fee into its price so the totals match
+    // what the Token step showed.
+    chosen.forEach(k => {
+      const fee = (typeof lioTokAgentFee === 'function') ? lioTokAgentFee(k) : 0;
+      if (!(fee > 0)) return;
+      const qf = document.getElementById('qf-' + k);
+      if (qf) qf.value = fee;
+      const active = document.getElementById('qf' + (currentCurrency || 'usd')[0] + '-' + k);
+      if (active) active.value = fee;
+    });
+    if (typeof updateQuotePricing === 'function') updateQuotePricing();
+  }
+
   function lioGoToStep(n) {
     if (n < 1 || n > lioStepCount()) return;
+    // Leaving the token step: carry its selection into the priced line items.
+    if (lioStepKey(W.step) === 'tokens' && n !== W.step) lioTokSyncToStandard();
     W.step = n;
     renderStep();
     lioSyncSummary();
@@ -8481,12 +8545,12 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
   // ---------------------------
   function renderStep1Profile(pane) {
     pane.innerHTML =
-      '<div class="mb-6">' +
-        '<h1 class="text-2xl font-extrabold text-slate-900">Who is this quote for?</h1>' +
-        '<p class="text-sm text-slate-500 mt-1">Pick the customer segment to set sensible defaults — currency, expected pricing range, and the highlighted reference row in the PDF.</p>' +
+      '<div class="mb-7">' +
+        '<h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Who is this quote for?</h1>' +
+        '<p class="text-sm text-slate-500 mt-1.5 max-w-2xl leading-relaxed">Pick the customer segment to set sensible defaults — currency, expected pricing range, and the highlighted reference row in the PDF.</p>' +
       '</div>' +
       '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">' +
-        SEGMENTS.map(s => {
+        SEGMENTS.filter(s => s.key !== 'custom').map(s => {
           const isActive = W.profileKey === s.key;
           return '<div class="lio-segment-card' + (isActive ? ' active' : '') + '" data-segkey="' + s.key + '">' +
             '<div class="lio-segment-icon">' + s.icon + '</div>' +
@@ -8498,9 +8562,24 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
             '</div>' +
           '</div>';
         }).join('') +
-      '</div>';
+      '</div>' +
+      (() => {
+        // "Custom" is not a fifth segment — it is the way out of segments.
+        const c = SEGMENTS.find(s => s.key === 'custom');
+        if (!c) return '';
+        const isActive = W.profileKey === 'custom';
+        return '<div class="lio-custom-seg-divider"><span>or</span></div>' +
+          '<div class="lio-custom-seg' + (isActive ? ' active' : '') + '" data-segkey="custom">' +
+            '<div class="lio-custom-seg-icon">' + c.icon + '</div>' +
+            '<div class="flex-1 min-w-0">' +
+              '<div class="text-sm font-bold text-slate-900">' + c.name + ' — start from library prices</div>' +
+              '<div class="text-xs text-slate-500 mt-0.5">' + c.desc + '. Pick the currency yourself.</div>' +
+            '</div>' +
+            '<div class="lio-custom-seg-check">✓</div>' +
+          '</div>';
+      })();
 
-    pane.querySelectorAll('.lio-segment-card').forEach(card => {
+    pane.querySelectorAll('.lio-segment-card, .lio-custom-seg').forEach(card => {
       card.addEventListener('click', () => {
         const key = card.dataset.segkey;
         W.profileKey = key;
@@ -8525,15 +8604,15 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
     pane.innerHTML =
       '<div class="mb-6 flex items-end justify-between gap-4 flex-wrap">' +
         '<div>' +
-          '<h1 class="text-2xl font-extrabold text-slate-900">Choose the modules</h1>' +
-          '<p class="text-sm text-slate-500 mt-1">Click a card to toggle it. Pick a tier per module — the default is the smallest tier so you can scale up.</p>' +
+          '<h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Choose the modules</h1>' +
+          '<p class="text-sm text-slate-500 mt-1.5 max-w-2xl leading-relaxed">Click a card to toggle it. Pick a tier per module — the default is the smallest tier so you can scale up.</p>' +
         '</div>' +
         '<div class="flex items-center gap-2">' +
           '<input id="lio-mod-search" type="text" placeholder="Filter modules…" class="lio-input" style="min-width:220px;" oninput="lioFilterModules(this.value)">' +
           '<button class="lio-btn lio-btn-ghost" onclick="lioOpenCmdK()" title="⌘K">⌘K</button>' +
         '</div>' +
       '</div>' +
-      '<div id="lio-mod-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>';
+      '<div id="lio-mod-grid"></div>';
 
     renderModuleGrid();
   }
@@ -8549,10 +8628,59 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
     grid.innerHTML = '';
     const round500 = (v) => Math.max(0, Math.round(v / 500) * 500);
 
-    MOD_ORDER.forEach(k => {
+    // Group the agents by suite so 35 modules read as a handful of families
+    // instead of one long wall. Any module missing from the group map is
+    // collected under "More agents" rather than dropped.
+    const grouped = LIO_AGENT_GROUPS.map(g => ({ label: g.label, keys: g.keys.filter(k => window.modules[k]) }));
+    const claimed = new Set(grouped.flatMap(g => g.keys));
+    const leftovers = MOD_ORDER.filter(k => window.modules[k] && !claimed.has(k));
+    if (leftovers.length) grouped.push({ label: 'More agents', keys: leftovers });
+
+    const matches = (k) => {
+      const m = window.modules[k];
+      if (!m) return false;
+      if (!f) return true;
+      return (m.name + ' ' + k + ' ' + (m.desc || '')).toLowerCase().includes(f);
+    };
+
+    let shown = 0;
+    grouped.forEach(group => {
+      const visible = group.keys.filter(matches);
+      if (visible.length === 0) return;
+      const chosen = group.keys.filter(k => document.getElementById('chk-' + k)?.checked).length;
+
+      const section = document.createElement('section');
+      section.className = 'lio-mod-group';
+      const head = document.createElement('div');
+      head.className = 'lio-mod-group-head';
+      head.innerHTML =
+        '<span class="lio-mod-group-label">' + group.label + '</span>' +
+        '<span class="lio-mod-group-count' + (chosen > 0 ? ' has' : '') + '">' +
+          (chosen > 0
+            ? chosen + ' of ' + group.keys.length + ' selected'
+            : group.keys.length + (group.keys.length === 1 ? ' agent' : ' agents')) +
+        '</span>';
+      section.appendChild(head);
+      const inner = document.createElement('div');
+      inner.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3';
+      section.appendChild(inner);
+      grid.appendChild(section);
+
+      visible.forEach(k => { shown++; _lioRenderModuleCard(k, inner, round500); });
+    });
+
+    if (shown === 0) {
+      grid.innerHTML = '<div class="lio-card p-8 text-center text-sm text-slate-500">No agents match “' +
+        (filter || '').replace(/</g,'&lt;') + '”.</div>';
+    }
+    _lioWireModuleGrid(grid, round500);
+  }
+
+  // Builds one agent card and appends it to `host`.
+  function _lioRenderModuleCard(k, host, round500) {
+    {
       const m = window.modules[k];
       if (!m) return;
-      if (f && !(m.name + ' ' + (m.desc || '')).toLowerCase().includes(f)) return;
       const cb = document.getElementById('chk-' + k);
       const sel = !!(cb && cb.checked);
       const tierEl = document.getElementById('ct-' + k);
@@ -8608,9 +8736,12 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
             '</div>' +
           '</div>'
         ) : '');
-      grid.appendChild(card);
-    });
+      host.appendChild(card);
+    }
+  }
 
+  // Wires interactions once, after all cards are in the DOM.
+  function _lioWireModuleGrid(grid, round500) {
     // Card-head click toggles selection
     grid.querySelectorAll('.lio-mod-head').forEach(head => {
       head.addEventListener('click', () => toggleModule(head.dataset.modkey));
@@ -8701,11 +8832,30 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
   // ---------------------------
   // STEP 3 — Services
   // ---------------------------
+  // ── Service bullet text (shared with the PDF) ───────────────────────────
+  // These textareas are the visible copy of what prints under
+  // "Service & Support includes"; they write straight into the fields
+  // generateQuoteData() reads, so what you see is what ships.
+  const LIO_SVC_DEFAULTS = {
+    impl: 'Web Interface & Teams\nERP & P2P System integration\nSystem configuration\nUp to 50 punchout catalogs\nTraining',
+    cs:   'Dedicated CSM\nSLA-backed response\nEscalation management\nMonthly strategy sessions'
+  };
+  function lioServiceBullets(which) {
+    const modal = document.getElementById(which === 'impl' ? 'quote-service-impl-text' : 'quote-service-cs-text');
+    const win = which === 'impl' ? window._serviceImplText : window._serviceCsText;
+    const val = (modal && modal.value) || win || LIO_SVC_DEFAULTS[which];
+    // Push the resolved value down immediately so wizard and PDF agree even if
+    // the user never touches the field.
+    lioSetServiceBullets(which, val);
+    return val;
+  }
+  const _lioEscTa = (v) => String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
   function renderStep3Services(pane) {
     pane.innerHTML =
-      '<div class="mb-6">' +
-        '<h1 class="text-2xl font-extrabold text-slate-900">Services &amp; fees</h1>' +
-        '<p class="text-sm text-slate-500 mt-1">Implementation and Customer Success & Support scale with the modules you picked. Add bespoke services as custom positions below.</p>' +
+      '<div class="mb-7">' +
+        '<h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Services &amp; fees</h1>' +
+        '<p class="text-sm text-slate-500 mt-1.5 max-w-2xl leading-relaxed">Implementation and Customer Success & Support scale with the modules you picked. Add bespoke services as custom positions below.</p>' +
       '</div>' +
       '<div class="grid md:grid-cols-2 gap-4 mb-6">' +
         '<div class="lio-card p-5">' +
@@ -8717,12 +8867,10 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
             '<span class="lio-pill lio-pill-blue">Included</span>' +
           '</div>' +
           '<div class="text-2xl font-extrabold text-slate-900 mt-2" id="lio-svc-impl">—</div>' +
-          '<ul class="text-xs text-slate-500 mt-3 space-y-1">' +
-            '<li>· Web Interface &amp; Teams setup</li>' +
-            '<li>· ERP &amp; P2P integration</li>' +
-            '<li>· Up to 50 punchout catalogs</li>' +
-            '<li>· Buyer &amp; requestor training</li>' +
-          '</ul>' +
+          '<div class="mt-3">' +
+            '<div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">What this includes <span class="normal-case tracking-normal text-slate-400 font-normal">— one per line, prints on the PDF</span></div>' +
+            '<textarea id="lio-svc-impl-text" rows="4" class="lio-input w-full text-xs leading-relaxed" style="resize:vertical;" placeholder="One bullet per line…" oninput="lioSetServiceBullets(\'impl\', this.value)">' + _lioEscTa(lioServiceBullets('impl')) + '</textarea>' +
+          '</div>' +
           '<div class="mt-3 flex items-center gap-2">' +
             '<label class="text-xs text-slate-500">Discount</label>' +
             '<input type="number" id="lio-svc-impl-disc" min="0" step="1" placeholder="0" class="lio-input" style="width:80px;" oninput="lioSyncImpl()">' +
@@ -8738,12 +8886,10 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
             '<span class="lio-pill lio-pill-green">Included</span>' +
           '</div>' +
           '<div class="text-2xl font-extrabold text-slate-900 mt-2" id="lio-svc-cs">—</div>' +
-          '<ul class="text-xs text-slate-500 mt-3 space-y-1">' +
-            '<li>· Dedicated CSM</li>' +
-            '<li>· SLA-backed response</li>' +
-            '<li>· Quarterly reviews</li>' +
-            '<li>· Continuous optimization</li>' +
-          '</ul>' +
+          '<div class="mt-3">' +
+            '<div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">What this includes <span class="normal-case tracking-normal text-slate-400 font-normal">— one per line, prints on the PDF</span></div>' +
+            '<textarea id="lio-svc-cs-text" rows="4" class="lio-input w-full text-xs leading-relaxed" style="resize:vertical;" placeholder="One bullet per line…" oninput="lioSetServiceBullets(\'cs\', this.value)">' + _lioEscTa(lioServiceBullets('cs')) + '</textarea>' +
+          '</div>' +
           '<div class="mt-3 flex items-center gap-2">' +
             '<label class="text-xs text-slate-500">Discount</label>' +
             '<input type="number" id="lio-svc-cs-disc" min="0" step="1" placeholder="0" class="lio-input" style="width:80px;" oninput="lioSyncCS()">' +
@@ -8777,6 +8923,16 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
       lioRefreshCustomPositions();
     });
   }
+
+  function lioSetServiceBullets(which, value) {
+    const targetId = which === 'impl' ? 'quote-service-impl-text' : 'quote-service-cs-text';
+    const target = document.getElementById(targetId);
+    if (target) target.value = value;
+    if (which === 'impl') window._serviceImplText = value; else window._serviceCsText = value;
+  }
+  window.lioSetServiceBullets = lioSetServiceBullets;
+
+
 
   // Sync wizard inputs back into legacy quote-modal inputs (so generateQuoteData picks them up)
   // and mirror the recomputed Impl/CS amounts into the wizard's step-3 cards.
@@ -8825,9 +8981,9 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
   // ---------------------------
   function renderStep4Customization(pane) {
     pane.innerHTML =
-      '<div class="mb-6">' +
-        '<h1 class="text-2xl font-extrabold text-slate-900">Customization &amp; PDF sections</h1>' +
-        '<p class="text-sm text-slate-500 mt-1">Toggle which sections appear on the generated PDF. Module descriptions and feature bullets are editable below — your edits stay with this quote and don\'t affect the global module library.</p>' +
+      '<div class="mb-7">' +
+        '<h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Customization &amp; PDF sections</h1>' +
+        '<p class="text-sm text-slate-500 mt-1.5 max-w-2xl leading-relaxed">Toggle which sections appear on the generated PDF. Module descriptions and feature bullets are editable below — your edits stay with this quote and don\'t affect the global module library.</p>' +
       '</div>' +
       '<div class="grid md:grid-cols-2 gap-4 mb-6">' +
         '<div class="lio-card p-5">' +
@@ -9117,9 +9273,9 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
   function renderStep5CustomerDetails(pane) {
     const validUntil = (() => { const d = new Date(); d.setDate(d.getDate() + 90); return d.toISOString().split('T')[0]; })();
     pane.innerHTML =
-      '<div class="mb-6">' +
-        '<h1 class="text-2xl font-extrabold text-slate-900">Customer details</h1>' +
-        '<p class="text-sm text-slate-500 mt-1">These show up on the PDF cover and footer.</p>' +
+      '<div class="mb-7">' +
+        '<h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Customer details</h1>' +
+        '<p class="text-sm text-slate-500 mt-1.5 max-w-2xl leading-relaxed">These show up on the PDF cover and footer.</p>' +
       '</div>' +
       '<div class="grid md:grid-cols-2 gap-5">' +
         '<div>' +
@@ -9205,9 +9361,9 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
     }).join('') || '<div class="text-sm text-slate-400 py-4 text-center">No modules selected — quote will only include reference / notes / ROI sections.</div>';
 
     pane.innerHTML =
-      '<div class="mb-6">' +
-        '<h1 class="text-2xl font-extrabold text-slate-900">Review &amp; send</h1>' +
-        '<p class="text-sm text-slate-500 mt-1">Final check before generating the PDF. Use the buttons on the right (or below) to download or print.</p>' +
+      '<div class="mb-7">' +
+        '<h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Review &amp; send</h1>' +
+        '<p class="text-sm text-slate-500 mt-1.5 max-w-2xl leading-relaxed">Last look before the PDF is generated. Everything here reflects what will print.</p>' +
       '</div>' +
       '<div class="grid md:grid-cols-2 gap-5 mb-6">' +
         '<div class="lio-card p-5">' +
@@ -9230,19 +9386,23 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
         '<div class="text-[11px] text-slate-400 uppercase tracking-wider mb-3">Selected modules</div>' +
         '<div>' + modList + '</div>' +
       '</div>' +
-      '<div class="grid md:grid-cols-3 gap-4">' +
-        '<button class="lio-btn lio-btn-primary justify-center py-4" onclick="lioGenerateAndDownload()">' +
-          '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>' +
-          'Download PDF' +
-        '</button>' +
-        '<button class="lio-btn lio-btn-ghost justify-center py-4" onclick="lioPrintQuote()">' +
-          '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>' +
-          'Print Quote' +
-        '</button>' +
-        '<button class="lio-btn lio-btn-emerald justify-center py-4" onclick="lioSaveDraft()">' +
-          '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' +
-          'Save &amp; Done' +
-        '</button>' +
+      // One primary action lives in the footer ("Generate PDF") and in the
+      // summary rail — repeating it here would be a third identical button.
+      // What is left are the genuinely different endings.
+      '<div class="lio-review-actions">' +
+        '<div class="text-xs text-slate-500 leading-relaxed">' +
+          'Ready. <strong class="text-slate-700 font-semibold">Generate PDF</strong> below downloads the quote and files it under My Quotes.' +
+        '</div>' +
+        '<div class="flex items-center gap-2 flex-wrap justify-end">' +
+          '<button class="lio-btn lio-btn-ghost" onclick="lioPrintQuote()">' +
+            '<svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>' +
+            'Print instead' +
+          '</button>' +
+          '<button class="lio-btn lio-btn-emerald" onclick="lioSaveDraft()">' +
+            '<svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' +
+            'Save without PDF' +
+          '</button>' +
+        '</div>' +
       '</div>';
   }
 
