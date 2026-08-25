@@ -191,6 +191,34 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
   .lio-cmdk-row .lio-cmdk-kind { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 6px; border-radius: 4px; background: #f1f5f9; color: #64748b; margin-left: auto; }
 
   /* Profile-segment cards */
+  /* ── Format chooser (wizard step 1) ─────────────────────────────────────
+     Three equal cards, one decision. Generous padding, quiet borders, and a
+     single unmistakable selected state — no competing accents. */
+  .lio-format-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(268px, 1fr)); gap: 16px; align-items: stretch; }
+  /* Below three-across, fall back to a single clean column rather than a
+     lopsided 2 + 1 arrangement. */
+  @media (max-width: 1180px) { .lio-format-grid { grid-template-columns: 1fr; } }
+  @media (min-width: 1181px) { .lio-format-grid { grid-template-columns: repeat(3, 1fr); } }
+  .lio-format-card { position: relative; display: flex; flex-direction: column; text-align: left; padding: 22px 20px 18px; border-radius: 18px;
+    border: 1.5px solid #e5e7eb; background: #fff; cursor: pointer; font: inherit; color: inherit;
+    transition: border-color 160ms, box-shadow 160ms, transform 160ms; }
+  .lio-format-card:hover { border-color: #c7d2fe; transform: translateY(-2px); box-shadow: 0 14px 34px rgba(79,70,229,.10); }
+  .lio-format-card:focus-visible { outline: 2px solid #4f46e5; outline-offset: 2px; }
+  .lio-format-card.active { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.12), 0 14px 34px rgba(79,70,229,.12); }
+  .lio-format-check { position: absolute; top: 16px; right: 16px; width: 22px; height: 22px; border-radius: 50%;
+    background: #4f46e5; color: #fff; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+    opacity: 0; transform: scale(.7); transition: all 160ms; }
+  .lio-format-card.active .lio-format-check { opacity: 1; transform: scale(1); }
+  .lio-format-icon { font-size: 26px; line-height: 1; margin-bottom: 12px; }
+  .lio-format-name { font-size: 16px; font-weight: 700; color: #0f172a; letter-spacing: -.01em; }
+  .lio-format-tagline { font-size: 12.5px; color: #64748b; margin-top: 4px; line-height: 1.45; }
+  .lio-format-bullets { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .lio-format-bullets li { position: relative; padding-left: 16px; font-size: 12px; color: #475569; line-height: 1.4; }
+  .lio-format-bullets li::before { content: ''; position: absolute; left: 0; top: 6px; width: 5px; height: 5px; border-radius: 50%; background: #a5b4fc; }
+  .lio-format-best { margin-top: 16px; padding-top: 12px; border-top: 1px solid #f1f5f9; font-size: 10.5px;
+    text-transform: uppercase; letter-spacing: .08em; font-weight: 700; color: #94a3b8; }
+  .lio-format-card.active .lio-format-best { color: #4f46e5; }
+
   .lio-segment-card { padding: 24px; border-radius: 16px; border: 2px solid #e5e7eb; background: white; cursor: pointer; transition: all 160ms; }
   .lio-segment-card:hover { border-color: #c7d2fe; transform: translateY(-2px); box-shadow: 0 12px 32px rgba(99,102,241,0.12); }
   .lio-segment-card.active { border-color: #4f46e5; background: linear-gradient(135deg, #fafbff 0%, #f4f6ff 100%); box-shadow: 0 0 0 3px rgba(79,70,229,0.10); }
@@ -323,14 +351,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
     <!-- LEFT: stepnav -->
     <aside id="lio-stepnav">
       <div class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold mb-3 px-2">Quote Builder</div>
-      <div class="space-y-1">
-        <div class="lio-step active" data-step="1" onclick="lioGoToStep(1)"><span class="lio-step-num"><span>1</span></span> Customer Profile</div>
-        <div class="lio-step" data-step="2" onclick="lioGoToStep(2)"><span class="lio-step-num"><span>2</span></span> Modules</div>
-        <div class="lio-step" data-step="3" onclick="lioGoToStep(3)"><span class="lio-step-num"><span>3</span></span> Services</div>
-        <div class="lio-step" data-step="4" onclick="lioGoToStep(4)"><span class="lio-step-num"><span>4</span></span> Customization</div>
-        <div class="lio-step" data-step="5" onclick="lioGoToStep(5)"><span class="lio-step-num"><span>5</span></span> Customer Details</div>
-        <div class="lio-step" data-step="6" onclick="lioGoToStep(6)"><span class="lio-step-num"><span>6</span></span> Review &amp; Send</div>
-      </div>
+      <div class="space-y-1" id="lio-stepnav-list"><!-- filled by renderStepNav() --></div>
       <div class="mt-6 px-2">
         <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Progress</div>
         <div class="lio-progress-bar"><div id="lio-progress-fill" style="width:16%;"></div></div>
@@ -1433,7 +1454,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
         <!-- Discount Bar — applies % to agents in selected packages, with optional named label -->
         <div class="mt-4 p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20 space-y-2">
           <div class="flex items-center justify-between">
-            <label class="text-xs text-indigo-200 font-semibold">Agent Discount</label>
+            <label class="text-xs text-indigo-700 font-semibold">Agent Discount</label>
             <span class="text-[10px] text-slate-500">Reduces agent prices in the selected packages · optional name renders as a row on the PDF</span>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2 items-center">
@@ -1446,7 +1467,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
           <div class="flex items-center gap-2 flex-wrap">
             <input type="number" id="pkg-global-disc" value="" min="0" max="100" step="1" placeholder="e.g. 10" class="w-24 bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm text-slate-900 outline-none text-right">
             <span class="text-xs text-slate-500">%</span>
-            <button type="button" onclick="lioPkgApplyGlobalDiscount()" class="px-3 py-2 bg-indigo-500/30 hover:bg-indigo-500/40 border border-indigo-500/40 rounded-lg text-xs text-indigo-200 font-semibold transition">Apply discount</button>
+            <button type="button" onclick="lioPkgApplyGlobalDiscount()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 border border-indigo-600 rounded-lg text-xs text-white font-semibold transition">Apply discount</button>
             <button type="button" onclick="lioPkgClearDiscount()" class="px-3 py-2 bg-slate-700/40 hover:bg-slate-100 border border-slate-300 rounded-lg text-xs text-slate-600 transition">Clear discount</button>
             <button type="button" onclick="lioPkgResetPrices()" class="px-3 py-2 bg-slate-700/40 hover:bg-slate-100 border border-slate-300 rounded-lg text-xs text-slate-600 transition">Reset all prices</button>
             <span id="pkg-global-disc-status" class="text-xs text-emerald-300 ml-auto"></span>
@@ -1470,8 +1491,8 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
             </select>
             <span class="text-xs text-slate-500">→</span>
             <select id="pkg-suite-target" class="bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm text-slate-900 outline-none"></select>
-            <button type="button" onclick="lioPkgApplySuite()" class="px-3 py-2 bg-lio-500/30 hover:bg-lio-500/40 border border-lio-500/40 rounded-lg text-xs text-lio-200 font-semibold transition">+ Add suite</button>
-            <button type="button" onclick="lioPkgApplySuiteBuildUp()" class="px-3 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 rounded-lg text-xs text-emerald-200 font-semibold transition" title="Distribute the suite across tiers so each higher package contains the previous + more">↗ Apply as ladder (Basic → Premium → Diamond)</button>
+            <button type="button" onclick="lioPkgApplySuite()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 border border-indigo-600 rounded-lg text-xs text-white font-semibold transition">+ Add suite</button>
+            <button type="button" onclick="lioPkgApplySuiteBuildUp()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 border border-emerald-600 rounded-lg text-xs text-white font-semibold transition" title="Distribute the suite across tiers so each higher package contains the previous + more">↗ Apply as ladder (Basic → Premium → Diamond)</button>
             <span id="pkg-suite-status" class="text-xs text-emerald-300 ml-auto"></span>
           </div>
         </div>
@@ -1482,7 +1503,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
             <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Package Overview</div>
             <div class="flex items-center gap-2">
               <button type="button" onclick="lioRemovePackage()" id="pkg-remove-btn" class="px-2 py-1 text-xs bg-slate-700/40 hover:bg-slate-100 border border-slate-300 rounded text-slate-600 transition disabled:opacity-40 disabled:cursor-not-allowed">− Remove</button>
-              <button type="button" onclick="lioAddPackage()" id="pkg-add-btn" class="px-2 py-1 text-xs bg-lio-500/30 hover:bg-lio-500/40 border border-lio-500/40 rounded text-lio-200 font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed">+ Add</button>
+              <button type="button" onclick="lioAddPackage()" id="pkg-add-btn" class="px-2 py-1 text-xs bg-indigo-600 hover:bg-indigo-500 border border-indigo-600 rounded text-white font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed">+ Add</button>
             </div>
           </div>
           <!-- Single unified grid: agent column on left + N package columns to right -->
@@ -4692,7 +4713,7 @@ function lioRenderTokenView() {
   html += '<thead><tr class="text-[10px] text-slate-400 uppercase tracking-wider border-b border-slate-700/50"><th style="text-align:left;padding:8px 12px;">Agent</th>' + headCols + '</tr></thead><tbody>';
 
   LIO_TOKEN_PRICING.clusters.forEach(cluster => {
-    html += `<tr class="bg-slate-800/60"><td colspan="${tokenMode ? 5 : 3}" class="px-3 py-1.5 text-[10px] font-bold text-lio-300 uppercase tracking-wider">${cluster.name}</td></tr>`;
+    html += `<tr class="bg-slate-800/60"><td colspan="${tokenMode ? 5 : 3}" class="px-3 py-1.5 text-[10px] font-bold text-indigo-600 uppercase tracking-wider">${cluster.name}</td></tr>`;
     cluster.keys.forEach(key => {
       const a = LIO_TOKEN_PRICING.agents[key];
       if (!a) return;
@@ -4705,7 +4726,7 @@ function lioRenderTokenView() {
         const fee = lioTokAgentFee(key);
         const tokIncl = cfg.plan === 'strategic' ? a.tokStrat : a.tokEnt;
         const modelBadge = a.model === 'used'
-          ? '<span class="px-1.5 py-0.5 rounded text-[10px] bg-lio-500/20 text-lio-300 border border-lio-500/30">Used</span>'
+          ? '<span class="px-1.5 py-0.5 rounded text-[10px] bg-indigo-50 text-indigo-600 border border-lio-500/30">Used</span>'
           : '<span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-700/60 text-slate-400 border border-slate-600">None</span>';
         cells = `
           <td style="text-align:right;padding:6px 12px;">
@@ -4925,7 +4946,11 @@ function lioPkgSeedFromStandard() {
   // standard view, using the qf-{mod} price in the active currency as the
   // per-cell price.
   const std = ['gb2po','ntpo','aa','oc','gr','inv','sm','sa','na','liox','pia','npa','cna','sh','aop','clm','ca','soa','at','ae','ada','asc','oba','csa','sba','pra','ta','bpo','tsa','tna','rfx','ssa','sbg','stc','abf'];
-  const includedKeys = std.filter(k => document.getElementById('check-' + k)?.checked && !excludedModules[k]);
+  // White uses chk-{k}/ct-{k}; dark used check-{k}/calc-{k}-tier. Accept both so
+  // this ported helper works unchanged in either shell.
+  const _cb = (k) => document.getElementById('chk-' + k) || document.getElementById('check-' + k);
+  const _tierSel = (k) => document.getElementById('ct-' + k) || document.getElementById('calc-' + k + '-tier');
+  const includedKeys = std.filter(k => _cb(k)?.checked && !excludedModules[k]);
   window._packageConfig.packages.forEach((pkg, idx) => {
     pkg.items = {};
     // Distribute included modules across packages — Basic gets first 2, Premium adds next 3, Diamond gets all.
@@ -4933,7 +4958,7 @@ function lioPkgSeedFromStandard() {
                 : idx === 1 ? Math.min(5, includedKeys.length)
                 : includedKeys.length;
     includedKeys.slice(0, slice).forEach(k => {
-      const tierEl = document.getElementById('calc-' + k + '-tier');
+      const tierEl = _tierSel(k);
       const tierUsd = parseInt(tierEl?.value);
       const tierIdx = Math.max(0, modules[k].tiers.findIndex(t => t.price === tierUsd));
       pkg.items[k] = { included: true, tierIdx, customLabel: '' };
@@ -4955,7 +4980,7 @@ function lioRenderPackageView() {
   // Reflect style toggle in UI
   document.querySelectorAll('#pkg-style-toggle .pkg-style-tab').forEach(b => {
     b.classList.toggle('active', b.dataset.style === window._packageConfig.style);
-    b.classList.toggle('text-slate-400', b.dataset.style !== window._packageConfig.style);
+    b.classList.toggle('text-slate-500', b.dataset.style !== window._packageConfig.style);
   });
   // Reflect year mode + footer settings in UI
   const ymEl = document.getElementById('pkg-year-mode');
@@ -5168,7 +5193,7 @@ function lioRenderPackageCards() {
   if (!host) return;
   const cfg = window._packageConfig;
   const leadCell = '<div class="p-3 flex items-end"><div class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Plans</div></div>';
-  host.innerHTML = leadCell + cfg.packages.map(pkg => `<div class="p-3 border-l border-slate-700/40">${cfg.style === 'B' ? _pkgCardHtmlB(pkg) : _pkgCardHtmlC(pkg)}</div>`).join('');
+  host.innerHTML = leadCell + cfg.packages.map(pkg => `<div class="p-3 border-l border-slate-200">${cfg.style === 'B' ? _pkgCardHtmlB(pkg) : _pkgCardHtmlC(pkg)}</div>`).join('');
 }
 
 // Style B: Vercel/Modern — big number, "billed annually" + discount pill if applicable
@@ -5186,7 +5211,7 @@ function _pkgCardHtmlB(pkg) {
     const listSum = _pkgPackageListTotal(pkg);
     const saved = Math.max(0, listSum - annualForBreakdown);
     if (saved > 0) {
-      discountPill = `<div class="inline-flex items-center gap-1.5 px-2 py-1 mb-2 rounded text-[10px] font-semibold bg-emerald-500/15 border border-emerald-400/40 text-emerald-300">
+      discountPill = `<div class="inline-flex items-center gap-1.5 px-2 py-1 mb-2 rounded text-[10px] font-semibold bg-emerald-500/15 border border-emerald-400/40 text-emerald-600">
         <span>${nd.name}</span><span class="opacity-80">−${nd.pct}%</span><span class="opacity-80">·</span><span>−${fmtRaw(saved)}</span>
       </div>`;
     }
@@ -5195,23 +5220,23 @@ function _pkgCardHtmlB(pkg) {
     ? `<div class="bg-white text-slate-900 text-[11px] font-semibold uppercase tracking-widest text-center py-1.5">★ Best Value</div>`
     : `<div class="bg-slate-800 text-slate-500 text-[11px] uppercase tracking-widest text-center py-1.5">Standard</div>`;
   const yearBlock = cfg.yearMode
-    ? `<div class="flex gap-1 mb-3 p-1 bg-slate-800/50 rounded-lg">
-         <div class="flex-1 px-2 py-1 text-[10px] text-center text-slate-300 bg-slate-700/50 rounded font-semibold">Y1 ${fmtRaw(y1)}</div>
-         <div class="flex-1 px-2 py-1 text-[10px] text-center text-slate-400 rounded">Y2 ${fmtRaw(y2)}</div>
-         <div class="flex-1 px-2 py-1 text-[10px] text-center text-slate-400 rounded">Y3 ${fmtRaw(y3)}</div>
+    ? `<div class="flex gap-1 mb-3 p-1 bg-slate-50 rounded-lg">
+         <div class="flex-1 px-2 py-1 text-[10px] text-center text-slate-600 bg-slate-700/50 rounded font-semibold">Y1 ${fmtRaw(y1)}</div>
+         <div class="flex-1 px-2 py-1 text-[10px] text-center text-slate-500 rounded">Y2 ${fmtRaw(y2)}</div>
+         <div class="flex-1 px-2 py-1 text-[10px] text-center text-slate-500 rounded">Y3 ${fmtRaw(y3)}</div>
        </div>`
     : '';
-  return `<div class="rounded-2xl border ${pkg.isBest ? 'border-white/60' : 'border-slate-700/50'} bg-slate-900/50 overflow-hidden">
+  return `<div class="rounded-2xl border ${pkg.isBest ? 'border-indigo-300' : 'border-slate-200'} bg-white overflow-hidden">
     ${header}
     <div class="p-5">
-      <input type="text" value="${pkg.name}" data-pkg-name="${pkg.id}" oninput="window._packageConfig.packages.find(p=>p.id==='${pkg.id}').name=this.value;lioRenderPackageAgentTable();" class="w-full bg-transparent text-xl font-bold text-white outline-none mb-1 hover:bg-slate-800/40 px-1 rounded">
-      <input type="text" value="${pkg.tagline || ''}" data-pkg-tagline="${pkg.id}" oninput="window._packageConfig.packages.find(p=>p.id==='${pkg.id}').tagline=this.value" placeholder="Add tagline..." class="w-full bg-transparent text-xs text-slate-400 outline-none mb-4 hover:bg-slate-800/40 px-1 rounded">
+      <input type="text" value="${pkg.name}" data-pkg-name="${pkg.id}" oninput="window._packageConfig.packages.find(p=>p.id==='${pkg.id}').name=this.value;lioRenderPackageAgentTable();" class="w-full bg-transparent text-xl font-bold text-slate-900 outline-none mb-1 hover:bg-slate-50 px-1 rounded">
+      <input type="text" value="${pkg.tagline || ''}" data-pkg-tagline="${pkg.id}" oninput="window._packageConfig.packages.find(p=>p.id==='${pkg.id}').tagline=this.value" placeholder="Add tagline..." class="w-full bg-transparent text-xs text-slate-500 outline-none mb-4 hover:bg-slate-50 px-1 rounded">
       ${yearBlock}
       ${discountPill}
-      <div class="text-3xl font-bold text-white leading-none mb-1">${fmtRaw(annualForBreakdown)}</div>
+      <div class="text-3xl font-bold text-slate-900 leading-none mb-1">${fmtRaw(annualForBreakdown)}</div>
       <div class="text-[11px] text-slate-500 mb-4">billed annually${cfg.yearMode ? ' · Year 1' : ''}</div>
       <div class="flex items-center gap-2">
-        <button onclick="lioPkgToggleBest('${pkg.id}')" class="text-[10px] px-2 py-1 rounded border ${pkg.isBest ? 'bg-lio-500/30 border-lio-500/40 text-lio-200' : 'bg-slate-700/30 border-slate-600 text-slate-400 hover:text-slate-200'}">${pkg.isBest ? '★ Best Value' : 'Set Best Value'}</button>
+        <button onclick="lioPkgToggleBest('${pkg.id}')" class="text-[10px] px-2 py-1 rounded border ${pkg.isBest ? 'bg-indigo-100 border-indigo-300 text-indigo-700' : 'bg-slate-100 border-slate-300 text-slate-500 hover:text-slate-700'}">${pkg.isBest ? '★ Best Value' : 'Set Best Value'}</button>
       </div>
     </div>
   </div>`;
@@ -5240,31 +5265,31 @@ function _pkgCardHtmlC(pkg) {
     const listSum = _pkgPackageListTotal(pkg);
     const saved = Math.max(0, listSum - annualForBreakdown);
     if (saved > 0) {
-      listLineHtml = `<div class="flex justify-between"><span class="text-slate-500 text-[11px]">List price</span><span class="text-slate-400 text-[11px] line-through">${fmtRaw(listSum)}</span></div>`;
+      listLineHtml = `<div class="flex justify-between"><span class="text-slate-500 text-[11px]">List price</span><span class="text-slate-500 text-[11px] line-through">${fmtRaw(listSum)}</span></div>`;
       discountLineHtml = `<div class="flex justify-between"><span class="text-emerald-400 text-[11px] font-semibold">${nd.name} (−${nd.pct}%)</span><span class="text-emerald-400 text-[11px] font-semibold">−${fmtRaw(saved)}</span></div>`;
     }
   }
-  const badgeColor = pkg.isBest ? 'pkg-best-gradient text-white' : 'bg-slate-700/40 text-slate-400';
-  return `<div class="rounded-2xl ${pkg.isBest ? 'border-2 border-lio-500/70' : 'border border-slate-700/50'} bg-slate-900/60 relative overflow-hidden">
-    <div class="absolute top-3 right-3">
-      <button onclick="lioPkgToggleBest('${pkg.id}')" class="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded ${badgeColor}">${pkg.isBest ? '★ Best Value' : '○ Standard'}</button>
-    </div>
+  const badgeColor = pkg.isBest ? 'pkg-best-gradient text-white' : 'bg-slate-100 text-slate-500';
+  return `<div class="rounded-2xl ${pkg.isBest ? 'border-2 border-indigo-500' : 'border border-slate-200'} bg-white overflow-hidden">
     <div class="p-5">
-      <input type="text" value="${pkg.name}" oninput="window._packageConfig.packages.find(p=>p.id==='${pkg.id}').name=this.value;lioRenderPackageAgentTable();" class="w-full bg-transparent text-lg font-bold text-white outline-none mb-1 hover:bg-slate-800/40 px-1 rounded">
-      <input type="text" value="${pkg.tagline || ''}" oninput="window._packageConfig.packages.find(p=>p.id==='${pkg.id}').tagline=this.value" placeholder="Add tagline..." class="w-full bg-transparent text-xs italic text-slate-400 outline-none mb-4 hover:bg-slate-800/40 px-1 rounded">
+      <div class="mb-2">
+        <button onclick="lioPkgToggleBest('${pkg.id}')" class="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded ${badgeColor}" title="Mark this package as Best Value">${pkg.isBest ? '★ Best Value' : '○ Standard'}</button>
+      </div>
+      <input type="text" value="${pkg.name}" oninput="window._packageConfig.packages.find(p=>p.id==='${pkg.id}').name=this.value;lioRenderPackageAgentTable();" class="w-full bg-transparent text-lg font-bold text-slate-900 outline-none mb-1 hover:bg-slate-50 px-1 rounded" title="Package name">
+      <input type="text" value="${pkg.tagline || ''}" oninput="window._packageConfig.packages.find(p=>p.id==='${pkg.id}').tagline=this.value" placeholder="Add tagline..." class="w-full bg-transparent text-xs italic text-slate-500 outline-none mb-4 hover:bg-slate-50 px-1 rounded">
       ${cfg.yearMode ? `<div class="grid grid-cols-3 gap-1.5 mb-4">
-        <div class="rounded-lg bg-slate-800/60 border border-slate-700 p-1.5 text-center"><div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">Yr 1</div><div class="text-xs font-bold text-white">${fmtRaw(y1)}</div></div>
-        <div class="rounded-lg bg-slate-800/60 border border-slate-700 p-1.5 text-center"><div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">Yr 2</div><div class="text-xs font-bold text-white">${fmtRaw(y2)}</div></div>
-        <div class="rounded-lg bg-slate-800/60 border border-slate-700 p-1.5 text-center"><div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">Yr 3</div><div class="text-xs font-bold text-white">${fmtRaw(y3)}</div></div>
+        <div class="rounded-lg bg-slate-100 border border-slate-200 p-1.5 text-center"><div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">Yr 1</div><div class="text-xs font-bold text-slate-900">${fmtRaw(y1)}</div></div>
+        <div class="rounded-lg bg-slate-100 border border-slate-200 p-1.5 text-center"><div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">Yr 2</div><div class="text-xs font-bold text-slate-900">${fmtRaw(y2)}</div></div>
+        <div class="rounded-lg bg-slate-100 border border-slate-200 p-1.5 text-center"><div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">Yr 3</div><div class="text-xs font-bold text-slate-900">${fmtRaw(y3)}</div></div>
       </div>` : ''}
       <div class="space-y-1.5 text-sm">
         ${listLineHtml}
         ${discountLineHtml}
-        <div class="flex justify-between"><span class="text-slate-400 text-xs">SaaS subscription / yr</span><span class="font-semibold text-white text-xs">${fmtRaw(annualForBreakdown)}</span></div>
-        ${cfg.showImpl ? `<div class="flex justify-between"><span class="text-slate-500 text-[11px]">Implementation (${cfg.implPct}% one-time)</span><span class="text-slate-300 text-[11px]">${fmtRaw(impl)}</span></div>` : ''}
-        ${cfg.showCs   ? `<div class="flex justify-between"><span class="text-slate-500 text-[11px]">Customer Success & Support (${cfg.csPct}% / yr)</span><span class="text-slate-300 text-[11px]">${fmtRaw(cs)}</span></div>` : ''}
+        <div class="flex justify-between"><span class="text-slate-500 text-xs">SaaS subscription / yr</span><span class="font-semibold text-slate-900 text-xs">${fmtRaw(annualForBreakdown)}</span></div>
+        ${cfg.showImpl ? `<div class="flex justify-between"><span class="text-slate-500 text-[11px]">Implementation (${cfg.implPct}% one-time)</span><span class="text-slate-600 text-[11px]">${fmtRaw(impl)}</span></div>` : ''}
+        ${cfg.showCs   ? `<div class="flex justify-between"><span class="text-slate-500 text-[11px]">Customer Success & Support (${cfg.csPct}% / yr)</span><span class="text-slate-600 text-[11px]">${fmtRaw(cs)}</span></div>` : ''}
         <div class="pkg-dashed-divider my-1.5"></div>
-        <div class="flex items-baseline justify-between"><span class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Total Year 1</span><span class="text-xl font-bold ${pkg.isBest ? 'pkg-gradient-text' : 'text-white'}">${fmtRaw(yr1Total)}</span></div>
+        <div class="flex items-baseline justify-between"><span class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Total Year 1</span><span class="text-xl font-bold ${pkg.isBest ? 'pkg-gradient-text' : 'text-slate-900'}">${fmtRaw(yr1Total)}</span></div>
       </div>
     </div>
   </div>`;
@@ -5306,10 +5331,10 @@ function lioRenderPackageAgentTable() {
     const primaryTier = primaryEff ? (primaryEff.label || primaryEff.tier?.vol || '') : '';
     const rowBg = rowIdx % 2 === 0 ? 'bg-slate-900/30' : 'bg-slate-900/10';
     // Left cell: agent name + tier label + remove-row button
-    html += `<div class="${rowBg} p-3 border-t border-slate-700/40 flex items-start justify-between gap-2">
+    html += `<div class="${rowBg} p-3 border-t border-slate-200 flex items-start justify-between gap-2">
       <div class="flex-1 min-w-0">
         <div class="text-sm font-semibold text-slate-100 truncate">${mod.name}</div>
-        <div class="text-[11px] text-slate-400 italic truncate">${primaryTier || '—'}</div>
+        <div class="text-[11px] text-slate-500 italic truncate">${primaryTier || '—'}</div>
       </div>
       <button onclick="lioPkgRemoveAgent('${modKey}')" class="text-slate-500 hover:text-rose-400 text-base leading-none" title="Remove this agent from all packages">×</button>
     </div>`;
@@ -5317,7 +5342,7 @@ function lioRenderPackageAgentTable() {
     cfg.packages.forEach(pkg => {
       const itemMeta = (pkg.items && pkg.items[modKey]) || { included: false };
       if (!itemMeta.included) {
-        html += `<div class="${rowBg} p-3 border-t border-l border-slate-700/40 flex items-center justify-center">
+        html += `<div class="${rowBg} p-3 border-t border-l border-slate-200 flex items-center justify-center">
           <button onclick="lioPkgToggleItem('${pkg.id}','${modKey}')" class="text-slate-500 hover:text-emerald-400 text-2xl leading-none" title="Click to include in ${pkg.name}">×</button>
         </div>`;
         return;
@@ -5333,20 +5358,20 @@ function lioRenderPackageAgentTable() {
       const discBadge = discPct > 0
         ? `<span class="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-1 py-0.5 rounded" title="${fmtRaw(listP)} list price">−${discPct}%</span>`
         : '';
-      html += `<div class="${rowBg} p-3 border-t border-l border-slate-700/40">
+      html += `<div class="${rowBg} p-3 border-t border-l border-slate-200">
         <div class="flex items-center justify-center gap-2 mb-1.5 flex-wrap">
-          <button onclick="lioPkgToggleItem('${pkg.id}','${modKey}')" class="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 text-sm flex items-center justify-center hover:bg-emerald-500/30 transition" title="Click to exclude from ${pkg.name}">✓</button>
-          <input type="number" value="${priceVal}" oninput="lioPkgSetCellPrice('${pkg.id}','${modKey}','${currentCurrency}',this.value)" class="w-24 bg-slate-900/60 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-white text-right outline-none font-semibold" title="Click to edit price (${currentCurrency.toUpperCase()})">
+          <button onclick="lioPkgToggleItem('${pkg.id}','${modKey}')" class="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-400/40 text-emerald-400 text-sm flex items-center justify-center hover:bg-emerald-100 transition" title="Click to exclude from ${pkg.name}">✓</button>
+          <input type="number" value="${priceVal}" oninput="lioPkgSetCellPrice('${pkg.id}','${modKey}','${currentCurrency}',this.value)" class="w-24 bg-white border border-slate-200 rounded px-1.5 py-0.5 text-xs text-slate-900 text-right outline-none font-semibold" title="Click to edit price (${currentCurrency.toUpperCase()})">
           <span class="text-[10px] text-slate-500">/yr</span>
           ${discBadge}
         </div>
         <div class="grid grid-cols-1 gap-1">
-          <select onchange="lioPkgSetTier('${pkg.id}','${modKey}', this.value)" class="bg-slate-900/60 border border-slate-700 rounded px-1 py-0.5 text-[10px] text-slate-300 outline-none" title="Change tier (volume)">${tierOpts}</select>
-          <input type="text" value="${eff.label}" oninput="lioPkgSetCellLabel('${pkg.id}','${modKey}',this.value)" placeholder="Override label…" class="bg-slate-900/60 border border-slate-700 rounded px-1 py-0.5 text-[10px] text-slate-300 outline-none placeholder-slate-600">
+          <select onchange="lioPkgSetTier('${pkg.id}','${modKey}', this.value)" class="bg-white border border-slate-200 rounded px-1 py-0.5 text-[10px] text-slate-600 outline-none" title="Change tier (volume)">${tierOpts}</select>
+          <input type="text" value="${eff.label}" oninput="lioPkgSetCellLabel('${pkg.id}','${modKey}',this.value)" placeholder="Override label…" class="bg-white border border-slate-200 rounded px-1 py-0.5 text-[10px] text-slate-600 outline-none placeholder-slate-600">
           ${cfg.yearMode ? `<div class="grid grid-cols-3 gap-0.5 mt-0.5">
-            <input type="number" value="${eff.yr1 ?? priceVal}" oninput="lioPkgSetYear('${pkg.id}','${modKey}','yr1',this.value)" placeholder="Y1" class="bg-slate-900/60 border border-slate-700 rounded px-0.5 py-0.5 text-[9px] text-white text-right outline-none" title="Year 1 price">
-            <input type="number" value="${eff.yr2 ?? priceVal}" oninput="lioPkgSetYear('${pkg.id}','${modKey}','yr2',this.value)" placeholder="Y2" class="bg-slate-900/60 border border-slate-700 rounded px-0.5 py-0.5 text-[9px] text-white text-right outline-none" title="Year 2 price">
-            <input type="number" value="${eff.yr3 ?? priceVal}" oninput="lioPkgSetYear('${pkg.id}','${modKey}','yr3',this.value)" placeholder="Y3" class="bg-slate-900/60 border border-slate-700 rounded px-0.5 py-0.5 text-[9px] text-white text-right outline-none" title="Year 3 price">
+            <input type="number" value="${eff.yr1 ?? priceVal}" oninput="lioPkgSetYear('${pkg.id}','${modKey}','yr1',this.value)" placeholder="Y1" class="bg-white border border-slate-200 rounded px-0.5 py-0.5 text-[9px] text-slate-900 text-right outline-none" title="Year 1 price">
+            <input type="number" value="${eff.yr2 ?? priceVal}" oninput="lioPkgSetYear('${pkg.id}','${modKey}','yr2',this.value)" placeholder="Y2" class="bg-white border border-slate-200 rounded px-0.5 py-0.5 text-[9px] text-slate-900 text-right outline-none" title="Year 2 price">
+            <input type="number" value="${eff.yr3 ?? priceVal}" oninput="lioPkgSetYear('${pkg.id}','${modKey}','yr3',this.value)" placeholder="Y3" class="bg-white border border-slate-200 rounded px-0.5 py-0.5 text-[9px] text-slate-900 text-right outline-none" title="Year 3 price">
           </div>` : ''}
         </div>
       </div>`;
@@ -5371,7 +5396,7 @@ function lioPkgRenderDiscountControls() {
   const targets = nd.targets && nd.targets.length > 0 ? nd.targets : cfg.packages.map(p => p.id);
   host.innerHTML = cfg.packages.map(pkg => {
     const checked = targets.includes(pkg.id) ? 'checked' : '';
-    return `<label class="inline-flex items-center gap-1 text-xs text-slate-300 cursor-pointer px-2 py-1 rounded bg-slate-800/40 border border-slate-600/50">
+    return `<label class="inline-flex items-center gap-1 text-xs text-slate-600 cursor-pointer px-2 py-1 rounded bg-slate-50 border border-slate-300/50">
       <input type="checkbox" value="${pkg.id}" ${checked} class="w-3.5 h-3.5">
       <span>${pkg.name}</span>
     </label>`;
@@ -5472,34 +5497,34 @@ function lioRenderPackageFooterRows() {
   // (Named discount no longer renders as a separate row — it's shown inside
   // each affected card's breakdown via _pkgCardHtmlC/B.)
   if (cfg.showImpl) {
-    html += `<div class="p-3 bg-lio-600/10 border-t border-slate-700/40 flex items-center text-xs text-lio-200 font-semibold">Implementation Fee <span class="ml-2 text-[10px] text-slate-400 font-normal">(${cfg.implPct}% one-time)</span></div>`;
+    html += `<div class="p-3 bg-lio-600/10 border-t border-slate-200 flex items-center text-xs text-indigo-700 font-semibold">Implementation Fee <span class="ml-2 text-[10px] text-slate-500 font-normal">(${cfg.implPct}% one-time)</span></div>`;
     cfg.packages.forEach(pkg => {
       const annualBase = cfg.yearMode ? _pkgPackageTotal(pkg, 'yr1') : _pkgPackageTotal(pkg, null);
       const impl = Math.round(annualBase * (cfg.implPct/100));
-      html += `<div class="p-3 bg-slate-900/30 border-t border-l border-slate-700/40 text-center text-sm font-semibold text-slate-100">${fmtRaw(impl)} <span class="text-[10px] text-slate-500">one-time</span></div>`;
+      html += `<div class="p-3 bg-slate-900/30 border-t border-l border-slate-200 text-center text-sm font-semibold text-slate-100">${fmtRaw(impl)} <span class="text-[10px] text-slate-500">one-time</span></div>`;
     });
   }
   if (cfg.showCs) {
-    html += `<div class="p-3 bg-lio-600/10 border-t border-slate-700/40 flex items-center text-xs text-lio-200 font-semibold">Customer Success & Support Fee <span class="ml-2 text-[10px] text-slate-400 font-normal">(${cfg.csPct}% / year)</span></div>`;
+    html += `<div class="p-3 bg-lio-600/10 border-t border-slate-200 flex items-center text-xs text-indigo-700 font-semibold">Customer Success & Support Fee <span class="ml-2 text-[10px] text-slate-500 font-normal">(${cfg.csPct}% / year)</span></div>`;
     cfg.packages.forEach(pkg => {
       const annualBase = cfg.yearMode ? _pkgPackageTotal(pkg, 'yr1') : _pkgPackageTotal(pkg, null);
       const cs = Math.round(annualBase * (cfg.csPct/100));
-      html += `<div class="p-3 bg-slate-900/30 border-t border-l border-slate-700/40 text-center text-sm font-semibold text-slate-100">${fmtRaw(cs)} <span class="text-[10px] text-slate-500">/yr</span></div>`;
+      html += `<div class="p-3 bg-slate-900/30 border-t border-l border-slate-200 text-center text-sm font-semibold text-slate-100">${fmtRaw(cs)} <span class="text-[10px] text-slate-500">/yr</span></div>`;
     });
   }
   if (cfg.showMaint) {
     const isPct = cfg.maintMode === 'pct';
     const unit = isPct ? '%' : currencySymbols[currentCurrency];
-    html += `<div class="p-3 bg-amber-500/10 border-t border-slate-700/40 flex items-center text-xs text-amber-200 font-semibold">Maintenance Fee <span class="ml-2 text-[10px] text-slate-400 font-normal">(${isPct ? cfg.maintAmount + '% of SaaS / yr' : fmtRaw(cfg.maintAmount) + ' fixed / yr'})</span> <span class="ml-2 text-[9px] text-slate-500 font-normal">informational</span></div>`;
+    html += `<div class="p-3 bg-amber-500/10 border-t border-slate-200 flex items-center text-xs text-amber-200 font-semibold">Maintenance Fee <span class="ml-2 text-[10px] text-slate-500 font-normal">(${isPct ? cfg.maintAmount + '% of SaaS / yr' : fmtRaw(cfg.maintAmount) + ' fixed / yr'})</span> <span class="ml-2 text-[9px] text-slate-500 font-normal">informational</span></div>`;
     cfg.packages.forEach(pkg => {
       const annualBase = cfg.yearMode ? _pkgPackageTotal(pkg, 'yr1') : _pkgPackageTotal(pkg, null);
       const maint = isPct ? Math.round(annualBase * (cfg.maintAmount/100)) : Math.round(cfg.maintAmount);
-      html += `<div class="p-3 bg-slate-900/30 border-t border-l border-slate-700/40 text-center text-sm font-semibold text-amber-100">${fmtRaw(maint)} <span class="text-[10px] text-amber-300/60">/yr</span></div>`;
+      html += `<div class="p-3 bg-slate-900/30 border-t border-l border-slate-200 text-center text-sm font-semibold text-amber-100">${fmtRaw(maint)} <span class="text-[10px] text-amber-700/60">/yr</span></div>`;
     });
   }
   if (cfg.footerNote && cfg.footerNote.trim()) {
     const totalCols = cols + 1;
-    html += `<div class="p-3 border-t border-slate-700/40 text-[11px] text-slate-300 italic" style="grid-column: span ${totalCols};">${cfg.footerNote.replace(/\n/g,'<br>')}</div>`;
+    html += `<div class="p-3 border-t border-slate-200 text-[11px] text-slate-600 italic" style="grid-column: span ${totalCols};">${cfg.footerNote.replace(/\n/g,'<br>')}</div>`;
   }
   host.innerHTML = html;
 }
@@ -8098,9 +8123,47 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
   const W = window.lioWizard = window.lioWizard || {
     step: 1,
     completed: new Set(),
+    format: null,        // 'standard' | 'package' | 'token' — chosen in step 1
     profileKey: null,
     quoteRef: null
   };
+
+  // ── Step registry ────────────────────────────────────────────────────────
+  // The wizard's shape follows the chosen quote format, so the user only ever
+  // walks through steps that matter for their format. Steps are addressed by
+  // key, never by a hardcoded number.
+  const LIO_STEPS = {
+    format:   { label: 'Format',           render: (p) => renderStepFormat(p) },
+    profile:  { label: 'Customer',         render: (p) => renderStep1Profile(p) },
+    modules:  { label: 'Agents',           render: (p) => renderStep2Modules(p) },
+    packages: { label: 'Packages',         render: (p) => renderStepPackages(p) },
+    tokens:   { label: 'Token Plan',       render: (p) => renderStepTokens(p) },
+    services: { label: 'Services',         render: (p) => renderStep3Services(p) },
+    custom:   { label: 'Customization',    render: (p) => renderStep4Customization(p) },
+    details:  { label: 'Customer Details', render: (p) => renderStep5CustomerDetails(p) },
+    review:   { label: 'Review & Send',    render: (p) => renderStep6Review(p) }
+  };
+  const LIO_FLOWS = {
+    standard: ['format','profile','modules','services','custom','details','review'],
+    package:  ['format','profile','modules','packages','services','custom','details','review'],
+    token:    ['format','profile','tokens','services','custom','details','review']
+  };
+  function lioFlow() { return LIO_FLOWS[W.format || 'standard']; }
+  function lioStepKey(n) { return lioFlow()[(n || W.step) - 1]; }
+  function lioStepCount() { return lioFlow().length; }
+
+  // Render the sidebar from the active flow.
+  function renderStepNav() {
+    const host = document.getElementById('lio-stepnav-list');
+    if (!host) return;
+    host.innerHTML = lioFlow().map((key, i) => {
+      const n = i + 1;
+      const active = n === W.step ? ' active' : '';
+      const done = (W.completed.has(n) && n !== W.step) ? ' done' : '';
+      return '<div class="lio-step' + active + done + '" data-step="' + n + '" onclick="lioGoToStep(' + n + ')">' +
+             '<span class="lio-step-num"><span>' + n + '</span></span> ' + LIO_STEPS[key].label + '</div>';
+    }).join('');
+  }
 
   function newQuoteRef() {
     return 'LIO-' + Date.now().toString(36).toUpperCase();
@@ -8126,6 +8189,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
     // reset wizard state for a fresh quote
     W.step = 1;
     W.completed = new Set();
+    W.format = null;
     W.profileKey = null;
     W.quoteRef = newQuoteRef();
     // wipe any legacy state from the previous run
@@ -8179,14 +8243,32 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
     });
     // wipe per-quote module overrides
     window._wizardModuleOverrides = {};
+    // Per-quote pricing customizations must not leak into a new quote:
+    // base fees, editable list prices, per-agent tier toggles, row order,
+    // package layout + cell overrides, and the token plan.
+    window._baseFees = {};
+    window._listOverrides = {};
+    window._agentTierOff = {};
+    window._quoteAgentOrder = [];
+    window._pkgCellOverrides = {};
+    if (typeof _lioPkgDefaultConfig === 'function') window._packageConfig = _lioPkgDefaultConfig();
+    window._tokenConfig = {
+      plan: 'enterprise', mode: 'token', sel: {},
+      fees: { enterprise: {}, strategic: {} }, tierIdx: {}, overage: ''
+    };
+    // editable service bullets fall back to their defaults
+    ['quote-service-impl-text','quote-service-cs-text'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
     if (typeof calcUpdate === 'function') calcUpdate();
+    if (typeof updateQuotePricing === 'function') { try { updateQuotePricing(); } catch (e) {} }
   }
 
   // ---------------------------
   // Step navigation
   // ---------------------------
   function lioGoToStep(n) {
-    if (n < 1 || n > 6) return;
+    if (n < 1 || n > lioStepCount()) return;
     W.step = n;
     renderStep();
     lioSyncSummary();
@@ -8199,7 +8281,7 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
     // Validate current step before advancing
     if (!validateStep(W.step)) return;
     W.completed.add(W.step);
-    if (W.step < 6) lioGoToStep(W.step + 1);
+    if (W.step < lioStepCount()) lioGoToStep(W.step + 1);
   }
   window.lioNextStep = lioNextStep;
 
@@ -8209,7 +8291,12 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
   window.lioPrevStep = lioPrevStep;
 
   function validateStep(n) {
-    if (n === 1 && !W.profileKey) {
+    const key = lioStepKey(n);
+    if (key === 'format' && !W.format) {
+      alert('Choose how you want to price this quote to continue.');
+      return false;
+    }
+    if (key === 'profile' && !W.profileKey) {
       alert('Pick a customer profile to continue (or choose Custom for a blank slate).');
       return false;
     }
@@ -8220,29 +8307,26 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
   // Step rendering
   // ---------------------------
   function renderStep() {
-    // Update sidebar active/done states
-    document.querySelectorAll('.lio-step').forEach(el => {
-      const n = parseInt(el.dataset.step, 10);
-      el.classList.toggle('active', n === W.step);
-      el.classList.toggle('done', W.completed.has(n) && n !== W.step);
-    });
+    const total = lioStepCount();
+    const key = lioStepKey();
+    // Sidebar reflects the active flow (length changes with the format).
+    renderStepNav();
     // Progress bar
     const fill = document.getElementById('lio-progress-fill');
-    if (fill) fill.style.width = (W.step / 6 * 100).toFixed(0) + '%';
+    if (fill) fill.style.width = (W.step / total * 100).toFixed(0) + '%';
     const lbl = document.getElementById('lio-progress-label');
-    if (lbl) lbl.textContent = 'Step ' + W.step + ' of 6';
+    if (lbl) lbl.textContent = 'Step ' + W.step + ' of ' + total;
 
     // Breadcrumb in topbar
     const bc = document.getElementById('lio-breadcrumb');
     if (bc) {
-      const stepName = ['', 'Customer Profile', 'Modules', 'Services', 'Customization', 'Customer Details', 'Review & Send'][W.step];
-      bc.innerHTML = '<span class="text-slate-400">Quote Builder</span><span class="text-slate-300">·</span><span class="text-slate-600 font-medium">' + stepName + '</span>';
+      bc.innerHTML = '<span class="text-slate-400">Quote Builder</span><span class="text-slate-300">·</span><span class="text-slate-600 font-medium">' + (LIO_STEPS[key]?.label || '') + '</span>';
     }
 
-    // Back / Next button enable/disable
+    // Back / Next buttons
     document.getElementById('lio-btn-back').style.visibility = (W.step === 1) ? 'hidden' : 'visible';
     const nextBtn = document.getElementById('lio-btn-next');
-    if (W.step === 6) {
+    if (W.step === total) {
       nextBtn.textContent = 'Generate PDF';
       nextBtn.onclick = lioGenerateAndDownload;
     } else {
@@ -8250,16 +8334,146 @@ window.lioRenderPhaseChips = lioRenderPhaseChips;
       nextBtn.onclick = lioNextStep;
     }
 
-    // Render current step content
+    // Render current step content via the registry
     const pane = document.getElementById('lio-step-pane');
     if (!pane) return;
+    lioReleaseViews();   // hand borrowed views back before wiping the pane
     pane.innerHTML = '';
-    if (W.step === 1) renderStep1Profile(pane);
-    else if (W.step === 2) renderStep2Modules(pane);
-    else if (W.step === 3) renderStep3Services(pane);
-    else if (W.step === 4) renderStep4Customization(pane);
-    else if (W.step === 5) renderStep5CustomerDetails(pane);
-    else if (W.step === 6) renderStep6Review(pane);
+    const def = LIO_STEPS[key];
+    if (def && typeof def.render === 'function') def.render(pane);
+  }
+
+  // ---------------------------
+  // View adoption — the Package and Token views live inside the quote modal.
+  // Rather than duplicating them, the wizard borrows the real DOM node for the
+  // duration of a step and hands it back when the step changes. One source of
+  // truth, zero drift.
+  // ---------------------------
+  const _lioViewHome = {};
+  function lioAdoptView(pane, id) {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    if (!_lioViewHome[id]) _lioViewHome[id] = el.parentElement;
+    el.classList.remove('hidden');
+    pane.appendChild(el);
+    return el;
+  }
+  function lioReleaseViews() {
+    Object.keys(_lioViewHome).forEach(id => {
+      const el = document.getElementById(id);
+      const home = _lioViewHome[id];
+      if (el && home && el.parentElement !== home) {
+        el.classList.add('hidden');
+        home.appendChild(el);
+      }
+    });
+  }
+
+  // ---------------------------
+  // STEP — Format (how should this quote be priced?)
+  // ---------------------------
+  const LIO_FORMATS = [
+    {
+      key: 'standard', icon: '📋', name: 'Individual agents',
+      tagline: 'One line per agent, with tiers and discounts.',
+      bullets: ['Pick agents and volume tiers', 'Per-agent base fee & discounts', 'Classic itemised quote PDF'],
+      best: 'Most quotes'
+    },
+    {
+      key: 'package', icon: '📦', name: 'Compare packages',
+      tagline: 'Good / better / best side by side.',
+      bullets: ['Basic · Premium · Diamond columns', 'Build-up view — what each tier adds', 'One-page comparison PDF'],
+      best: 'Letting the customer choose'
+    },
+    {
+      key: 'token', icon: '💠', name: 'Token plan',
+      tagline: 'Enterprise or Strategic plan with token allowances.',
+      bullets: ['Enterprise vs Strategic pricing', 'Included tokens per agent', 'Overage rate per token'],
+      best: 'Usage-based deals'
+    }
+  ];
+
+  function renderStepFormat(pane) {
+    pane.innerHTML =
+      '<div class="mb-7">' +
+        '<h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">How should this quote be priced?</h1>' +
+        '<p class="text-sm text-slate-500 mt-1.5 max-w-xl">This shapes the rest of the builder — you will only see the steps that matter for the format you pick. You can change it later.</p>' +
+      '</div>' +
+      '<div class="lio-format-grid">' +
+        LIO_FORMATS.map(f => {
+          const active = W.format === f.key;
+          return '<button type="button" class="lio-format-card' + (active ? ' active' : '') + '" data-fmt="' + f.key + '">' +
+            '<div class="lio-format-check">✓</div>' +
+            '<div class="lio-format-icon">' + f.icon + '</div>' +
+            '<div class="lio-format-name">' + f.name + '</div>' +
+            '<div class="lio-format-tagline">' + f.tagline + '</div>' +
+            '<ul class="lio-format-bullets">' +
+              f.bullets.map(b => '<li>' + b + '</li>').join('') +
+            '</ul>' +
+            '<div class="lio-format-best">' + f.best + '</div>' +
+          '</button>';
+        }).join('') +
+      '</div>';
+
+    pane.querySelectorAll('.lio-format-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const prev = W.format;
+        W.format = card.dataset.fmt;
+        // Changing format changes the flow — keep the user on step 1 and reset
+        // completion state past this point so the sidebar stays truthful.
+        if (prev !== W.format) W.completed = new Set();
+        renderStep();
+        lioSyncSummary();
+      });
+    });
+  }
+
+  // ---------------------------
+  // STEP — Packages (borrows the real package view)
+  // ---------------------------
+  function renderStepPackages(pane) {
+    pane.innerHTML =
+      '<div class="mb-5">' +
+        '<h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Build the package comparison</h1>' +
+        '<p class="text-sm text-slate-500 mt-1.5 max-w-2xl">Each column is a package. Tick the agents it includes, adjust tiers or prices per cell, and mark one as Best Value. The PDF prints this as a single A4 portrait page.</p>' +
+      '</div>' +
+      '<div id="lio-pkg-host" class="lio-card p-4"></div>';
+    // Build the (hidden) per-agent pricing rows first so qf-{key} prices —
+    // including base fees and discounts from the Agents step — are available
+    // to the package/token views.
+    if (typeof populateQuotePricing === 'function') { try { populateQuotePricing(); } catch (e) {} }
+    const host = pane.querySelector('#lio-pkg-host');
+    const view = lioAdoptView(host, 'quote-package-view');
+    if (!view) {
+      host.innerHTML = '<div class="text-sm text-slate-500">Package view unavailable.</div>';
+      return;
+    }
+    window._quoteView = 'package';
+    if (typeof lioRenderPackageView === 'function') lioRenderPackageView();
+  }
+
+  // ---------------------------
+  // STEP — Token plan (borrows the real token view)
+  // ---------------------------
+  function renderStepTokens(pane) {
+    pane.innerHTML =
+      '<div class="mb-5">' +
+        '<h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Configure the token plan</h1>' +
+        '<p class="text-sm text-slate-500 mt-1.5 max-w-2xl">Choose the plan, tick the agents to include, and set the overage rate. Switch to tier-based pricing any time if the customer prefers volume tiers.</p>' +
+      '</div>' +
+      '<div id="lio-tok-host" class="lio-card p-4"></div>';
+    // Build the (hidden) per-agent pricing rows first so qf-{key} prices —
+    // including base fees and discounts from the Agents step — are available
+    // to the package/token views.
+    if (typeof populateQuotePricing === 'function') { try { populateQuotePricing(); } catch (e) {} }
+    const host = pane.querySelector('#lio-tok-host');
+    const view = lioAdoptView(host, 'quote-token-view');
+    if (!view) {
+      host.innerHTML = '<div class="text-sm text-slate-500">Token view unavailable.</div>';
+      return;
+    }
+    window._quoteView = 'token';
+    if (typeof lioRenderTokenView === 'function') lioRenderTokenView();
   }
 
   // ---------------------------
